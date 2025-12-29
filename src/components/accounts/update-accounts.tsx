@@ -1,123 +1,474 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PlusCircle } from "lucide-react";
 
-const UpdateAccounts = () => {
+import SectionHeader from "@/components/shared/section-header";
+import FieldRow from "@/components/shared/field-row";
+import SelectField from "@/components/shared/select-field";
+import DateField from "@/components/shared/date-field";
 
-  const Field = ({ label, value }: { label: string; value: string }) => (
-    <div className="grid grid-cols-2 py-2.5 px-4 border-b last:border-0 border-border items-center">
-      <span className="text-sm font-medium text-muted-foreground">{label}</span>
-      <span className="text-sm text-foreground font-medium">{value}</span>
-    </div>
-  );
+import {
+  updateAccountSchema,
+  type UpdateAccountFormValues,
+} from "@/validators/updateAccount.schema";
 
-  const SectionHeader = ({ title }: { title: string }) => (
-    <div className="bg-muted/50 py-2 px-4 border-y border-border font-bold text-center text-xs uppercase tracking-widest text-foreground">
-      {title}
-    </div>
-  );
+export default function UpdateAccounts() {
+  const [isEdit, setIsEdit] = useState(false);
+
+  const form = useForm<UpdateAccountFormValues>({
+    resolver: zodResolver(updateAccountSchema),
+    defaultValues: {
+      source: "Himalaya",
+      accountStatus: "Awareness",
+      accountStage: "Initial Pitch",
+      businessStatus: "Active",
+      country: "India",
+      createdBy: "System User",
+    },
+  });
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors, isDirty },
+  } = form;
+
+  const data = watch();
+
+  const onSave = (values: UpdateAccountFormValues) => {
+    console.log("SAVE DATA", values);
+    setIsEdit(false);
+  };
 
   return (
-    <div className=" space-y-6 bg-background text-foreground min-h-screen">
-
-      {/* Header Bar - Adapts to Dark/Light */}
-      <div className="flex justify-between items-center border border-border p-4 rounded-xl bg-card shadow-sm">
+    <div className="space-y-6 bg-background min-h-screen">
+      {/* HEADER */}
+      <div className="flex justify-between items-center border p-4 rounded-xl bg-card">
         <h1 className="text-lg font-semibold">
           Account Owner: <span className="text-primary font-bold">User</span>
         </h1>
-        <Button variant="secondary" size="sm" className="font-semibold cursor-pointer">
-          Update
-        </Button>
+
+        {!isEdit ? (
+          <Button size="sm" onClick={() => setIsEdit(true)}>
+            Update
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={!isDirty}
+              onClick={handleSubmit(onSave)}
+            >
+              Save
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                reset();
+                setIsEdit(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
       </div>
 
-      <Card className="overflow-hidden border-border bg-card">
-        {/* Account Status */}
+      <Card className="overflow-hidden">
+        {/* ================= Account Status ================= */}
         <SectionHeader title="Account Status" />
         <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
-          <div className="md:border-r border-border">
-            <Field label="Assignment Date" value="Date" />
-            <Field label="Source" value="Pick List" />
-            <Field label="Distributor Code" value="Single Line" />
-            <Field label="WABA Interested" value="Checkbox" />
+          <div className="md:border-r">
+            <FieldRow label="Assignment Date">
+              <DateField
+                value={data.assignmentDate}
+                isEdit={isEdit}
+                onChange={(d) => setValue("assignmentDate", d)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Source" error={errors.source?.message}>
+              <SelectField
+                value={data.source}
+                isEdit={isEdit}
+                options={["Himalaya", "Website"]}
+                onChange={(v) => setValue("source", v)}
+              />
+            </FieldRow>
+
+            <FieldRow
+              label="Distributor Code"
+              error={errors.distributorCode?.message}
+            >
+              {isEdit ? (
+                <Input {...register("distributorCode")} className="h-8" />
+              ) : (
+                <span>{data.distributorCode || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="WABA Interested">
+              {isEdit ? (
+                <Checkbox
+                  checked={data.wabaInterested}
+                  onCheckedChange={(v) =>
+                    setValue("wabaInterested", Boolean(v))
+                  }
+                />
+              ) : (
+                <span>{data.wabaInterested ? "Yes" : "No"}</span>
+              )}
+            </FieldRow>
           </div>
+
           <div>
-            <Field label="Call Back Date/ Time" value="Date" />
-            <Field label="Account Status" value="Pick List" />
-            <Field label="Account Stage" value="Pick List" />
-            <Field label="Business Status" value="Pick List" />
+            <FieldRow label="Call Back Date/ Time">
+              <DateField
+                value={data.callBackDate}
+                isEdit={isEdit}
+                onChange={(d) => setValue("callBackDate", d)}
+              />
+            </FieldRow>
+
+            <FieldRow
+              label="Account Status"
+              error={errors.accountStatus?.message}
+            >
+              <SelectField
+                value={data.accountStatus}
+                isEdit={isEdit}
+                options={["Awareness", "Interested"]}
+                onChange={(v) => setValue("accountStatus", v)}
+              />
+            </FieldRow>
+
+            <FieldRow
+              label="Account Stage"
+              error={errors.accountStage?.message}
+            >
+              <SelectField
+                value={data.accountStage}
+                isEdit={isEdit}
+                options={["Initial Pitch"]}
+                onChange={(v) => setValue("accountStage", v)}
+              />
+            </FieldRow>
+
+            <FieldRow
+              label="Business Status"
+              error={errors.businessStatus?.message}
+            >
+              <SelectField
+                value={data.businessStatus}
+                isEdit={isEdit}
+                options={["Active", "Inactive"]}
+                onChange={(v) => setValue("businessStatus", v)}
+              />
+            </FieldRow>
           </div>
         </CardContent>
 
-        {/* Customer Basic Details */}
+        {/* ================= Customer Basic Details ================= */}
         <SectionHeader title="Customer Basic Details" />
         <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
-          <div className="md:border-r border-border">
-            <Field label="First Name" value="Single Line" />
-            <Field label="Residential Ownership" value="Pick List" />
-            <Field label="Residential Location" value="Single Line" />
-            <Field label="No of Years..." value="Number" />
-            <Field label="Created By" value="System User" />
+          <div className="md:border-r">
+            <FieldRow label="First Name" error={errors.firstName?.message}>
+              {isEdit ? (
+                <Input {...register("firstName")} className="h-8" />
+              ) : (
+                <span>{data.firstName || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Residential Ownership">
+              <SelectField
+                value={data.residentialOwnership}
+                isEdit={isEdit}
+                options={["Owned", "Rented"]}
+                onChange={(v) => setValue("residentialOwnership", v)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Residential Location">
+              {isEdit ? (
+                <Input {...register("residentialLocation")} className="h-8" />
+              ) : (
+                <span>{data.residentialLocation || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="No of Years...">
+              {isEdit ? (
+                <Input {...register("noOfYears")} className="h-8" />
+              ) : (
+                <span>{data.noOfYears || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Created By">
+              <span>{data.createdBy}</span>
+            </FieldRow>
           </div>
+
           <div>
-            <Field label="Last Name" value="Single Line" />
-            <Field label="Mothers Name" value="Single Line" />
-            <Field label="Preferred Language" value="Multi-Select" />
-            <Field label="Premise Location" value="Single Line" />
-            <Field label="Premise Ownership" value="Pick List" />
+            <FieldRow label="Last Name" error={errors.lastName?.message}>
+              {isEdit ? (
+                <Input {...register("lastName")} className="h-8" />
+              ) : (
+                <span>{data.lastName || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Mothers Name">
+              {isEdit ? (
+                <Input {...register("mothersName")} className="h-8" />
+              ) : (
+                <span>{data.mothersName || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Preferred Language">
+              {isEdit ? (
+                <Input {...register("preferredLanguage")} className="h-8" />
+              ) : (
+                <span>{data.preferredLanguage || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Premise Location">
+              {isEdit ? (
+                <Input {...register("premiseLocation")} className="h-8" />
+              ) : (
+                <span>{data.premiseLocation || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Premise Ownership">
+              <SelectField
+                value={data.premiseOwnership}
+                isEdit={isEdit}
+                options={["Owned", "Rented"]}
+                onChange={(v) => setValue("premiseOwnership", v)}
+              />
+            </FieldRow>
           </div>
         </CardContent>
 
-        {/* Address Information */}
+        {/* ================= Customer Business Details ================= */}
+        <SectionHeader title="Customer Business Details" />
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
+          {/* LEFT COLUMN */}
+          <div className="md:border-r">
+            <FieldRow label="Business Registration Type">
+              <SelectField
+                value={data.businessRegistrationType}
+                isEdit={isEdit}
+                options={[
+                  "Proprietorship",
+                  "Partnership",
+                  "Private Limited",
+                  "Public Limited",
+                ]}
+                onChange={(v) => setValue("businessRegistrationType", v)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Business Vintage (No of Years)">
+              {isEdit ? (
+                <Input
+                  type="number"
+                  {...register("businessVintage", { valueAsNumber: true })}
+                  className="h-8"
+                />
+              ) : (
+                <span>{data.businessVintage ?? "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Suppliers">
+              {isEdit ? (
+                <Input {...register("suppliers")} className="h-8" />
+              ) : (
+                <span>{data.suppliers || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Description">
+              {isEdit ? (
+                <textarea
+                  {...register("description")}
+                  className="w-full rounded-md border px-2 py-1 text-sm"
+                  rows={3}
+                />
+              ) : (
+                <span>{data.description || "—"}</span>
+              )}
+            </FieldRow>
+          </div>
+
+          {/* RIGHT COLUMN */}
+          <div>
+            <FieldRow label="Parent Account">
+              {isEdit ? (
+                <Input
+                  {...register("parentAccount")}
+                  className="h-8"
+                  placeholder="Lookup"
+                />
+              ) : (
+                <span>{data.parentAccount || "—"}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label="Type of Business">
+              <SelectField
+                value={data.typeOfBusiness}
+                isEdit={isEdit}
+                options={["Manufacturing", "Trading", "Services"]}
+                onChange={(v) => setValue("typeOfBusiness", v)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Industry">
+              <SelectField
+                value={data.industry}
+                isEdit={isEdit}
+                options={["Finance", "Retail", "Healthcare", "IT"]}
+                onChange={(v) => setValue("industry", v)}
+              />
+            </FieldRow>
+          </div>
+        </CardContent>
+
+        {/* ================= Address Information ================= */}
         <SectionHeader title="Address Information" />
-        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 border-b border-border">
-          <div className="md:border-r border-border">
-            <Field label="Street" value="Single Line" />
-            <Field label="State" value="Single Line" />
-            <Field label="Code" value="Single Line" />
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 border-b">
+          <div className="md:border-r">
+            <FieldRow label="Street">
+              {isEdit ? (
+                <Input {...register("street")} className="h-8" />
+              ) : (
+                <span>{data.street || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="State">
+              {isEdit ? (
+                <Input {...register("state")} className="h-8" />
+              ) : (
+                <span>{data.state || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Code">
+              {isEdit ? (
+                <Input {...register("code")} className="h-8" />
+              ) : (
+                <span>{data.code || "—"}</span>
+              )}
+            </FieldRow>
           </div>
           <div>
-            <Field label="City" value="Single Line" />
-            <Field label="Country" value="Single Line" />
+            <FieldRow label="City">
+              {isEdit ? (
+                <Input {...register("city")} className="h-8" />
+              ) : (
+                <span>{data.city || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Country">
+              {isEdit ? (
+                <Input {...register("country")} className="h-8" />
+              ) : (
+                <span>{data.country || "—"}</span>
+              )}
+            </FieldRow>
           </div>
         </CardContent>
 
-        {/* References */}
+        {/* ================= References ================= */}
         <SectionHeader title="References from Customer" />
-        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 border-b border-border">
-          <div className="md:border-r border-border">
-            <Field label="Name of Person 1" value="Single Line" />
-            <Field label="Phone of Person 1" value="Phone" />
-            <Field label="Email ID Person 1" value="Email" />
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 border-b">
+          <div className="md:border-r">
+            <FieldRow label="Name of Person 1">
+              {isEdit ? (
+                <Input {...register("ref1Name")} className="h-8" />
+              ) : (
+                <span>{data.ref1Name || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Phone of Person 1">
+              {isEdit ? (
+                <Input {...register("ref1Phone")} className="h-8" />
+              ) : (
+                <span>{data.ref1Phone || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Email ID Person 1">
+              {isEdit ? (
+                <Input {...register("ref1Email")} className="h-8" />
+              ) : (
+                <span>{data.ref1Email || "—"}</span>
+              )}
+            </FieldRow>
           </div>
           <div>
-            <Field label="Name of Person 2" value="Single Line" />
-            <Field label="Phone of Person 2" value="Phone" />
-            <Field label="Email ID Person 2" value="Email" />
+            <FieldRow label="Name of Person 2">
+              {isEdit ? (
+                <Input {...register("ref2Name")} className="h-8" />
+              ) : (
+                <span>{data.ref2Name || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Phone of Person 2">
+              {isEdit ? (
+                <Input {...register("ref2Phone")} className="h-8" />
+              ) : (
+                <span>{data.ref2Phone || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Email ID Person 2">
+              {isEdit ? (
+                <Input {...register("ref2Email")} className="h-8" />
+              ) : (
+                <span>{data.ref2Email || "—"}</span>
+              )}
+            </FieldRow>
           </div>
         </CardContent>
 
-        {/* Notes */}
+        {/* ================= Notes ================= */}
         <SectionHeader title="Notes" />
         <CardContent className="p-4 space-y-3">
           {[1, 2].map((i) => (
-            <div key={i} className="bg-muted/30 p-3 rounded-lg border border-border">
-              <p className="text-sm font-medium mb-2 text-foreground">Note content {i}</p>
-              <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase tracking-wider">
-                <span>Module: <Badge variant="outline" className="text-[10px] h-4">Contact</Badge></span>
+            <div key={i} className="bg-muted/30 p-3 rounded-lg border">
+              <p className="text-sm font-medium mb-2">Note content {i}</p>
+              <div className="flex gap-3 text-[11px] text-muted-foreground uppercase">
+                <span>
+                  Module:{" "}
+                  <Badge variant="outline" className="text-[10px] h-4">
+                    Contact
+                  </Badge>
+                </span>
                 <span>Created: 19-12-2025</span>
                 <span>Owner: Note Owner</span>
               </div>
             </div>
           ))}
-
-          <Button variant="ghost" size="sm" className="w-full text-primary hover:bg-primary/10 cursor-pointer">
+          <Button variant="ghost" size="sm" className="w-full">
             <PlusCircle className="w-4 h-4 mr-2" /> Add Note
           </Button>
         </CardContent>
       </Card>
     </div>
   );
-};
-
-export default UpdateAccounts;
+}

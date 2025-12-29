@@ -1,129 +1,310 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { PlusCircle } from "lucide-react";
 
-const UpdateDeals = () => {
-    const Field = ({ label, value }: { label: string; value: string }) => (
-        <div className="grid grid-cols-2 py-2 px-4 border-b last:border-0 border-border items-center min-h-[40px]">
-            <span className="text-sm font-medium text-muted-foreground">{label}</span>
-            <span className="text-sm text-foreground font-medium">{value}</span>
-        </div>
-    );
+import SectionHeader from "@/components/shared/section-header";
+import FieldRow from "@/components/shared/field-row";
+import DateField from "@/components/shared/date-field";
+import SelectField from "@/components/shared/select-field";
 
-    const SectionHeader = ({ title }: { title: string }) => (
-        <div className="bg-muted/50 py-2 px-4 border-y border-border font-bold text-center text-xs uppercase tracking-widest text-foreground">
-            {title}
-        </div>
-    );
+import {
+  updateDealSchema,
+  type UpdateDealFormValues,
+} from "@/validators/updateDeal.schema";
 
-    return (
-        <div className="space-y-6 bg-background text-foreground min-h-screen">
+export default function UpdateDeals() {
+  const [isEdit, setIsEdit] = useState(false);
 
-            {/* Header Section */}
-            <div className="flex justify-between items-center border border-border p-4 rounded-xl bg-card shadow-sm">
-                <h1 className="text-lg font-semibold">
-                    Deals Owner: <span className="text-primary font-bold">User</span>
-                </h1>
-                <Button variant="secondary" size="sm" className="font-semibold cursor-pointer">
-                    Update
-                </Button>
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { isDirty },
+  } = useForm<UpdateDealFormValues>({
+    resolver: zodResolver(updateDealSchema),
+    defaultValues: {
+      createdBy: "System Driven Field (User)",
+      modifiedBy: "System Driven Field (User)",
+    },
+  });
+
+  const data = watch();
+
+  const onSave = (values: UpdateDealFormValues) => {
+    console.log("SAVE DEAL", values);
+    setIsEdit(false);
+  };
+
+  return (
+    <div className="space-y-6 bg-background min-h-screen">
+      {/* HEADER */}
+      <div className="flex justify-between items-center border p-4 rounded-xl bg-card">
+        <h1 className="text-lg font-semibold">
+          Deals Owner: <span className="text-primary font-bold">User</span>
+        </h1>
+
+        {!isEdit ? (
+          <Button size="sm" onClick={() => setIsEdit(true)}>
+            Update
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={!isDirty}
+              onClick={handleSubmit(onSave)}
+            >
+              Save
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                reset();
+                setIsEdit(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <Card className="overflow-hidden">
+        {/* ================= Loan Account Status ================= */}
+        <SectionHeader title="Loan Account Status" />
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
+          <div className="md:border-r">
+            <FieldRow label="Deal Type">
+              <SelectField
+                value={data.dealType}
+                isEdit={isEdit}
+                options={["New", "Renewal"]}
+                onChange={(v) => setValue("dealType", v)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Deal Call Back Date/Time">
+              <DateField
+                value={data.dealCallbackDate}
+                isEdit={isEdit}
+                onChange={(d) => setValue("dealCallbackDate", d)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Deal Approval Status">
+              <SelectField
+                value={data.dealApprovalStatus}
+                isEdit={isEdit}
+                options={["Approved", "Pending"]}
+                onChange={(v) => setValue("dealApprovalStatus", v)}
+              />
+            </FieldRow>
+          </div>
+
+          <div>
+            <FieldRow label="Deal Status">
+              <SelectField
+                value={data.dealStatus}
+                isEdit={isEdit}
+                options={["Open", "Closed"]}
+                onChange={(v) => setValue("dealStatus", v)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Stage">
+              <SelectField
+                value={data.stage}
+                isEdit={isEdit}
+                options={["Initial", "Final"]}
+                onChange={(v) => setValue("stage", v)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Closing Date">
+              <DateField
+                value={data.closingDate}
+                isEdit={isEdit}
+                onChange={(d) => setValue("closingDate", d)}
+              />
+            </FieldRow>
+
+            <FieldRow label="Disbursement Date">
+              <DateField
+                value={data.disbursementDate}
+                isEdit={isEdit}
+                onChange={(d) => setValue("disbursementDate", d)}
+              />
+            </FieldRow>
+          </div>
+        </CardContent>
+
+        {/* ================= Loan Liabilities Information ================= */}
+        <SectionHeader title="Loan Liabilities Information" />
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
+          <div className="md:border-r">
+            <FieldRow label="Deal Name">
+              {isEdit ? (
+                <Input {...register("dealName")} className="h-8" />
+              ) : (
+                <span>{data.dealName || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Start Date">
+              <DateField
+                value={data.startDate}
+                isEdit={isEdit}
+                onChange={(d) => setValue("startDate", d)}
+              />
+            </FieldRow>
+            <FieldRow label="End Date">
+              <DateField
+                value={data.endDate}
+                isEdit={isEdit}
+                onChange={(d) => setValue("endDate", d)}
+              />
+            </FieldRow>
+            <FieldRow label="Amount">
+              {isEdit ? (
+                <Input {...register("amount")} className="h-8" />
+              ) : (
+                <span>{data.amount || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Created By">
+              <span>{data.createdBy}</span>
+            </FieldRow>
+            <FieldRow label="Modified By">
+              <span>{data.modifiedBy}</span>
+            </FieldRow>
+          </div>
+
+          <div>
+            {[
+              ["Account Name", "accountName"],
+              ["Lender Name", "lenderName"],
+              ["Loan Type", "loanType"],
+              ["Loan Product", "loanProduct"],
+              ["Interest Type", "interestType"],
+              ["Rate of Interest", "rateOfInterest"],
+            ].map(([label, key]) => (
+              <FieldRow key={key} label={label}>
+                {isEdit ? (
+                  <Input
+                    {...register(key as keyof UpdateDealFormValues)}
+                    className="h-8"
+                  />
+                ) : (
+                  <span>{(data as any)[key] || "—"}</span>
+                )}
+              </FieldRow>
+            ))}
+          </div>
+        </CardContent>
+
+        {/* ================= Funding & Commercials ================= */}
+        <SectionHeader title="Funding & Commercials" />
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
+          <div className="md:border-r">
+            {["sanctionAmount", "processingFees", "insuranceAmount"].map(
+              (k) => (
+                <FieldRow key={k} label={k.replace(/([A-Z])/g, " $1")}>
+                  {isEdit ? (
+                    <Input {...register(k as any)} className="h-8" />
+                  ) : (
+                    <span>{(data as any)[k] || "—"}</span>
+                  )}
+                </FieldRow>
+              )
+            )}
+          </div>
+          <div>
+            {["disbursedAmount", "mmCharges"].map((k) => (
+              <FieldRow key={k} label={k.replace(/([A-Z])/g, " $1")}>
+                {isEdit ? (
+                  <Input {...register(k as any)} className="h-8" />
+                ) : (
+                  <span>{(data as any)[k] || "—"}</span>
+                )}
+              </FieldRow>
+            ))}
+          </div>
+        </CardContent>
+
+        {/* ================= Rejection Status ================= */}
+        <SectionHeader title="Rejection Status" />
+        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
+          <div className="md:border-r">
+            <FieldRow label="Lender Rejection Reason">
+              {isEdit ? (
+                <Input {...register("lenderRejectionReason")} className="h-8" />
+              ) : (
+                <span>{data.lenderRejectionReason || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Lender Rejection Status Explanation">
+              {isEdit ? (
+                <Input
+                  {...register("lenderRejectionExplanation")}
+                  className="h-8"
+                />
+              ) : (
+                <span>{data.lenderRejectionExplanation || "—"}</span>
+              )}
+            </FieldRow>
+          </div>
+          <div>
+            <FieldRow label="Customer Rejection Reason">
+              {isEdit ? (
+                <Input
+                  {...register("customerRejectionReason")}
+                  className="h-8"
+                />
+              ) : (
+                <span>{data.customerRejectionReason || "—"}</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Customer Rejection Status Explanation">
+              {isEdit ? (
+                <Input
+                  {...register("customerRejectionExplanation")}
+                  className="h-8"
+                />
+              ) : (
+                <span>{data.customerRejectionExplanation || "—"}</span>
+              )}
+            </FieldRow>
+          </div>
+        </CardContent>
+
+        {/* ================= Notes ================= */}
+        <SectionHeader title="Notes" />
+        <CardContent className="p-0">
+          {[1, 2].map((i) => (
+            <div key={i} className="p-4 border-b">
+              <p className="text-sm font-semibold mb-2">Note content {i}</p>
+              <div className="flex gap-3 text-[11px] text-muted-foreground uppercase">
+                <span>
+                  Module: <Badge variant="outline">Deal</Badge>
+                </span>
+                <span>Created: 19-12-2025</span>
+                <span>Owner: Note Owner</span>
+              </div>
             </div>
-
-            <Card className="overflow-hidden border-border bg-card shadow-md">
-                {/* Loan Account Status */}
-                <SectionHeader title="Loan Account Status" />
-                <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
-                    <div className="md:border-r border-border">
-                        <Field label="Deal Type" value="Picklist" />
-                        <Field label="Deal Call Back Date/Time" value="Date/Time" />
-                        <Field label="Deal Approval Status" value="Picklist" />
-                    </div>
-                    <div>
-                        <Field label="Deal Status" value="Picklist" />
-                        <Field label="Stage" value="Picklist" />
-                        <Field label="Closing Date" value="Date" />
-                        <Field label="Disbursement Date" value="Date" />
-                    </div>
-                </CardContent>
-
-                {/* Loan Liabilities Information */}
-                <SectionHeader title="Loan Liabilities Information" />
-                <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
-                    <div className="md:border-r border-border">
-                        <Field label="Deal Name" value="Single Line" />
-                        <Field label="Start Date" value="Date" />
-                        <Field label="End Date" value="Date" />
-                        <Field label="Amount" value="Currency" />
-                        <Field label="Created By" value="System Driven Field (User)" />
-                        <Field label="Modified By" value="System Driven Field (User)" />
-                    </div>
-                    <div>
-                        <Field label="Account Name" value="Single Line" />
-                        <Field label="Lender Name" value="Picklist" />
-                        <Field label="Loan Type" value="Picklist" />
-                        <Field label="Loan Product" value="Picklist" />
-                        <Field label="Interest Type" value="Picklist" />
-                        <Field label="Rate of Interest" value="Percent" />
-                    </div>
-                </CardContent>
-
-                {/* Funding & Commercials */}
-                <SectionHeader title="Funding & Commercials" />
-                <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
-                    <div className="md:border-r border-border">
-                        <Field label="Sanction Amount" value="Currency" />
-                        <Field label="Processing Fees" value="Currency" />
-                        <Field label="Insurance Amount" value="Currency" />
-                    </div>
-                    <div>
-                        <Field label="Disbursed Amount" value="Currency" />
-                        <Field label="MM Charges" value="Currency" />
-                        <div className="hidden md:block py-2 px-4 h-[40px] border-b border-border last:border-0"></div>
-                    </div>
-                </CardContent>
-
-                {/* Rejection Status */}
-                <SectionHeader title="Rejection Status" />
-                <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
-                    <div className="md:border-r border-border">
-                        <Field label="Lender Rejection Reason" value="Multi-Select" />
-                        <Field label="Lender Rejection Status Explanation" value="Single Line" />
-                    </div>
-                    <div>
-                        <Field label="Customer Rejection Reason" value="Picklist" />
-                        <Field label="Customer Rejection Status Explanation" value="Single Line" />
-                    </div>
-                </CardContent>
-
-                {/* Notes Section */}
-                <SectionHeader title="Notes" />
-                <CardContent className="p-0">
-                    {[
-                        { id: 1, date: "19-12-2025 1:15 PM" },
-                        { id: 2, date: "26-12-2025 5:20 PM" }
-                    ].map((note) => (
-                        <div key={note.id} className="p-4 border-b border-border group hover:bg-muted/30 transition-colors">
-                            <p className="text-sm font-semibold mb-3">Note content {note.id}</p>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-[11px] text-muted-foreground uppercase tracking-tight">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-bold">Module :</span>
-                                    <Badge variant="outline" className="text-[9px] px-1 h-4 uppercase">Deal</Badge>
-                                </div>
-                                <div><span className="font-bold">Created time (Note) :</span> {note.date}</div>
-                                <div><span className="font-bold">Created by :</span> (Note Owner)</div>
-                            </div>
-                        </div>
-                    ))}
-
-                    <button className="w-full p-4 text-sm font-bold text-primary hover:bg-primary/5 flex items-center justify-center transition-all">
-                        <PlusCircle className="w-4 h-4 mr-2" />
-                        ADD NOTE
-                    </button>
-                </CardContent>
-            </Card>
-        </div>
-    );
-};
-
-export default UpdateDeals;
+          ))}
+          <button className="w-full p-4 text-sm font-bold text-primary hover:bg-primary/5 flex items-center justify-center">
+            <PlusCircle className="w-4 h-4 mr-2" /> ADD NOTE
+          </button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
