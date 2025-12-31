@@ -11,39 +11,43 @@ import DeskPage from './pages/desk-page'
 import UpdateContacts from './components/contacts/update-contacts'
 import UpdateAccounts from './components/accounts/update-accounts'
 import UpdateDeals from './components/deals/update-deals'
+import { SignInPage } from './pages/signin-page'
+import { SignUpPage } from './pages/signup-page'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<SidebarComponent />}>
+        <Route path='/login' element={<SignInPage />} />
+        <Route path='/signup' element={<SignUpPage />} />
 
-          <Route path="/" element={<Navigate to="/accounts" replace />} />
+        <Route element={<SidebarComponent />}>
+          <Route path='/' element={<Navigate to='/accounts' replace />} />
 
           {/* Leads */}
           {/* <Route path="/leads" element={<LeadsPage />} /> */}
           {/* <Route path="/leads/:id" element={<EditLeads />} /> */}
 
           {/* Accounts */}
-          <Route path="/accounts" element={<AccountPage />} />
-          <Route path="/update-accounts" element={<UpdateAccounts />} />
+          <Route path='/accounts' element={<AccountPage />} />
+          <Route path='/update-accounts' element={<UpdateAccounts />} />
 
           {/* Contacts */}
-          <Route path="/contacts" element={<ContactPage />} />
-          <Route path="/update-contacts" element={<UpdateContacts />} />
+          <Route path='/contacts' element={<ContactPage />} />
+          <Route path='/update-contacts' element={<UpdateContacts />} />
 
           {/* Deals */}
-          <Route path="/deals" element={<DealsPage />} />
-          <Route path="/update-deals" element={<UpdateDeals />} />
+          <Route path='/deals' element={<DealsPage />} />
+          <Route path='/update-deals' element={<UpdateDeals />} />
 
           {/* 404 Page */}
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path='*' element={<NotFoundPage />} />
 
           {/* Desk */}
-          <Route path="/desk" element={<DeskPage />} />
+          <Route path='/desk' element={<DeskPage />} />
         </Route>
       </Routes>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position='top-right' />
     </BrowserRouter>
   )
 }
