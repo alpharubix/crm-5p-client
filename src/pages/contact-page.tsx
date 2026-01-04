@@ -47,7 +47,7 @@ export default function LeadsPage() {
   const fetchLeads = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8080/leads/')
+      const res = await fetch('http://localhost:8080/accounts/')
       if (res.ok) {
         const data = await res.json()
         console.log("data", data);

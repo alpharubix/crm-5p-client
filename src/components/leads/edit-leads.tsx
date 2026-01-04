@@ -43,7 +43,7 @@ const EditLeads = () => {
     if (!id) return
 
     try {
-      const res = await fetch(`http://localhost:8080/leads/${id}`)
+      const res = await fetch(`http://localhost:8080/accounts/${id}`)
       if (!res.ok) throw new Error('Failed to fetch lead')
       const result = await res.json()
       setData((prev) => ({ ...prev, ...result }))
@@ -56,7 +56,7 @@ const EditLeads = () => {
     if (!id) return
 
     try {
-      const res = await fetch(`http://localhost:8080/leads/${id}`, {
+      const res = await fetch(`http://localhost:8080/accounts/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

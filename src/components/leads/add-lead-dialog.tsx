@@ -49,7 +49,7 @@ export default function AddLeadDialog({ open, onClose, onSuccess }: Props) {
         return
       }
 
-      const res = await fetch('http://localhost:8080/leads/', {
+      const res = await fetch('http://localhost:8080/accounts/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
