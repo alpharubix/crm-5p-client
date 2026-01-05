@@ -18,27 +18,27 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path='/' element={<Navigate to='/login' replace />} />
+
         <Route path='/login' element={<SignInPage />} />
         <Route path='/signup' element={<SignUpPage />} />
 
         <Route element={<SidebarComponent />}>
-          <Route path='/' element={<Navigate to='/accounts' replace />} />
-
           {/* Leads */}
           {/* <Route path="/leads" element={<LeadsPage />} /> */}
           {/* <Route path="/leads/:id" element={<EditLeads />} /> */}
 
           {/* Accounts */}
           <Route path='/accounts' element={<AccountPage />} />
-          <Route path='/update-accounts' element={<UpdateAccounts />} />
+          <Route path='/accounts/:id' element={<UpdateAccounts />} />
 
           {/* Contacts */}
           <Route path='/contacts' element={<ContactPage />} />
-          <Route path='/update-contacts' element={<UpdateContacts />} />
+          <Route path='/contacts/:id' element={<UpdateContacts />} />
 
           {/* Deals */}
-          <Route path='/deals' element={<DealsPage />} />
-          <Route path='/update-deals' element={<UpdateDeals />} />
+          {/* <Route path='/deals' element={<DealsPage />} />
+          <Route path='/update-deals' element={<UpdateDeals />} /> */}
 
           {/* 404 Page */}
           <Route path='*' element={<NotFoundPage />} />

@@ -44,10 +44,10 @@ const data = {
           title: 'Contacts',
           url: '/contacts',
         },
-        {
-          title: 'Deals',
-          url: '/deals',
-        },
+        // {
+        //   title: 'Deals',
+        //   url: '/deals',
+        // },
         // {
         //   title: 'Tasks',
         //   url: '#',

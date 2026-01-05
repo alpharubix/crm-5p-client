@@ -20,6 +20,12 @@ export function SignInPage({
   className,
   ...props
 }: React.ComponentProps<'div'>) {
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    console.log(e)
+  }
+
   return (
     <div
       className={cn(
@@ -36,7 +42,7 @@ export function SignInPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor='email'>Email</FieldLabel>

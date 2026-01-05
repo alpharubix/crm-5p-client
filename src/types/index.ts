@@ -19,10 +19,12 @@ export type Lead = {
   // --- Address & Extra ---
   address?: string | null
   city?: string | null
+  state?: string | null
   country?: string | null
   industry?: string | null
   description?: string | null
   distributor_code?: string | null
+  designation?: string | null
 }
 
 export type Deal = {
@@ -34,8 +36,8 @@ export type Deal = {
   closing_date: string
   deal_owner: string
   last_activity_time: string
+  deal_type?: string
 }
-
 
 export type UpdateAccountFormValues = {
   assignmentDate?: Date

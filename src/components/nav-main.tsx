@@ -32,7 +32,7 @@ export function NavMain({
   const { pathname } = useLocation()
 
   const isParentActive = (subItems?: { url: string }[]) =>
-    subItems?.some((sub) => pathname === sub.url)
+    subItems?.some((sub) => pathname.startsWith(sub.url))
 
   return (
     <SidebarGroup>
@@ -45,7 +45,7 @@ export function NavMain({
               key={item.title}
               asChild
               defaultOpen={parentActive}
-              className="group/collapsible"
+              className='group/collapsible'
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
@@ -55,14 +55,14 @@ export function NavMain({
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
-                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    <ChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
 
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items?.map((subItem) => {
-                      const subActive = pathname === subItem.url
+                      const subActive = pathname.startsWith(subItem.url)
 
                       return (
                         <SidebarMenuSubItem key={subItem.title}>

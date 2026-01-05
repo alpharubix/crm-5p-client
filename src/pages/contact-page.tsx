@@ -1,60 +1,80 @@
-import { Loader2, Plus, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { useNavigate } from 'react-router-dom'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
+  TableCaption,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { toast } from 'sonner'
 
 import type { Lead } from '@/types'
+import Pagination from '@/components/shared/pagination'
+import { formatExactDate } from '@/utils/date-formatter'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
-import { formatExactDate } from '@/utils/date-formatter'
 
 export default function LeadsPage() {
   const navigate = useNavigate()
+
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    full_name: '',
-    email: '',
-    phone_number: '',
-    pan: '',
-    gstin: '',
-    company: '',
-  })
-  const [submitting, setSubmitting] = useState(false)
 
+  /* ---------------- Filters ---------------- */
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+
+  const [filters, setFilters] = useState({
+    phone: searchParams.get('phone') || '',
+    email: searchParams.get('email') || '',
+    city: searchParams.get('city') || '',
+    state: searchParams.get('state') || '',
+  })
+
+  // Sync state with URL changes (e.g. back button)
+  useEffect(() => {
+    setFilters({
+      phone: searchParams.get('phone') || '',
+      email: searchParams.get('email') || '',
+      city: searchParams.get('city') || '',
+      state: searchParams.get('state') || '',
+    })
+    const page = searchParams.get('page')
+    setCurrentPage(page ? parseInt(page) : 1)
+  }, [searchParams])
+
+  // Fetch leads with pagination and filters
   const fetchLeads = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8080/accounts/')
+      const params = new URLSearchParams()
+      params.set('page', currentPage.toString())
+      if (filters.phone) params.set('phone', filters.phone)
+      if (filters.email) params.set('email', filters.email)
+      if (filters.city) params.set('city', filters.city)
+      if (filters.state) params.set('state', filters.state)
+
+      const res = await fetch(
+        `http://localhost:8080/accounts/?${params.toString()}`
+      )
       if (res.ok) {
         const data = await res.json()
-        console.log("data", data);
+        console.log(data)
         setLeads(data.data)
+        if (data.page_info) {
+          setTotalPages(data.page_info.total_pages)
+        }
       }
-    } catch (error) {
-      console.error('Failed to fetch leads', error)
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to fetch leads')
     } finally {
       setLoading(false)
     }
@@ -62,43 +82,64 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads()
-  }, [])
+  }, [currentPage, searchParams]) // refetch on page or param change
 
-  const handleInputChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value })
   }
 
-  const handleSaveLead = async (e: any) => {
+  const handleSearch = () => {
+    const params = new URLSearchParams()
+    if (filters.phone) params.set('phone', filters.phone)
+    if (filters.email) params.set('email', filters.email)
+    if (filters.city) params.set('city', filters.city)
+    if (filters.state) params.set('state', filters.state)
+    // Reset to page 1 on search
+    params.set('page', '1')
+    setSearchParams(params)
+  }
+
+  const handleClear = () => {
+    setSearchParams(new URLSearchParams())
+    // State will sync via useEffect
+  }
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('page', page.toString())
+    setSearchParams(params)
+  }
+
+  const handleSaveLead = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
 
-    const url = 'http://localhost:8080/leads/'
+    console.log(formData)
+    return
 
     try {
-      const res = await fetch(url, {
+      const res = await fetch('http://localhost:8080/leads/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
 
       if (res.ok) {
+        toast.success('Lead added successfully')
         setIsDialogOpen(false)
         fetchLeads()
         setFormData({
           full_name: '',
-          email: '',
           phone_number: '',
-          pan: '',
-          gstin: '',
-          company: '',
+          designation: '',
+          city: '',
+          state: '',
         })
-        toast.success('Lead added successfully')
       } else {
         const err = await res.json()
-        toast.error('Error: ' + err.detail)
+        toast.error(err.detail || 'Error adding lead')
       }
-    } catch (error) {
-      console.error(error)
+    } catch {
       toast.error('Network error')
     } finally {
       setSubmitting(false)
@@ -106,204 +147,138 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-6">
+    <div className='p-4 space-y-4'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Contacts Database</h1>
-          <p className="text-muted-foreground">
-            Manage your contacts here.
-          </p>
+          <h1 className='text-2xl font-bold'>Contacts Database</h1>
+          <p className='text-muted-foreground'>Manage your contacts here.</p>
         </div>
 
-        <div className="flex gap-2">
-          {/* Refresh Button */}
-          <Button variant="outline" size="icon" onClick={fetchLeads}>
+        <div className='flex gap-2'>
+          <Button variant='outline' size='icon' onClick={fetchLeads}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
-
-          {/* Add Lead Modal Trigger */}
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                className="rounded-full gap-2"
-                onClick={() => {
-                  setFormData({
-                    full_name: '',
-                    email: '',
-                    phone_number: '',
-                    pan: '',
-                    gstin: '',
-                    company: '',
-                  })
-                  setIsDialogOpen(true)
-                }}
-              >
-                <Plus className="h-4 w-4" /> Add Contact
-              </Button>
-            </DialogTrigger>
-
-            {/* --- MODAL CONTENT --- */}
-            <DialogContent
-              onOpenAutoFocus={(e) => {
-                e.preventDefault()
-                document.getElementById('dialog-content')?.focus()
-              }}
-              id="dialog-content"
-              tabIndex={-1}
-              className="sm:max-w-[425px] outline-none"
-            >
-              <DialogHeader>
-                <DialogTitle>Add New Contact</DialogTitle>
-                <DialogDescription>
-                  Enter the customer details below. Click save to add to
-                  database.
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleSaveLead} className="grid gap-4 py-4 ">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="full_name" className="text-right">
-                    Name
-                  </Label>
-                  <Input
-                    id="full_name"
-                    name="full_name"
-                    value={formData.full_name}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="phone_number" className="text-right">
-                    Phone
-                  </Label>
-                  <Input
-                    id="phone_number"
-                    name="phone_number"
-                    value={formData.phone_number}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    required
-                  />
-                </div>
-                {/* Extra fields for Tax ID */}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="pan" className="text-right">
-                    PAN
-                  </Label>
-                  <Input
-                    id="pan"
-                    name="pan"
-                    value={formData.pan}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    placeholder="ABCDE1234F"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="gstin" className="text-right">
-                    GSTIN
-                  </Label>
-                  <Input
-                    id="gstin"
-                    name="gstin"
-                    value={formData.gstin}
-                    onChange={handleInputChange}
-                    className="col-span-3"
-                    placeholder="GSTIN..."
-                    required
-                  />
-                </div>
-
-                <DialogFooter>
-                  <Button type="submit" disabled={submitting}>
-                    {submitting && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Save Lead
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
 
-      {/* --- TABLE SECTION --- */}
-      <div className="border rounded-md p-2">
-        <Table>
-          <TableCaption>A list of recent leads.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              {/* <TableHead className="w-[50px]">ID</TableHead> */}
-              <TableHead>Customer Name</TableHead>
-              <TableHead>Contact Info</TableHead>
-              {/* <TableHead>Tax Details</TableHead> */}
-              <TableHead>Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {leads.length === 0 && !loading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center h-24">
-                  No leads found. Add one!
-                </TableCell>
-              </TableRow>
-            ) : (
-              leads.map((lead) => (
-                <TableRow
-                  key={lead.id}
-                  className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                  onClick={() => navigate(`/update-contacts`)}
-                >
-                  {/* <TableCell className="font-medium">{lead.id}</TableCell> */}
-                  <TableCell className="font-medium">
-                    <div>{lead.full_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {lead.company || 'Individual'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">{lead.email}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {lead.phone_number}
-                    </div>
-                  </TableCell>
-                  {/* <TableCell>
-                    <div className="text-xs">PAN: {lead.pan || '-'}</div>
-                    <div className="text-xs">GST: {lead.gstin || '-'}</div>
-                  </TableCell> */}
-                  <TableCell>
-                    <div className="text-xs">
-                      Created on : {formatExactDate(lead.created_at) || 'New'}
-                    </div>
-                    <div className="text-xs">
-                      Updated on : {formatExactDate(lead.updated_at) || 'New'}
-                    </div>
-                  </TableCell>
+      {/* ---------------- Layout ---------------- */}
+      <div className='grid grid-cols-[260px_1fr] gap-4'>
+        {/* -------- Filters -------- */}
+        {/* -------- Filters -------- */}
+        <div className='border rounded-md p-3 space-y-4 h-fit'>
+          <h3 className='font-semibold text-sm'>Filter Contacts by</h3>
+
+          <div className='space-y-2'>
+            <Label>Mobile / Phone</Label>
+            <Input
+              name='phone'
+              placeholder='Mobile / Phone'
+              value={filters.phone}
+              onChange={handleFilterChange}
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>Email</Label>
+            <Input
+              name='email'
+              placeholder='Email'
+              value={filters.email}
+              onChange={handleFilterChange}
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>City</Label>
+            <Input
+              name='city'
+              placeholder='City'
+              value={filters.city}
+              onChange={handleFilterChange}
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>State</Label>
+            <Input
+              name='state'
+              placeholder='State'
+              value={filters.state}
+              onChange={handleFilterChange}
+            />
+          </div>
+
+          <div className='flex gap-2 pt-2'>
+            <Button className='flex-1' onClick={handleSearch}>
+              Search
+            </Button>
+            <Button variant='outline' onClick={handleClear}>
+              Clear
+            </Button>
+          </div>
+        </div>
+
+        {/* -------- Table -------- */}
+        {/* -------- Table -------- */}
+        <div className='flex flex-col gap-4'>
+          <div className='border rounded-md p-2'>
+            <Table>
+              <TableCaption>Contacts list</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              </TableHeader>
+
+              <TableBody>
+                {leads.length === 0 && !loading ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className='text-center h-24'>
+                      No contacts found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  leads.map((lead) => (
+                    <TableRow
+                      key={lead.id}
+                      className='cursor-pointer hover:bg-accent'
+                      onClick={() => navigate('/update-contacts')}
+                    >
+                      <TableCell>
+                        <div className='font-medium'>{lead.full_name}</div>
+                        <div className='text-xs text-muted-foreground'>
+                          {lead.company || 'Individual'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>{lead.email}</div>
+                        <div className='text-xs text-muted-foreground'>
+                          {lead.phone_number}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className='text-xs'>
+                          Created: {formatExactDate(lead.created_at) || '—'}
+                        </div>
+                        <div className='text-xs'>
+                          Updated: {formatExactDate(lead.updated_at) || '—'}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
     </div>
   )
 }
-
