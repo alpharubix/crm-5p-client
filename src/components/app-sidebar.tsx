@@ -57,17 +57,17 @@ const data = {
         // }
       ],
     },
-    {
-      title: 'Tickets',
-      url: '#',
-      icon: BookOpen,
-      items: [
-        {
-          title: 'Desk',
-          url: '/desk',
-        },
-      ],
-    },
+    // {
+    //   title: 'Tickets',
+    //   url: '#',
+    //   icon: BookOpen,
+    //   items: [
+    //     {
+    //       title: 'Desk',
+    //       url: '/desk',
+    //     },
+    //   ],
+    // },
   ],
 }
 

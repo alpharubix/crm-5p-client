@@ -7,7 +7,7 @@ import AccountPage from './pages/accounts-page'
 import NotFoundPage from './pages/not-found-page'
 import ContactPage from './pages/contact-page'
 // import DealsPage from './pages/deals-page'
-import DeskPage from './pages/desk-page'
+// import DeskPage from './pages/desk-page'
 import UpdateContacts from './components/contacts/update-contacts'
 import UpdateAccounts from './components/accounts/update-accounts'
 // import UpdateDeals from './components/deals/update-deals'
@@ -44,7 +44,7 @@ export default function App() {
           <Route path='*' element={<NotFoundPage />} />
 
           {/* Desk */}
-          <Route path='/desk' element={<DeskPage />} />
+          {/* <Route path='/desk' element={<DeskPage />} /> */}
         </Route>
       </Routes>
       <Toaster richColors position='top-right' />
