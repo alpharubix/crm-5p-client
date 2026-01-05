@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { useAuth } from '@/context/auth-context'
+import { toast } from 'sonner'
 
 const signInSchema = z.object({
   email: z.string().email(),
@@ -25,20 +27,34 @@ export function SignInPage({
   className,
   ...props
 }: React.ComponentProps<'div'>) {
+  const { checkAuth } = useAuth()
+  const navigate = useNavigate()
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
   })
-  const navigate = useNavigate()
-  const onSubmit = (data: SignInFormValues) => {
-    console.log(data)
+
+  const onSubmit = async (data: SignInFormValues) => {
+    const res = await fetch(`http://localhost:8080/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    })
+
+    if (!res.ok) {
+      toast.error('Invalid credentials')
+      return
+    }
+
+    await checkAuth()
+
+    toast.success('Login successful')
+
     navigate('/accounts')
   }
 
@@ -52,46 +68,31 @@ export function SignInPage({
     >
       <Card>
         <CardHeader>
-          <CardTitle>SignIn to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to SignIn to your account
-          </CardDescription>
+          <CardTitle>Sign in to your account</CardTitle>
+          <CardDescription>Enter your email and password</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor='email'>Email</FieldLabel>
-                <Input
-                  id='email'
-                  type='email'
-                  placeholder='m@example.com'
-                  required
-                  {...register('email')}
-                />
+                <FieldLabel>Email</FieldLabel>
+                <Input {...register('email')} />
                 {errors.email && (
                   <p className='text-xs text-red-500'>{errors.email.message}</p>
                 )}
               </Field>
+
               <Field>
-                <div className='flex items-center'>
-                  <FieldLabel htmlFor='password'>Password</FieldLabel>
-                </div>
-                <Input
-                  id='password'
-                  type='password'
-                  required
-                  {...register('password')}
-                />
+                <FieldLabel>Password</FieldLabel>
+                <Input type='password' {...register('password')} />
                 {errors.password && (
                   <p className='text-xs text-red-500'>
                     {errors.password.message}
                   </p>
                 )}
               </Field>
-              <Field>
-                <Button type='submit'>SignIn</Button>
-              </Field>
+
+              <Button type='submit'>Sign In</Button>
             </FieldGroup>
           </form>
         </CardContent>

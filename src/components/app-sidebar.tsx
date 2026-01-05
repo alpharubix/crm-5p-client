@@ -8,10 +8,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import {
-  BookOpen,
-  GalleryVerticalEnd,
-} from 'lucide-react'
+import { BookOpen, GalleryVerticalEnd } from 'lucide-react'
 
 const data = {
   user: {
@@ -71,9 +68,19 @@ const data = {
   ],
 }
 
+import { useAuth } from '@/context/auth-context'
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth()
+
+  const navUser = {
+    name: user?.user_name || 'User',
+    email: user?.email || '',
+    avatar: '/avatars/shadcn.jpg',
+  }
+
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible='icon' {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
@@ -82,7 +89,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={navUser} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
