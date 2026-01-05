@@ -6,13 +6,13 @@ import { Toaster } from './components/ui/sonner'
 import AccountPage from './pages/accounts-page'
 import NotFoundPage from './pages/not-found-page'
 import ContactPage from './pages/contact-page'
-import DealsPage from './pages/deals-page'
+// import DealsPage from './pages/deals-page'
 import DeskPage from './pages/desk-page'
 import UpdateContacts from './components/contacts/update-contacts'
 import UpdateAccounts from './components/accounts/update-accounts'
-import UpdateDeals from './components/deals/update-deals'
+// import UpdateDeals from './components/deals/update-deals'
 import { SignInPage } from './pages/signin-page'
-import { SignUpPage } from './pages/signup-page'
+// import { SignUpPage } from './pages/signup-page'
 
 export default function App() {
   return (
@@ -21,7 +21,7 @@ export default function App() {
         <Route path='/' element={<Navigate to='/login' replace />} />
 
         <Route path='/login' element={<SignInPage />} />
-        <Route path='/signup' element={<SignUpPage />} />
+        {/* <Route path='/signup' element={<SignUpPage />} /> */}
 
         <Route element={<SidebarComponent />}>
           {/* Leads */}
