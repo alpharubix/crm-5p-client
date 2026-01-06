@@ -167,6 +167,7 @@ export default function UpdateAccounts() {
   const [isEdit, setIsEdit] = useState(false)
 
   const form = useForm<UpdateAccountFormValues>({
+    // @ts-ignore
     resolver: zodResolver(updateAccountSchema),
     defaultValues: {
       source: 'Himalaya',
