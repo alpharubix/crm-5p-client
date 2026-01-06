@@ -299,7 +299,7 @@ export default function AccountsPage() {
           </div>
         </div>
 
-        <div className='flex flex-col gap-4 min-w-0'>
+        <div className='flex flex-col gap-4 min-w-0 h-[550px]'>
           {isLoading ? (
             <div className='flex items-center justify-center h-64 border rounded-md'>
               <RefreshCw className='h-8 w-8 animate-spin text-muted-foreground' />
