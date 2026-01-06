@@ -44,7 +44,7 @@ const EditLeads = () => {
     if (!id) return
 
     try {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/${id}`)
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/${id}`)
       if (!res.ok) throw new Error('Failed to fetch lead')
       const result = await res.json()
       setData((prev) => ({ ...prev, ...result }))
@@ -57,7 +57,7 @@ const EditLeads = () => {
     if (!id) return
 
     try {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/${id}`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

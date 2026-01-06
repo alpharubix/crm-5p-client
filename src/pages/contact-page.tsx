@@ -63,7 +63,7 @@ export default function LeadsPage() {
       if (filters.state) params.set('state', filters.state)
 
       const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`
+        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?${params.toString()}`
       )
       if (res.ok) {
         const data = await res.json()

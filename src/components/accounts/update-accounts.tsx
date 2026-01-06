@@ -36,11 +36,15 @@ import { ENV } from '@/conf'
 // Map API response to form values
 function mapAccountToForm(apiData: any): UpdateAccountFormValues {
   return {
-    assignmentDate: apiData.assignment_date || undefined,
+    assignmentDate: apiData.assignment_date
+      ? new Date(apiData.assignment_date)
+      : undefined,
     source: apiData.source || 'NA',
     distributorCode: apiData.distributor_code || '',
     wabaInterested: apiData.waba_interested || false,
-    callBackDate: apiData.call_back_date_time || undefined,
+    callBackDate: apiData.call_back_date_time
+      ? new Date(apiData.call_back_date_time)
+      : undefined,
     accountStatus: apiData.account_status || 'Awareness',
     accountStage: apiData.account_stage || 'Initial Pitch',
     businessStatus: apiData.business_status || 'Active',
@@ -49,7 +53,7 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     residentialOwnership: apiData.residential_ownership || undefined,
     residentialLocation: apiData.residential_location || '',
     noOfYears: apiData.no_of_years || '',
-    createdBy: apiData.created_by?.full_name || 'System User',
+    createdBy: apiData.created_by?.full_name || 'NA',
     mothersName: apiData.mothers_name || '',
     preferredLanguage: apiData.preferred_language || '',
     premiseLocation: apiData.premise_location || '',
@@ -66,48 +70,95 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     code: apiData.pincode || '',
     city: apiData.city || '',
     country: apiData.country || 'India',
+    ref1Name: apiData.ref1_name || '',
+    ref1Phone: apiData.ref1_phone || '',
+    ref1Email: apiData.ref1_email || '',
+    ref2Name: apiData.ref2_name || '',
+    ref2Phone: apiData.ref2_phone || '',
+    ref2Email: apiData.ref2_email || '',
   }
 }
 
 // Map form values to API payload
-function mapFormToApi(formData: UpdateAccountFormValues): any {
-  return {
-    assignment_date: formData.assignmentDate,
-    source: formData.source,
-    distributor_code: formData.distributorCode,
-    waba_interested: formData.wabaInterested,
-    call_back_date_time: formData.callBackDate,
-    account_status: formData.accountStatus,
-    account_stage: formData.accountStage,
-    business_status: formData.businessStatus,
-    first_name: formData.firstName,
-    last_name: formData.lastName,
-    residential_ownership: formData.residentialOwnership,
-    residential_location: formData.residentialLocation,
-    no_of_years: formData.noOfYears,
-    mothers_name: formData.mothersName,
-    preferred_language: formData.preferredLanguage,
-    premise_location: formData.premiseLocation,
-    premise_ownership: formData.premiseOwnership,
-    business_registration_type: formData.businessRegistrationType,
-    business_vintage: formData.businessVintage,
-    suppliers: formData.suppliers,
-    description: formData.description,
-    parent_account: formData.parentAccount,
-    type_of_business: formData.typeOfBusiness,
-    industry: formData.industry,
-    street: formData.street,
-    state: formData.state,
-    pincode: formData.code,
-    city: formData.city,
-    country: formData.country,
-    ref1_name: formData.ref1Name,
-    ref1_phone: formData.ref1Phone,
-    ref1_email: formData.ref1Email,
-    ref2_name: formData.ref2Name,
-    ref2_phone: formData.ref2Phone,
-    ref2_email: formData.ref2Email,
+function mapFormToApi(
+  formData: UpdateAccountFormValues,
+  dirtyFields: Partial<Record<keyof UpdateAccountFormValues, boolean>>
+): any {
+  const allFields = {
+    assignment_date: { value: formData.assignmentDate, key: 'assignmentDate' },
+    source: { value: formData.source, key: 'source' },
+    distributor_code: {
+      value: formData.distributorCode,
+      key: 'distributorCode',
+    },
+    waba_interested: { value: formData.wabaInterested, key: 'wabaInterested' },
+    call_back_date_time: { value: formData.callBackDate, key: 'callBackDate' },
+    account_status: { value: formData.accountStatus, key: 'accountStatus' },
+    account_stage: { value: formData.accountStage, key: 'accountStage' },
+    business_status: { value: formData.businessStatus, key: 'businessStatus' },
+    first_name: { value: formData.firstName, key: 'firstName' },
+    last_name: { value: formData.lastName, key: 'lastName' },
+    residential_ownership: {
+      value: formData.residentialOwnership,
+      key: 'residentialOwnership',
+    },
+    residential_location: {
+      value: formData.residentialLocation,
+      key: 'residentialLocation',
+    },
+    no_of_years: { value: formData.noOfYears, key: 'noOfYears' },
+    mothers_name: { value: formData.mothersName, key: 'mothersName' },
+    preferred_language: {
+      value: formData.preferredLanguage,
+      key: 'preferredLanguage',
+    },
+    premise_location: {
+      value: formData.premiseLocation,
+      key: 'premiseLocation',
+    },
+    premise_ownership: {
+      value: formData.premiseOwnership,
+      key: 'premiseOwnership',
+    },
+    business_registration_type: {
+      value: formData.businessRegistrationType,
+      key: 'businessRegistrationType',
+    },
+    business_vintage: {
+      value: formData.businessVintage,
+      key: 'businessVintage',
+    },
+    suppliers: { value: formData.suppliers, key: 'suppliers' },
+    description: { value: formData.description, key: 'description' },
+    parent_account: { value: formData.parentAccount, key: 'parentAccount' },
+    type_of_business: { value: formData.typeOfBusiness, key: 'typeOfBusiness' },
+    industry: { value: formData.industry, key: 'industry' },
+    street: { value: formData.street, key: 'street' },
+    state: { value: formData.state, key: 'state' },
+    pincode: { value: formData.code, key: 'code' },
+    city: { value: formData.city, key: 'city' },
+    country: { value: formData.country, key: 'country' },
+    ref1_name: { value: formData.ref1Name, key: 'ref1Name' },
+    ref1_phone: { value: formData.ref1Phone, key: 'ref1Phone' },
+    ref1_email: { value: formData.ref1Email, key: 'ref1Email' },
+    ref2_name: { value: formData.ref2Name, key: 'ref2Name' },
+    ref2_phone: { value: formData.ref2Phone, key: 'ref2Phone' },
+    ref2_email: { value: formData.ref2Email, key: 'ref2Email' },
   }
+
+  const payload: any = {}
+
+  Object.entries(allFields).forEach(([apiKey, { value, key }]) => {
+    // @ts-ignore
+    if (dirtyFields[key]) {
+      payload[apiKey] = value
+    }
+  })
+
+  // Always include ID if needed, but for updates usually ID is in URL.
+  // The user only wants updated fields.
+
+  return payload
 }
 
 export default function UpdateAccounts() {
@@ -133,7 +184,7 @@ export default function UpdateAccounts() {
     watch,
     setValue,
     reset,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, dirtyFields },
   } = form
 
   // Fetch account data
@@ -145,7 +196,7 @@ export default function UpdateAccounts() {
     queryKey: ['account', id],
     queryFn: async () => {
       const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
+        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?account_id=${id}`,
         { credentials: 'include' }
       )
       if (!res.ok) throw new Error('Failed to fetch account')
@@ -174,9 +225,9 @@ export default function UpdateAccounts() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateAccountFormValues) => {
-      const payload = mapFormToApi(values)
+      const payload = mapFormToApi(values, dirtyFields)
       const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
+        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/${id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -219,7 +270,7 @@ export default function UpdateAccounts() {
 
   const handleAddNote = async (note: { description: string }) => {
     try {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/notes`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -257,7 +308,7 @@ export default function UpdateAccounts() {
           <span className='text-primary font-bold'>{ownerName}</span>
         </h1>
 
-        {/* {!isEdit ? (
+        {!isEdit ? (
           <Button size='sm' onClick={() => setIsEdit(true)}>
             Update
           </Button>
@@ -281,7 +332,7 @@ export default function UpdateAccounts() {
               Cancel
             </Button>
           </div>
-        )} */}
+        )}
       </div>
 
       <Card className='overflow-hidden space-y-1'>
@@ -290,20 +341,18 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
             <FieldRow label='Assignment Date'>
-              <DateField
-                value={data.assignmentDate}
-                isEdit={isEdit}
-                onChange={(d) =>
-                  setValue('assignmentDate', d, { shouldDirty: true })
-                }
-              />
+              <span>
+                {data.assignmentDate
+                  ? new Date(data.assignmentDate).toLocaleDateString()
+                  : '—'}
+              </span>
             </FieldRow>
 
             <FieldRow label='Source' error={errors.source?.message}>
               <SelectField
                 value={data.source}
                 isEdit={isEdit}
-                options={['Himalaya', 'Website']}
+                options={['Himalaya', 'CavinKare']}
                 onChange={(v) => setValue('source', v, { shouldDirty: true })}
               />
             </FieldRow>
@@ -320,18 +369,7 @@ export default function UpdateAccounts() {
             </FieldRow>
 
             <FieldRow label='WABA Interested'>
-              {isEdit ? (
-                <Checkbox
-                  checked={data.wabaInterested}
-                  onCheckedChange={(v) =>
-                    setValue('wabaInterested', Boolean(v), {
-                      shouldDirty: true,
-                    })
-                  }
-                />
-              ) : (
-                <span>{data.wabaInterested ? 'Yes' : 'No'}</span>
-              )}
+              <span>{data.wabaInterested ? 'Yes' : 'No'}</span>
             </FieldRow>
           </div>
 
@@ -353,7 +391,14 @@ export default function UpdateAccounts() {
               <SelectField
                 value={data.accountStatus}
                 isEdit={isEdit}
-                options={['Awareness', 'Interested']}
+                options={[
+                  'Awareness',
+                  'Attention',
+                  'Assessment',
+                  'Not Interested',
+                  'Location Unserviceable',
+                  'Lender Review',
+                ]}
                 onChange={(v) =>
                   setValue('accountStatus', v, { shouldDirty: true })
                 }
@@ -367,7 +412,19 @@ export default function UpdateAccounts() {
               <SelectField
                 value={data.accountStage}
                 isEdit={isEdit}
-                options={['Initial Pitch']}
+                options={[
+                  'Initial Pitch',
+                  'Product Offering',
+                  'Doc List Shared to Cust',
+                  'Partial Docs Rec',
+                  'Yet To Review',
+                  'Under Internal Review',
+                  'In Review with Lender',
+                  'Interested',
+                  'Commercial NI',
+                  'Location not doable',
+                  'No Requirement',
+                ]}
                 onChange={(v) =>
                   setValue('accountStage', v, { shouldDirty: true })
                 }
@@ -403,30 +460,15 @@ export default function UpdateAccounts() {
             </FieldRow>
 
             <FieldRow label='Residential Ownership'>
-              <SelectField
-                value={data.residentialOwnership}
-                isEdit={isEdit}
-                options={['Owned', 'Rented']}
-                onChange={(v) =>
-                  setValue('residentialOwnership', v, { shouldDirty: true })
-                }
-              />
+              <span>{data.residentialOwnership || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Residential Location'>
-              {isEdit ? (
-                <Input {...register('residentialLocation')} className='h-8' />
-              ) : (
-                <span>{data.residentialLocation || '—'}</span>
-              )}
+              <span>{data.residentialLocation || '—'}</span>
             </FieldRow>
 
             <FieldRow label='No of Years...'>
-              {isEdit ? (
-                <Input {...register('noOfYears')} className='h-8' />
-              ) : (
-                <span>{data.noOfYears || '—'}</span>
-              )}
+              <span>{data.noOfYears || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Created By'>
@@ -444,38 +486,19 @@ export default function UpdateAccounts() {
             </FieldRow>
 
             <FieldRow label='Mothers Name'>
-              {isEdit ? (
-                <Input {...register('mothersName')} className='h-8' />
-              ) : (
-                <span>{data.mothersName || '—'}</span>
-              )}
+              <span>{data.mothersName || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Preferred Language'>
-              {isEdit ? (
-                <Input {...register('preferredLanguage')} className='h-8' />
-              ) : (
-                <span>{data.preferredLanguage || '—'}</span>
-              )}
+              <span>{data.preferredLanguage || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Premise Location'>
-              {isEdit ? (
-                <Input {...register('premiseLocation')} className='h-8' />
-              ) : (
-                <span>{data.premiseLocation || '—'}</span>
-              )}
+              <span>{data.premiseLocation || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Premise Ownership'>
-              <SelectField
-                value={data.premiseOwnership}
-                isEdit={isEdit}
-                options={['Owned', 'Rented']}
-                onChange={(v) =>
-                  setValue('premiseOwnership', v, { shouldDirty: true })
-                }
-              />
+              <span>{data.premiseOwnership || '—'}</span>
             </FieldRow>
           </div>
         </CardContent>
@@ -485,68 +508,43 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
             <FieldRow label='Business Registration Type'>
-              <SelectField
-                value={data.businessRegistrationType}
-                isEdit={isEdit}
-                options={[
-                  'Proprietorship',
-                  'Partnership',
-                  'Private Limited',
-                  'Public Limited',
-                ]}
-                onChange={(v) =>
-                  setValue('businessRegistrationType', v, { shouldDirty: true })
-                }
-              />
+              <span>{data.businessRegistrationType || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Business Vintage (No of Years)'>
-              {isEdit ? (
-                <Input
-                  type='number'
-                  {...register('businessVintage', { valueAsNumber: true })}
-                  className='h-8'
-                />
-              ) : (
-                <span>{data.businessVintage ?? '—'}</span>
-              )}
+              <span>{data.businessVintage ?? '—'}</span>
             </FieldRow>
 
             <FieldRow label='Suppliers'>
-              {isEdit ? (
-                <Input {...register('suppliers')} className='h-8' />
-              ) : (
-                <span>{data.suppliers || '—'}</span>
-              )}
+              <span>{data.suppliers || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Description'>
-              {isEdit ? (
-                <Textarea {...register('description')} className='min-h-20' />
-              ) : (
-                <span>{data.description || '—'}</span>
-              )}
+              <span>{data.description || '—'}</span>
             </FieldRow>
           </div>
 
           <div>
             <FieldRow label='Parent Account'>
-              {isEdit ? (
-                <Input
-                  {...register('parentAccount')}
-                  className='h-8'
-                  placeholder='Lookup'
-                />
-              ) : (
-                <span>{data.parentAccount || '—'}</span>
-              )}
+              <span>{data.parentAccount || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Type of Business'>
               <SelectField
                 value={data.typeOfBusiness}
                 isEdit={isEdit}
-                options={['Manufacturing', 'Trading', 'Services']}
+                options={[
+                  'Manufacturer',
+                  'Distributor',
+                  'Franchise/FOFO',
+                  'Wholesale Trader',
+                  'Retailer',
+                  'Super Stockist',
+                  'Sub Distributor',
+                  'Inst Customers',
+                  'Govt Institutions',
+                  'Co Operative Society',
+                ]}
                 onChange={(v) =>
                   setValue('typeOfBusiness', v, { shouldDirty: true })
                 }
@@ -569,11 +567,7 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
           <div className='md:border-r'>
             <FieldRow label='Street'>
-              {isEdit ? (
-                <Input {...register('street')} className='h-8' />
-              ) : (
-                <span>{data.street || '—'}</span>
-              )}
+              <span>{data.street || '—'}</span>
             </FieldRow>
             <FieldRow label='State'>
               {isEdit ? (
@@ -599,11 +593,7 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
             <FieldRow label='Country'>
-              {isEdit ? (
-                <Input {...register('country')} className='h-8' />
-              ) : (
-                <span>{data.country || '—'}</span>
-              )}
+              <span>{data.country || '—'}</span>
             </FieldRow>
           </div>
         </CardContent>
@@ -613,48 +603,24 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
           <div className='md:border-r'>
             <FieldRow label='Name of Person 1'>
-              {isEdit ? (
-                <Input {...register('ref1Name')} className='h-8' />
-              ) : (
-                <span>{data.ref1Name || '—'}</span>
-              )}
+              <span>{data.ref1Name || '—'}</span>
             </FieldRow>
             <FieldRow label='Phone of Person 1'>
-              {isEdit ? (
-                <Input {...register('ref1Phone')} className='h-8' />
-              ) : (
-                <span>{data.ref1Phone || '—'}</span>
-              )}
+              <span>{data.ref1Phone || '—'}</span>
             </FieldRow>
             <FieldRow label='Email ID Person 1'>
-              {isEdit ? (
-                <Input {...register('ref1Email')} className='h-8' />
-              ) : (
-                <span>{data.ref1Email || '—'}</span>
-              )}
+              <span>{data.ref1Email || '—'}</span>
             </FieldRow>
           </div>
           <div>
             <FieldRow label='Name of Person 2'>
-              {isEdit ? (
-                <Input {...register('ref2Name')} className='h-8' />
-              ) : (
-                <span>{data.ref2Name || '—'}</span>
-              )}
+              <span>{data.ref2Name || '—'}</span>
             </FieldRow>
             <FieldRow label='Phone of Person 2'>
-              {isEdit ? (
-                <Input {...register('ref2Phone')} className='h-8' />
-              ) : (
-                <span>{data.ref2Phone || '—'}</span>
-              )}
+              <span>{data.ref2Phone || '—'}</span>
             </FieldRow>
             <FieldRow label='Email ID Person 2'>
-              {isEdit ? (
-                <Input {...register('ref2Email')} className='h-8' />
-              ) : (
-                <span>{data.ref2Email || '—'}</span>
-              )}
+              <span>{data.ref2Email || '—'}</span>
             </FieldRow>
           </div>
         </CardContent>

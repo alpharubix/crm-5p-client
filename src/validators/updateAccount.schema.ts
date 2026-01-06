@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 export const updateAccountSchema = z.object({
   assignmentDate: z.date().optional(),
@@ -33,20 +33,24 @@ export const updateAccountSchema = z.object({
 
   ref1Name: z.string().optional(),
   ref1Phone: z.string().optional(),
-  ref1Email: z.string().email("Invalid email").optional(),
+  ref1Email: z.string().optional(),
 
   ref2Name: z.string().optional(),
   ref2Phone: z.string().optional(),
-  ref2Email: z.string().email("Invalid email").optional(),
+  ref2Email: z.string().optional(),
 
   businessRegistrationType: z.string().optional(),
   parentAccount: z.string().optional(),
-  businessVintage: z.number().optional(),
+  businessVintage: z.preprocess(
+    (val) =>
+      val === '' || val === null || val === undefined ? undefined : Number(val),
+    z.number().optional()
+  ),
   typeOfBusiness: z.string().optional(),
   suppliers: z.string().optional(),
   industry: z.string().optional(),
   description: z.string().optional(),
   createdBy: z.string().optional(),
-});
+})
 
-export type UpdateAccountFormValues = z.infer<typeof updateAccountSchema>;
+export type UpdateAccountFormValues = z.infer<typeof updateAccountSchema>

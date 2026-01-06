@@ -9,7 +9,7 @@ export function useLeads() {
   const fetchLeads = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/`)
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/`)
       if (res.ok) {
         const data = await res.json()
         console.log("data", data);
