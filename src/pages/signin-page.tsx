@@ -40,7 +40,7 @@ export function SignInPage({
   })
 
   const onSubmit = async (data: SignInFormValues) => {
-    const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/auth/login`, {
+    const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

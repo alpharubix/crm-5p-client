@@ -197,7 +197,7 @@ export default function UpdateAccounts() {
     queryKey: ['account', id],
     queryFn: async () => {
       const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?account_id=${id}`,
+        `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
         { credentials: 'include' }
       )
       if (!res.ok) throw new Error('Failed to fetch account')
@@ -227,15 +227,12 @@ export default function UpdateAccounts() {
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateAccountFormValues) => {
       const payload = mapFormToApi(values, dirtyFields)
-      const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/${id}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload),
-        }
-      )
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      })
       if (!res.ok) throw new Error('Failed to update account')
       return res.json()
     },
@@ -271,7 +268,7 @@ export default function UpdateAccounts() {
 
   const handleAddNote = async (note: { description: string }) => {
     try {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/notes`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

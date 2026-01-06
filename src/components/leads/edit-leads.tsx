@@ -44,7 +44,7 @@ const EditLeads = () => {
     if (!id) return
 
     try {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/${id}`)
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/${id}`)
       if (!res.ok) throw new Error('Failed to fetch lead')
       const result = await res.json()
       setData((prev) => ({ ...prev, ...result }))
@@ -57,7 +57,7 @@ const EditLeads = () => {
     if (!id) return
 
     try {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/${id}`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ const EditLeads = () => {
         body: JSON.stringify(data),
       })
       if (!res.ok) throw new Error('Failed to update lead')
-      toast.success('Lead updated successfully',{
+      toast.success('Lead updated successfully', {
         duration: 2000,
       })
       const result = await res.json()
@@ -80,13 +80,13 @@ const EditLeads = () => {
   }, [id])
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <h1 className="font-bold text-2xl">Edit Lead</h1>
+    <div className='flex flex-col gap-4 p-4'>
+      <h1 className='font-bold text-2xl'>Edit Lead</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4  gap-4">
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4  gap-4'>
         {leadFields.map((field) => (
           <div key={field.name}>
-            <Label className="mb-3" htmlFor={field.name}>
+            <Label className='mb-3' htmlFor={field.name}>
               {field.label}
             </Label>
             <Input
@@ -100,7 +100,7 @@ const EditLeads = () => {
         ))}
       </div>
 
-      <Button onClick={editLead} className="mt-4 w-fit">
+      <Button onClick={editLead} className='mt-4 w-fit'>
         Update Lead
       </Button>
     </div>
