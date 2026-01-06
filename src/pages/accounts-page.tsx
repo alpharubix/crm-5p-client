@@ -34,12 +34,12 @@ export default function AccountsPage() {
     accountName: '',
     accountStatus: '',
     source: '',
-    businessType: '',
+    // businessType: '',
     city: '',
     state: '',
-    pincode: '',
-    businessStatus: '',
-    callBackDate: undefined as Date | undefined,
+    // pincode: '',
+    // businessStatus: '',
+    // callBackDate: undefined as Date | undefined,
   })
 
   // Separate state for applied filters (what the query actually uses)
@@ -54,22 +54,22 @@ export default function AccountsPage() {
       params.set('page', currentPage.toString())
 
       if (appliedFilters.accountName)
-        params.set('company_name', appliedFilters.accountName)
+        params.set('account_name', appliedFilters.accountName)
       if (appliedFilters.accountStatus)
         params.set('account_status', appliedFilters.accountStatus)
       if (appliedFilters.source) params.set('source', appliedFilters.source)
-      if (appliedFilters.businessType)
-        params.set('type_of_business', appliedFilters.businessType)
+      // if (appliedFilters.businessType)
+        // params.set('type_of_business', appliedFilters.businessType)
       if (appliedFilters.city) params.set('city', appliedFilters.city)
       if (appliedFilters.state) params.set('state', appliedFilters.state)
-      if (appliedFilters.pincode) params.set('pincode', appliedFilters.pincode)
-      if (appliedFilters.businessStatus)
-        params.set('business_status', appliedFilters.businessStatus)
-      if (appliedFilters.callBackDate)
-        params.set(
-          'call_back_date_time',
-          appliedFilters.callBackDate.toISOString()
-        )
+      // if (appliedFilters.pincode) params.set('pincode', appliedFilters.pincode)
+      // if (appliedFilters.businessStatus)
+      //   params.set('business_status', appliedFilters.businessStatus)
+      // if (appliedFilters.callBackDate)
+      //   params.set(
+      //     'call_back_date_time',
+      //     appliedFilters.callBackDate.toISOString()
+      //   )
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`,
@@ -93,6 +93,7 @@ export default function AccountsPage() {
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
+        // @ts-ignore
         if (value instanceof Date) {
           params.set(key, value.toISOString())
         } else {
@@ -114,12 +115,12 @@ export default function AccountsPage() {
       accountName: '',
       accountStatus: '',
       source: '',
-      businessType: '',
+      // businessType: '',
       city: '',
       state: '',
-      pincode: '',
-      businessStatus: '',
-      callBackDate: undefined,
+      // pincode: '',
+      // businessStatus: '',
+      // callBackDate: undefined,
     }
     setFilters(emptyFilters)
     setAppliedFilters(emptyFilters)
@@ -205,7 +206,7 @@ export default function AccountsPage() {
             </Select>
           </div>
 
-          <div className='space-y-2'>
+          {/* <div className='space-y-2'>
             <Label>Type of Business</Label>
             <Select
               value={filters.businessType}
@@ -234,7 +235,7 @@ export default function AccountsPage() {
                 </SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           <div className='space-y-2'>
             <Label>City</Label>
@@ -254,16 +255,16 @@ export default function AccountsPage() {
             />
           </div>
 
-          <div className='space-y-2'>
+          {/* <div className='space-y-2'>
             <Label>Pincode</Label>
             <Input
               placeholder='Pincode'
               value={filters.pincode}
               onChange={(e) => handleFilterChange('pincode', e.target.value)}
             />
-          </div>
+          </div> */}
 
-          <div className='space-y-2'>
+          {/* <div className='space-y-2'>
             <Label>Business Status</Label>
             <Select
               value={filters.businessStatus}
@@ -277,16 +278,16 @@ export default function AccountsPage() {
                 <SelectItem value='Inactive'>Inactive</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
-          <div className='space-y-2 flex flex-col'>
+          {/* <div className='space-y-2 flex flex-col'>
             <Label>Call Back Date</Label>
             <DateField
               value={filters.callBackDate}
               isEdit={true}
               onChange={(date) => handleFilterChange('callBackDate', date)}
             />
-          </div>
+          </div> */}
 
           <div className='flex gap-2 pt-2'>
             <Button className='flex-1' onClick={handleSearch}>
