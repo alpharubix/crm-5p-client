@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 export const updateDealSchema = z.object({
-  dealType: z.string().min(1),
+  dealType: z.string().min(1).optional(),
   dealCallbackDate: z.date().optional(),
   dealApprovalStatus: z.string().optional(),
   dealStatus: z.string().optional(),
@@ -33,6 +33,6 @@ export const updateDealSchema = z.object({
   lenderRejectionExplanation: z.string().optional(),
   customerRejectionReason: z.string().optional(),
   customerRejectionExplanation: z.string().optional(),
-});
+})
 
-export type UpdateDealFormValues = z.infer<typeof updateDealSchema>;
+export type UpdateDealFormValues = z.infer<typeof updateDealSchema>

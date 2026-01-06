@@ -69,9 +69,9 @@ export default function AddContactDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size='sm' variant='ghost' className='gap-2 w-full'>
+        {/* <Button size='sm' variant='ghost' className='gap-2 w-full'>
           <User className='w-4 h-4' /> Add Contact
-        </Button>
+        </Button> */}
       </DialogTrigger>
       <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>

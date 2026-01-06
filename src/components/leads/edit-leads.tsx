@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { ENV } from '@/conf'
 
 type Lead = {
   id: string
@@ -43,7 +44,7 @@ const EditLeads = () => {
     if (!id) return
 
     try {
-      const res = await fetch(`http://localhost:8080/accounts/${id}`)
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/${id}`)
       if (!res.ok) throw new Error('Failed to fetch lead')
       const result = await res.json()
       setData((prev) => ({ ...prev, ...result }))
@@ -56,7 +57,7 @@ const EditLeads = () => {
     if (!id) return
 
     try {
-      const res = await fetch(`http://localhost:8080/accounts/${id}`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

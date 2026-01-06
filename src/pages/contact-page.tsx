@@ -19,6 +19,7 @@ import Pagination from '@/components/shared/pagination'
 import { formatExactDate } from '@/utils/date-formatter'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { ENV } from '@/conf'
 
 export default function LeadsPage() {
   const navigate = useNavigate()
@@ -62,7 +63,7 @@ export default function LeadsPage() {
       if (filters.state) params.set('state', filters.state)
 
       const res = await fetch(
-        `http://localhost:8080/accounts?${params.toString()}`
+        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?${params.toString()}`
       )
       if (res.ok) {
         const data = await res.json()

@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@radix-ui/react-label'
+import { ENV } from '@/conf'
 
 type Props = {
   open: boolean
@@ -49,7 +50,7 @@ export default function AddLeadDialog({ open, onClose, onSuccess }: Props) {
         return
       }
 
-      const res = await fetch('http://localhost:8080/accounts/', {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

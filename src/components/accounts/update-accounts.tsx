@@ -127,10 +127,21 @@ export default function UpdateAccounts() {
     },
   })
 
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors, isDirty } } = form
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors, isDirty },
+  } = form
 
   // Fetch account data
-  const { data: apiResponse, isLoading, error } = useQuery({
+  const {
+    data: apiResponse,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['account', id],
     queryFn: async () => {
       const res = await fetch(
@@ -145,7 +156,10 @@ export default function UpdateAccounts() {
 
   // Extract account data and related entities
   const accountData = apiResponse?.data?.[0]
+
   const contacts = accountData?.account_linked_contact || []
+  console.log('contacts', contacts)
+
   const notes = accountData?.notes || []
   const ownerName = accountData?.owner?.full_name || 'User'
 
@@ -161,12 +175,15 @@ export default function UpdateAccounts() {
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateAccountFormValues) => {
       const payload = mapFormToApi(values)
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?account_id=${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      })
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?account_id=${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        }
+      )
       if (!res.ok) throw new Error('Failed to update account')
       return res.json()
     },
@@ -236,10 +253,11 @@ export default function UpdateAccounts() {
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <h1 className='text-lg font-semibold'>
-          Account Owner: <span className='text-primary font-bold'>{ownerName}</span>
+          Account Owner:{' '}
+          <span className='text-primary font-bold'>{ownerName}</span>
         </h1>
 
-        {!isEdit ? (
+        {/* {!isEdit ? (
           <Button size='sm' onClick={() => setIsEdit(true)}>
             Update
           </Button>
@@ -263,7 +281,7 @@ export default function UpdateAccounts() {
               Cancel
             </Button>
           </div>
-        )}
+        )} */}
       </div>
 
       <Card className='overflow-hidden space-y-1'>
@@ -275,7 +293,9 @@ export default function UpdateAccounts() {
               <DateField
                 value={data.assignmentDate}
                 isEdit={isEdit}
-                onChange={(d) => setValue('assignmentDate', d, { shouldDirty: true })}
+                onChange={(d) =>
+                  setValue('assignmentDate', d, { shouldDirty: true })
+                }
               />
             </FieldRow>
 
@@ -288,7 +308,10 @@ export default function UpdateAccounts() {
               />
             </FieldRow>
 
-            <FieldRow label='Distributor Code' error={errors.distributorCode?.message}>
+            <FieldRow
+              label='Distributor Code'
+              error={errors.distributorCode?.message}
+            >
               {isEdit ? (
                 <Input {...register('distributorCode')} className='h-8' />
               ) : (
@@ -301,7 +324,9 @@ export default function UpdateAccounts() {
                 <Checkbox
                   checked={data.wabaInterested}
                   onCheckedChange={(v) =>
-                    setValue('wabaInterested', Boolean(v), { shouldDirty: true })
+                    setValue('wabaInterested', Boolean(v), {
+                      shouldDirty: true,
+                    })
                   }
                 />
               ) : (
@@ -315,34 +340,51 @@ export default function UpdateAccounts() {
               <DateField
                 value={data.callBackDate}
                 isEdit={isEdit}
-                onChange={(d) => setValue('callBackDate', d, { shouldDirty: true })}
+                onChange={(d) =>
+                  setValue('callBackDate', d, { shouldDirty: true })
+                }
               />
             </FieldRow>
 
-            <FieldRow label='Account Status' error={errors.accountStatus?.message}>
+            <FieldRow
+              label='Account Status'
+              error={errors.accountStatus?.message}
+            >
               <SelectField
                 value={data.accountStatus}
                 isEdit={isEdit}
                 options={['Awareness', 'Interested']}
-                onChange={(v) => setValue('accountStatus', v, { shouldDirty: true })}
+                onChange={(v) =>
+                  setValue('accountStatus', v, { shouldDirty: true })
+                }
               />
             </FieldRow>
 
-            <FieldRow label='Account Stage' error={errors.accountStage?.message}>
+            <FieldRow
+              label='Account Stage'
+              error={errors.accountStage?.message}
+            >
               <SelectField
                 value={data.accountStage}
                 isEdit={isEdit}
                 options={['Initial Pitch']}
-                onChange={(v) => setValue('accountStage', v, { shouldDirty: true })}
+                onChange={(v) =>
+                  setValue('accountStage', v, { shouldDirty: true })
+                }
               />
             </FieldRow>
 
-            <FieldRow label='Business Status' error={errors.businessStatus?.message}>
+            <FieldRow
+              label='Business Status'
+              error={errors.businessStatus?.message}
+            >
               <SelectField
                 value={data.businessStatus}
                 isEdit={isEdit}
                 options={['Active', 'Inactive']}
-                onChange={(v) => setValue('businessStatus', v, { shouldDirty: true })}
+                onChange={(v) =>
+                  setValue('businessStatus', v, { shouldDirty: true })
+                }
               />
             </FieldRow>
           </div>
@@ -365,7 +407,9 @@ export default function UpdateAccounts() {
                 value={data.residentialOwnership}
                 isEdit={isEdit}
                 options={['Owned', 'Rented']}
-                onChange={(v) => setValue('residentialOwnership', v, { shouldDirty: true })}
+                onChange={(v) =>
+                  setValue('residentialOwnership', v, { shouldDirty: true })
+                }
               />
             </FieldRow>
 
@@ -428,7 +472,9 @@ export default function UpdateAccounts() {
                 value={data.premiseOwnership}
                 isEdit={isEdit}
                 options={['Owned', 'Rented']}
-                onChange={(v) => setValue('premiseOwnership', v, { shouldDirty: true })}
+                onChange={(v) =>
+                  setValue('premiseOwnership', v, { shouldDirty: true })
+                }
               />
             </FieldRow>
           </div>
@@ -442,8 +488,15 @@ export default function UpdateAccounts() {
               <SelectField
                 value={data.businessRegistrationType}
                 isEdit={isEdit}
-                options={['Proprietorship', 'Partnership', 'Private Limited', 'Public Limited']}
-                onChange={(v) => setValue('businessRegistrationType', v, { shouldDirty: true })}
+                options={[
+                  'Proprietorship',
+                  'Partnership',
+                  'Private Limited',
+                  'Public Limited',
+                ]}
+                onChange={(v) =>
+                  setValue('businessRegistrationType', v, { shouldDirty: true })
+                }
               />
             </FieldRow>
 
@@ -479,7 +532,11 @@ export default function UpdateAccounts() {
           <div>
             <FieldRow label='Parent Account'>
               {isEdit ? (
-                <Input {...register('parentAccount')} className='h-8' placeholder='Lookup' />
+                <Input
+                  {...register('parentAccount')}
+                  className='h-8'
+                  placeholder='Lookup'
+                />
               ) : (
                 <span>{data.parentAccount || '—'}</span>
               )}
@@ -490,7 +547,9 @@ export default function UpdateAccounts() {
                 value={data.typeOfBusiness}
                 isEdit={isEdit}
                 options={['Manufacturing', 'Trading', 'Services']}
-                onChange={(v) => setValue('typeOfBusiness', v, { shouldDirty: true })}
+                onChange={(v) =>
+                  setValue('typeOfBusiness', v, { shouldDirty: true })
+                }
               />
             </FieldRow>
 
@@ -607,7 +666,10 @@ export default function UpdateAccounts() {
             <p className='text-sm text-muted-foreground'>No notes available</p>
           ) : (
             notes.map((note: any, i: number) => (
-              <div key={note.parent_id || i} className='bg-muted/30 p-3 rounded-lg border'>
+              <div
+                key={note.parent_id || i}
+                className='bg-muted/30 p-3 rounded-lg border'
+              >
                 <p className='text-sm'>{note.note}</p>
                 <div className='flex gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
                   <span>
@@ -616,8 +678,13 @@ export default function UpdateAccounts() {
                       Account
                     </Badge>
                   </span>
-                  <span>Created: {new Date(note.created_time).toLocaleDateString()}</span>
-                  <span>Modified: {new Date(note.modified_time).toLocaleDateString()}</span>
+                  <span>
+                    Created: {new Date(note.created_time).toLocaleDateString()}
+                  </span>
+                  <span>
+                    Modified:{' '}
+                    {new Date(note.modified_time).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             ))
@@ -633,6 +700,7 @@ export default function UpdateAccounts() {
               <TableHeader className='bg-muted'>
                 <TableRow>
                   <TableHead>Contact Name</TableHead>
+                  <TableHead>Phone</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -640,7 +708,10 @@ export default function UpdateAccounts() {
               <TableBody>
                 {contacts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className='text-center text-muted-foreground'>
+                    <TableCell
+                      colSpan={3}
+                      className='text-center text-muted-foreground'
+                    >
                       No contacts available
                     </TableCell>
                   </TableRow>
@@ -648,6 +719,7 @@ export default function UpdateAccounts() {
                   contacts.map((contact: any) => (
                     <TableRow key={contact.id}>
                       <TableCell>{contact.last_name || '—'}</TableCell>
+                      <TableCell>{contact.mobile || '—'}</TableCell>
                       <TableCell>{contact.email || '—'}</TableCell>
                       <TableCell>
                         <Button variant='ghost' size='sm'>

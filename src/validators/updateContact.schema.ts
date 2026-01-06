@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const updateContactSchema = z.object({
-  firstName: z.string().min(1, "First Name is required"),
-  lastName: z.string().min(1, "Last Name is required"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
 
-  leadSource: z.string().min(1, "Lead Source is required"),
+  leadSource: z.string().optional(),
   designation: z.string().optional(),
 
   mobile: z.string().min(10, "Mobile must be at least 10 digits").optional(),

@@ -39,25 +39,37 @@ export default function AccountsPage() {
     state: '',
     pincode: '',
     businessStatus: '',
-    callBackDate: null,
+    callBackDate: undefined as Date | undefined,
   })
+
+  // Separate state for applied filters (what the query actually uses)
+  const [appliedFilters, setAppliedFilters] = useState(filters)
 
   const [currentPage, setCurrentPage] = useState(1)
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['accounts', currentPage, filters],
+    queryKey: ['accounts', currentPage, appliedFilters],
     queryFn: async () => {
       const params = new URLSearchParams()
       params.set('page', currentPage.toString())
 
-      if (filters.accountName) params.set('company_name', filters.accountName)
-      if (filters.accountStatus) params.set('account_status', filters.accountStatus)
-      if (filters.source) params.set('source', filters.source)
-      if (filters.businessType) params.set('type_of_business', filters.businessType)
-      if (filters.city) params.set('city', filters.city)
-      if (filters.state) params.set('state', filters.state)
-      if (filters.pincode) params.set('pincode', filters.pincode)
-      if (filters.businessStatus) params.set('business_status', filters.businessStatus)
+      if (appliedFilters.accountName)
+        params.set('company_name', appliedFilters.accountName)
+      if (appliedFilters.accountStatus)
+        params.set('account_status', appliedFilters.accountStatus)
+      if (appliedFilters.source) params.set('source', appliedFilters.source)
+      if (appliedFilters.businessType)
+        params.set('type_of_business', appliedFilters.businessType)
+      if (appliedFilters.city) params.set('city', appliedFilters.city)
+      if (appliedFilters.state) params.set('state', appliedFilters.state)
+      if (appliedFilters.pincode) params.set('pincode', appliedFilters.pincode)
+      if (appliedFilters.businessStatus)
+        params.set('business_status', appliedFilters.businessStatus)
+      if (appliedFilters.callBackDate)
+        params.set(
+          'call_back_date_time',
+          appliedFilters.callBackDate.toISOString()
+        )
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?${params.toString()}`,
@@ -89,12 +101,16 @@ export default function AccountsPage() {
       }
     })
 
-    // setSearchParams(params)
+    // Update URL params
+    setSearchParams(params)
+
+    // Apply filters to trigger query
+    setAppliedFilters(filters)
     setCurrentPage(1)
   }
 
   const handleClear = () => {
-    setFilters({
+    const emptyFilters = {
       accountName: '',
       accountStatus: '',
       source: '',
@@ -103,8 +119,10 @@ export default function AccountsPage() {
       state: '',
       pincode: '',
       businessStatus: '',
-      callBackDate: null,
-    })
+      callBackDate: undefined,
+    }
+    setFilters(emptyFilters)
+    setAppliedFilters(emptyFilters)
     setSearchParams(new URLSearchParams())
     setCurrentPage(1)
   }
@@ -339,7 +357,9 @@ export default function AccountsPage() {
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.call_back_date_time
-                              ? new Date(acc.call_back_date_time).toLocaleString()
+                              ? new Date(
+                                  acc.call_back_date_time
+                                ).toLocaleString()
                               : '—'}
                           </TableCell>
                         </TableRow>

@@ -4,17 +4,17 @@ export const updateAccountSchema = z.object({
   assignmentDate: z.date().optional(),
   callBackDate: z.date().optional(),
 
-  source: z.string().min(1, "Source is required"),
-  distributorCode: z.string().min(1, "Distributor Code is required"),
+  source: z.string().optional(),
+  distributorCode: z.string().optional(),
 
   wabaInterested: z.boolean().optional(),
 
-  accountStatus: z.string().min(1, "Account Status is required"),
-  accountStage: z.string().min(1, "Account Stage is required"),
-  businessStatus: z.string().min(1, "Business Status is required"),
+  accountStatus: z.string().optional(),
+  accountStage: z.string().optional(),
+  businessStatus: z.string().optional(),
 
-  firstName: z.string().min(1, "First Name is required"),
-  lastName: z.string().min(1, "Last Name is required"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
 
   residentialOwnership: z.string().optional(),
   residentialLocation: z.string().optional(),

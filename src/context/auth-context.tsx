@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:8080/auth/logout', {
+      await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       })
