@@ -50,7 +50,7 @@ export default function AddLeadDialog({ open, onClose, onSuccess }: Props) {
         return
       }
 
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts/`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

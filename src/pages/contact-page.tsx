@@ -63,7 +63,7 @@ export default function LeadsPage() {
       if (filters.state) params.set('state', filters.state)
 
       const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?${params.toString()}`
+        `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`
       )
       if (res.ok) {
         const data = await res.json()
@@ -111,41 +111,41 @@ export default function LeadsPage() {
     setSearchParams(params)
   }
 
-  const handleSaveLead = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
+  // const handleSaveLead = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setSubmitting(true)
 
-    console.log(formData)
-    return
+  //   console.log(formData)
+  //   return
 
-    try {
-      const res = await fetch('http://localhost:8080/leads/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
+  //   try {
+  //     const res = await fetch('http://localhost:8080/leads/', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(formData),
+  //     })
 
-      if (res.ok) {
-        toast.success('Lead added successfully')
-        setIsDialogOpen(false)
-        fetchLeads()
-        setFormData({
-          full_name: '',
-          phone_number: '',
-          designation: '',
-          city: '',
-          state: '',
-        })
-      } else {
-        const err = await res.json()
-        toast.error(err.detail || 'Error adding lead')
-      }
-    } catch {
-      toast.error('Network error')
-    } finally {
-      setSubmitting(false)
-    }
-  }
+  //     if (res.ok) {
+  //       toast.success('Lead added successfully')
+  //       setIsDialogOpen(false)
+  //       fetchLeads()
+  //       setFormData({
+  //         full_name: '',
+  //         phone_number: '',
+  //         designation: '',
+  //         city: '',
+  //         state: '',
+  //       })
+  //     } else {
+  //       const err = await res.json()
+  //       toast.error(err.detail || 'Error adding lead')
+  //     }
+  //   } catch {
+  //     toast.error('Network error')
+  //   } finally {
+  //     setSubmitting(false)
+  //   }
+  // }
 
   return (
     <div className='p-4 space-y-4'>

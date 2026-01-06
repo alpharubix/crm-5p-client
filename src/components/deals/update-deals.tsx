@@ -347,6 +347,7 @@ export default function UpdateDeals() {
               </div>
             </div>
           ))}
+          {/* @ts-ignore */}
           <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
       </Card>

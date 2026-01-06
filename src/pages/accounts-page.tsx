@@ -72,7 +72,7 @@ export default function AccountsPage() {
         )
 
       const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?${params.toString()}`,
+        `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`,
         { credentials: 'include' }
       )
       if (!res.ok) throw new Error('Failed to fetch')

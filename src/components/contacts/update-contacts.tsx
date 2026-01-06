@@ -270,7 +270,7 @@ export default function UpdateContacts() {
               </div>
             </div>
           ))}
-
+          {/* @ts-ignore */}
           <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
       </Card>
