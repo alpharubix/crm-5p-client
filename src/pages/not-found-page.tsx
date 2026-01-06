@@ -28,13 +28,13 @@ const NotFoundPage = () => {
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
-                    stroke-width="1.5"
+                    strokeWidth="1.5"
                     stroke="currentColor"
                     className="w-5 h-5 rtl:rotate-180"
                   >
                     <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       d="M6.75 15.75L3 12m0 0l3.75-3.75M3 12h18"
                     />
                   </svg>
@@ -70,49 +70,49 @@ const NotFoundPage = () => {
                   cy="142"
                   r="20"
                   stroke="#667085"
-                  stroke-width="2"
+                  strokeWidth="2"
                 />
                 <circle
                   cx="21"
                   cy="102"
                   r="20"
                   stroke="#667085"
-                  stroke-width="2"
+                  strokeWidth="2"
                 />
                 <circle
                   cx="141"
                   cy="102"
                   r="20"
                   stroke="#667085"
-                  stroke-width="2"
+                  strokeWidth="2"
                 />
                 <circle
                   cx="193"
                   cy="82"
                   r="20"
                   stroke="#667085"
-                  stroke-width="2"
+                  strokeWidth="2"
                 />
                 <circle
                   cx="313"
                   cy="82"
                   r="20"
                   stroke="#667085"
-                  stroke-width="2"
+                  strokeWidth="2"
                 />
                 <circle
                   cx="253"
                   cy="22"
                   r="20"
                   stroke="#667085"
-                  stroke-width="2"
+                  strokeWidth="2"
                 />
                 <circle
                   cx="253"
                   cy="142"
                   r="20"
                   stroke="#667085"
-                  stroke-width="2"
+                  strokeWidth="2"
                 />
                 <path
                   d="M1 102C1 90.9543 9.9543 82 21 82H141C152.046 82 161 90.9543 161 102C161 113.046 152.046 122 141 122H21C9.9543 122 1 113.046 1 102Z"

@@ -5,6 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { format } from "date-fns"
 import { CalendarDays } from "lucide-react"
 
 type Props = {
@@ -14,14 +15,16 @@ type Props = {
 }
 
 export default function DateField({ value, isEdit, onChange }: Props) {
-  if (!isEdit) return <span>{value?.toDateString() || "—"}</span>
+  if (!value) return <span>—</span>
+  if (!isEdit) return <span>{format(new Date(value), "EEEE, dd MMM, yyyy")
+    || "—"}</span>
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button size="sm" variant="outline">
           <CalendarDays className="w-4 h-4 mr-2" />
-          {value?.toDateString() || "Pick Date"}
+          {new Date(value)?.toDateString() || "Pick Date"}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0">

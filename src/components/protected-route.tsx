@@ -1,27 +1,20 @@
 import { useAuth } from '@/context/auth-context'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
-interface ProtectedRouteProps {
-  children?: React.ReactNode
-}
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children }: any) {
   const { user, isLoading } = useAuth()
+  const location = useLocation()
 
-  // Show nothing or a loading spinner while checking auth status
-  if (isLoading) {
-    return (
-      <div className='flex h-screen items-center justify-center'>
-        <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-      </div>
-    )
-  }
+  if (isLoading) return null
 
-  // If not authenticated, redirect to login
   if (!user) {
-    return <Navigate to='/login' replace />
+    return <Navigate to="/login" replace />
   }
 
-  // If authenticated, render children or Outlet
+  if (location.pathname === "/" || location.pathname === "/login") {
+    return <Navigate to="/accounts" replace />
+  }
+
   return children ? <>{children}</> : <Outlet />
 }

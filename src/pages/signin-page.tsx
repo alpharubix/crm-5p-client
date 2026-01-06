@@ -15,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '@/context/auth-context'
 import { toast } from 'sonner'
+import { ENV } from '@/conf'
 
 const signInSchema = z.object({
   email: z.string().email(),
@@ -39,7 +40,7 @@ export function SignInPage({
   })
 
   const onSubmit = async (data: SignInFormValues) => {
-    const res = await fetch(`http://localhost:8080/auth/login`, {
+    const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

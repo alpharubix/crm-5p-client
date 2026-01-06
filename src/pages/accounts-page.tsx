@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label'
 import DateField from '@/components/shared/date-field'
 import Pagination from '@/components/shared/pagination'
 import { RefreshCw } from 'lucide-react'
+import { ENV } from '@/conf'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -22,62 +23,53 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-
-const DUMMY_ACCOUNTS = [
-  {
-    id: 1,
-    accountName: 'JULI ENTERPRISES',
-    accountOwner: 'Digamber Pandey',
-    accountStatus: 'Awareness',
-    source: 'Himalaya',
-    businessType: 'Distributor',
-    city: 'LUCKNOW',
-    state: 'Uttar Pradesh',
-    callBack: 'Jan 1, 2026 01:00 PM',
-  },
-  {
-    id: 2,
-    accountName: 'JANTA MEDICINE CENTER',
-    accountOwner: 'Sahil Kispotta',
-    accountStatus: 'Assessment',
-    source: 'Himalaya',
-    businessType: 'Distributor',
-    city: 'DORAHA',
-    state: 'Punjab',
-    callBack: 'Dec 8, 2025 01:00 PM',
-  },
-  {
-    id: 3,
-    accountName: 'Naresh Kumar & Sons',
-    accountOwner: 'Sahil Kispotta',
-    accountStatus: 'Lender Review',
-    source: 'Himalaya',
-    businessType: 'Distributor',
-    city: 'ABOHAR',
-    state: 'Punjab',
-    callBack: 'Dec 5, 2025 04:30 PM',
-  },
-]
+import { useQuery } from '@tanstack/react-query'
 
 export default function AccountsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [accounts] = useState(DUMMY_ACCOUNTS)
 
   // Initialize filters from URL
   const [filters, setFilters] = useState({
-    accountName: searchParams.get('accountName') || '',
-    accountStatus: searchParams.get('accountStatus') || '',
-    source: searchParams.get('source') || '',
-    businessType: searchParams.get('businessType') || '',
-    city: searchParams.get('city') || '',
-    state: searchParams.get('state') || '',
-    pincode: searchParams.get('pincode') || '',
-    businessStatus: searchParams.get('businessStatus') || '',
-    callBackDate: searchParams.get('callBackDate')
-      ? new Date(searchParams.get('callBackDate')!)
-      : undefined,
+    accountName: '',
+    accountStatus: '',
+    source: '',
+    businessType: '',
+    city: '',
+    state: '',
+    pincode: '',
+    businessStatus: '',
+    callBackDate: null,
   })
+
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['accounts', currentPage, filters],
+    queryFn: async () => {
+      const params = new URLSearchParams()
+      params.set('page', currentPage.toString())
+
+      if (filters.accountName) params.set('company_name', filters.accountName)
+      if (filters.accountStatus) params.set('account_status', filters.accountStatus)
+      if (filters.source) params.set('source', filters.source)
+      if (filters.businessType) params.set('type_of_business', filters.businessType)
+      if (filters.city) params.set('city', filters.city)
+      if (filters.state) params.set('state', filters.state)
+      if (filters.pincode) params.set('pincode', filters.pincode)
+      if (filters.businessStatus) params.set('business_status', filters.businessStatus)
+
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL_LOCAL}/accounts?${params.toString()}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error('Failed to fetch')
+      return res.json()
+    },
+  })
+
+  const accounts = data?.data || []
+  const pageInfo = data?.page_info || { page: 1, total_pages: 1 }
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
@@ -85,6 +77,8 @@ export default function AccountsPage() {
 
   const handleSearch = () => {
     const params = new URLSearchParams()
+    params.set('page', '1')
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
         if (value instanceof Date) {
@@ -94,7 +88,9 @@ export default function AccountsPage() {
         }
       }
     })
-    setSearchParams(params)
+
+    // setSearchParams(params)
+    setCurrentPage(1)
   }
 
   const handleClear = () => {
@@ -107,44 +103,18 @@ export default function AccountsPage() {
       state: '',
       pincode: '',
       businessStatus: '',
-      callBackDate: undefined,
+      callBackDate: null,
     })
     setSearchParams(new URLSearchParams())
+    setCurrentPage(1)
   }
-
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 10
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
+    const params = new URLSearchParams(searchParams)
+    params.set('page', page.toString())
+    setSearchParams(params)
   }
-
-  // Filter Logic (Client-side implementation)
-  const filteredAccounts = accounts.filter((acc) => {
-    return (
-      (filters.accountName === '' ||
-        acc.accountName
-          .toLowerCase()
-          .includes(filters.accountName.toLowerCase())) &&
-      (filters.accountStatus === '' ||
-        acc.accountStatus === filters.accountStatus) &&
-      (filters.source === '' || acc.source === filters.source) &&
-      (filters.businessType === '' ||
-        acc.businessType === filters.businessType) &&
-      (filters.city === '' ||
-        acc.city.toLowerCase().includes(filters.city.toLowerCase())) &&
-      (filters.state === '' ||
-        acc.state.toLowerCase().includes(filters.state.toLowerCase()))
-      // Add other filters as needed
-    )
-  })
-
-  const totalPages = Math.ceil(filteredAccounts.length / ITEMS_PER_PAGE)
-  const paginatedAccounts = filteredAccounts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
 
   return (
     <div className='p-4 space-y-4'>
@@ -154,8 +124,13 @@ export default function AccountsPage() {
           <p className='text-muted-foreground'>Manage your accounts here.</p>
         </div>
 
-        <Button variant='outline' size='icon'>
-          <RefreshCw className='h-4 w-4' />
+        <Button
+          variant='outline'
+          size='icon'
+          onClick={() => refetch()}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
         </Button>
       </div>
 
@@ -306,59 +281,81 @@ export default function AccountsPage() {
         </div>
 
         <div className='flex flex-col gap-4 min-w-0'>
-          <div className='border rounded-md p-2 overflow-x-auto'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Account Name</TableHead>
-                  <TableHead>Account Owner</TableHead>
-                  <TableHead>Account Status</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Type of Business</TableHead>
-                  <TableHead>City</TableHead>
-                  <TableHead>State</TableHead>
-                  <TableHead>Call Back Date / Time</TableHead>
-                </TableRow>
-              </TableHeader>
+          {isLoading ? (
+            <div className='flex items-center justify-center h-64 border rounded-md'>
+              <RefreshCw className='h-8 w-8 animate-spin text-muted-foreground' />
+            </div>
+          ) : (
+            <>
+              <div className='border rounded-md p-2 overflow-x-auto'>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Account Name</TableHead>
+                      <TableHead>Account Owner</TableHead>
+                      <TableHead>Account Status</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead>Type of Business</TableHead>
+                      <TableHead>City</TableHead>
+                      <TableHead>State</TableHead>
+                      <TableHead>Call Back Date / Time</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-              <TableBody>
-                {paginatedAccounts.map((acc) => (
-                  <TableRow
-                    key={acc.id}
-                    className='cursor-pointer hover:bg-accent'
-                    onClick={() => navigate(`/accounts/${acc.id}`)}
-                  >
-                    <TableCell className='font-medium text-primary '>
-                      {acc.accountName}
-                    </TableCell>
-                    <TableCell className='text-primary '>
-                      {acc.accountOwner}
-                    </TableCell>
-                    <TableCell className='text-primary '>
-                      {acc.accountStatus}
-                    </TableCell>
-                    <TableCell className='text-primary '>
-                      {acc.source}
-                    </TableCell>
-                    <TableCell className='text-primary '>
-                      {acc.businessType}
-                    </TableCell>
-                    <TableCell className='text-primary '>{acc.city}</TableCell>
-                    <TableCell className='text-primary '>{acc.state}</TableCell>
-                    <TableCell className='text-primary '>
-                      {acc.callBack}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                  <TableBody>
+                    {accounts.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className='text-center h-24'>
+                          No accounts found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      accounts.map((acc: any) => (
+                        <TableRow
+                          key={acc.id}
+                          className='cursor-pointer hover:bg-accent'
+                          onClick={() => navigate(`/accounts/${acc.id}`)}
+                        >
+                          <TableCell className='font-medium text-primary'>
+                            {acc.account_name}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            {acc.owner?.full_name || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            {acc.account_status || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            {acc.source || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            {acc.type_of_business || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            {acc.city || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            {acc.state || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            {acc.call_back_date_time
+                              ? new Date(acc.call_back_date_time).toLocaleString()
+                              : '—'}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+              <Pagination
+                currentPage={pageInfo.page}
+                totalPages={pageInfo.total_pages}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

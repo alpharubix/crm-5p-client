@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { User } from '@/types/auth'
+import { ENV } from '@/conf'
 
 interface AuthContextType {
   user: User | null
@@ -22,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/auth/me`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL_LOCAL}/auth/me`, {
         credentials: 'include',
       })
 

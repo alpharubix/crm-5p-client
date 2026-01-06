@@ -62,7 +62,7 @@ export default function LeadsPage() {
       if (filters.state) params.set('state', filters.state)
 
       const res = await fetch(
-        `http://localhost:8080/accounts/?${params.toString()}`
+        `http://localhost:8080/accounts?${params.toString()}`
       )
       if (res.ok) {
         const data = await res.json()

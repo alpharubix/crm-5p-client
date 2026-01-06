@@ -36,7 +36,6 @@ export default function App() {
           </Route>
         </Routes>
 
-        <Toaster richColors position='top-right' />
       </BrowserRouter>
     </AuthProvider>
   )
