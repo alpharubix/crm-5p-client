@@ -301,10 +301,15 @@ export default function UpdateAccounts() {
     <div className='space-y-6 bg-background min-h-screen'>
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
-        <h1 className='text-lg font-semibold'>
-          Account Owner:{' '}
-          <span className='text-primary font-bold'>{ownerName}</span>
-        </h1>
+        <div>
+          <h1 className='text-lg font-semibold'>
+            Account Name: {accountData?.account_name}
+          </h1>
+          <h1 className='text-base font-medium'>
+            Account Owner:{' '}
+            <span className='text-base font-bold'>{ownerName}</span>
+          </h1>
+        </div>
 
         {!isEdit ? (
           <Button size='sm' onClick={() => setIsEdit(true)}>
