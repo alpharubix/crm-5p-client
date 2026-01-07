@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useBeforeUnload } from 'react-router-dom'
+import { useBeforeUnload, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -17,18 +18,32 @@ import {
   updateContactSchema,
   type UpdateContactFormValues,
 } from '@/validators/updateContact.schema'
+import { ENV } from '@/conf'
+
+function mapContactToForm(apiData: any): UpdateContactFormValues {
+  return {
+    firstName: apiData.first_name || '',
+    lastName: apiData.last_name || '',
+    leadSource: apiData.lead_source || 'Website',
+    designation: apiData.designation || '',
+    mobile: apiData.mobile || '',
+    phone: apiData.phone || '',
+    accountName: apiData.parent_account?.account_name || '',
+    email: apiData.email || '',
+    secondaryEmail: apiData.secondary_email || '',
+    createdBy: apiData.created_by?.full_name || 'System Driven Field (User)',
+    modifiedBy: apiData.modified_by?.full_name || 'System Driven Field (User)',
+    street: apiData.street || '',
+    state: apiData.state || '',
+    pincode: apiData.pincode || '',
+    city: apiData.city || '',
+    country: apiData.country || 'India',
+  }
+}
 
 export default function UpdateContacts() {
+  const { id } = useParams()
   const [isEdit, setIsEdit] = useState(false)
-  const [notes, setNotes] = useState<
-    { title: string; description: string; date: string }[]
-  >([
-    {
-      title: 'Initial Note',
-      description: 'Called contact',
-      date: '19-12-2025',
-    },
-  ])
 
   const {
     register,
@@ -46,6 +61,31 @@ export default function UpdateContacts() {
       country: 'India',
     },
   })
+
+  const {
+    data: apiResponse,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['contact', id],
+    queryFn: async () => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/contacts?contact_id=${id}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error('Failed to fetch contact')
+      return res.json()
+    },
+    enabled: !!id,
+  })
+
+  const contactData = apiResponse?.data?.[0]
+
+  useEffect(() => {
+    if (contactData) {
+      reset(mapContactToForm(contactData))
+    }
+  }, [contactData, reset])
 
   // Warn on browser close/refresh if dirty
   useBeforeUnload(
@@ -68,11 +108,12 @@ export default function UpdateContacts() {
     reset(values)
   }
 
-  const handleAddNote = (note: { title: string; description: string }) => {
-    setNotes((prev) => [
-      ...prev,
-      { ...note, date: new Date().toLocaleDateString() },
-    ])
+  if (isLoading) {
+    return <div className='p-4'>Loading contact...</div>
+  }
+
+  if (error || (apiResponse && !contactData)) {
+    return <div className='p-4'>Contact not found</div>
   }
 
   return (
@@ -82,39 +123,12 @@ export default function UpdateContacts() {
         <h1 className='text-lg font-semibold'>
           Contact Owner: <span className='text-primary font-bold'>User</span>
         </h1>
-
-        {!isEdit ? (
-          <Button size='sm' onClick={() => setIsEdit(true)}>
-            Update
-          </Button>
-        ) : (
-          <div className='flex gap-2'>
-            <Button
-              size='sm'
-              disabled={!isDirty}
-              onClick={handleSubmit(onSave)}
-            >
-              Save
-            </Button>
-            <Button
-              size='sm'
-              variant='outline'
-              onClick={() => {
-                reset()
-                setIsEdit(false)
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
       </div>
 
       <Card className='overflow-hidden space-y-1'>
         {/* ================= Contact Information ================= */}
         <SectionHeader title='Contact Information' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
-          {/* ... existing fields ... */}
           <div className='md:border-r'>
             <FieldRow label='First Name' error={errors.firstName?.message}>
               {isEdit ? (
@@ -249,29 +263,6 @@ export default function UpdateContacts() {
               )}
             </FieldRow>
           </div>
-        </CardContent>
-
-        {/* ================= Notes ================= */}
-        <SectionHeader title='Notes' />
-        <CardContent className='p-4 space-y-3'>
-          {notes.map((note, i) => (
-            <div key={i} className='bg-muted/30 p-3 rounded-lg border'>
-              <p className='text-sm font-semibold'>{note.title}</p>
-              <p className='text-sm'>{note.description}</p>
-              <div className='flex gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
-                <span>
-                  Module:{' '}
-                  <Badge variant='outline' className='text-[10px] h-4'>
-                    Contact
-                  </Badge>
-                </span>
-                <span>Created: {note.date}</span>
-                <span>Owner: System User</span>
-              </div>
-            </div>
-          ))}
-          {/* @ts-ignore */}
-          <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
       </Card>
     </div>

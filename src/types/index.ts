@@ -82,3 +82,17 @@ export type UpdateAccountFormValues = {
   industry?: string
   description?: string
 }
+
+export type Contact = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  designation: string | null
+  email: string | null
+  mobile: string | null
+  phone: string | null
+  city: string | null
+  state: string | null
+  created_time: string
+  modified_time: string
+}
