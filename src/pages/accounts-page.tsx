@@ -59,7 +59,7 @@ export default function AccountsPage() {
         params.set('account_status', appliedFilters.accountStatus)
       if (appliedFilters.source) params.set('source', appliedFilters.source)
       // if (appliedFilters.businessType)
-        // params.set('type_of_business', appliedFilters.businessType)
+      // params.set('type_of_business', appliedFilters.businessType)
       if (appliedFilters.city) params.set('city', appliedFilters.city)
       if (appliedFilters.state) params.set('state', appliedFilters.state)
       // if (appliedFilters.pincode) params.set('pincode', appliedFilters.pincode)
@@ -306,10 +306,10 @@ export default function AccountsPage() {
             </div>
           ) : (
             <>
-              <div className='border rounded-md p-2 overflow-x-auto'>
-                <Table>
+              <div className='border rounded-md flex-1 overflow-auto relative'>
+                <table className='w-full caption-bottom text-sm'>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className='sticky top-0 z-10 bg-background'>
                       <TableHead>Account Name</TableHead>
                       <TableHead>Account Owner</TableHead>
                       <TableHead>Account Status</TableHead>
@@ -367,7 +367,7 @@ export default function AccountsPage() {
                       ))
                     )}
                   </TableBody>
-                </Table>
+                </table>
               </div>
 
               <Pagination

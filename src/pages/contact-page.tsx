@@ -188,16 +188,16 @@ export default function ContactsPage() {
 
         {/* -------- Table -------- */}
         <div className='flex flex-col gap-4 min-w-0 h-[550px]'>
-          <div className='border rounded-md p-2 overflow-y-auto'>
+          <div className='border rounded-md flex-1 overflow-auto relative'>
             {isLoading ? (
               <div className='flex items-center justify-center h-64'>
                 <RefreshCw className='h-8 w-8 animate-spin text-muted-foreground' />
               </div>
             ) : (
-              <Table>
+              <table className='w-full caption-bottom text-sm'>
                 <TableCaption>Contacts list</TableCaption>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className='sticky top-0 z-10 bg-background'>
                     <TableHead>Contact Name</TableHead>
                     <TableHead>Designation</TableHead>
                     <TableHead>Mobile</TableHead>
@@ -237,7 +237,7 @@ export default function ContactsPage() {
                     ))
                   )}
                 </TableBody>
-              </Table>
+              </table>
             )}
           </div>
           <Pagination
