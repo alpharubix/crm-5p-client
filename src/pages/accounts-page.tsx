@@ -24,6 +24,7 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import { useQuery } from '@tanstack/react-query'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function AccountsPage() {
   const navigate = useNavigate()
@@ -31,21 +32,24 @@ export default function AccountsPage() {
 
   // Initialize filters from URL
   const [filters, setFilters] = useState({
-    accountName: '',
-    accountStatus: '',
-    source: '',
-    // businessType: '',
-    city: '',
-    state: '',
-    // pincode: '',
-    // businessStatus: '',
+    accountName: searchParams.get('accountName') || '',
+    accountStatus: searchParams.get('accountStatus') || '',
+    source: searchParams.get('source') || '',
+    // businessType: searchParams.get('businessType') || '',
+    city: searchParams.get('city') || '',
+    state: searchParams.get('state') || '',
+    // pincode: searchParams.get('pincode') || '',
+    // businessStatus: searchParams.get('businessStatus') || '',
     // callBackDate: undefined as Date | undefined,
   })
 
   // Separate state for applied filters (what the query actually uses)
   const [appliedFilters, setAppliedFilters] = useState(filters)
 
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(() => {
+    const page = searchParams.get('page')
+    return page ? Number(page) : 1
+  })
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['accounts', currentPage, appliedFilters],
@@ -142,6 +146,17 @@ export default function AccountsPage() {
           <h1 className='text-2xl font-bold'>Accounts Database</h1>
           <p className='text-muted-foreground'>Manage your accounts here.</p>
         </div>
+
+        {isLoading ? (
+          <Skeleton className='w-24 h-4' />
+        ) : (
+          <div className='flex gap-2 items-center justify-start'>
+            <h3 className='font-semibold text-muted-foreground'>
+              Total Accounts :
+            </h3>
+            <p className='text-muted-foreground'>{pageInfo.data_size}</p>
+          </div>
+        )}
 
         <Button
           variant='outline'

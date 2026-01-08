@@ -558,7 +558,19 @@ export default function UpdateAccounts() {
               <SelectField
                 value={data.industry}
                 isEdit={isEdit}
-                options={['Finance', 'Retail', 'Healthcare', 'IT', 'Pharma']}
+                options={[
+                  'Pharma',
+                  'AHP',
+                  'CPD',
+                  'FMCG',
+                  'OTX',
+                  'Footwear',
+                  'OTC',
+                  'RAAGA',
+                  'Hardware',
+                  'Electronics',
+                  'DVG Dist Petroleum',
+                ]}
                 onChange={(v) => setValue('industry', v, { shouldDirty: true })}
               />
             </FieldRow>
