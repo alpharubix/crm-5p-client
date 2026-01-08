@@ -1,6 +1,7 @@
 import { RefreshCw } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -12,78 +13,60 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { toast } from 'sonner'
-
-import type { Lead } from '@/types'
-import Pagination from '@/components/shared/pagination'
-import { formatExactDate } from '@/utils/date-formatter'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { ENV } from '@/conf'
+import Pagination from '@/components/shared/pagination'
+import type { Contact } from '@/types'
 
-export default function LeadsPage() {
+export default function ContactsPage() {
   const navigate = useNavigate()
-
-  const [leads, setLeads] = useState<Lead[]>([])
-  const [loading, setLoading] = useState(true)
+  const [searchParams, setSearchParams] = useSearchParams()
 
   /* ---------------- Filters ---------------- */
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-
+  // Initialize filters from URL
   const [filters, setFilters] = useState({
-    phone: searchParams.get('phone') || '',
+    first_name: searchParams.get('first_name') || '',
+    last_name: searchParams.get('last_name') || '',
     email: searchParams.get('email') || '',
     city: searchParams.get('city') || '',
-    state: searchParams.get('state') || '',
   })
 
-  // Sync state with URL changes (e.g. back button)
-  useEffect(() => {
-    setFilters({
-      phone: searchParams.get('phone') || '',
-      email: searchParams.get('email') || '',
-      city: searchParams.get('city') || '',
-      state: searchParams.get('state') || '',
-    })
-    const page = searchParams.get('page')
-    setCurrentPage(page ? parseInt(page) : 1)
-  }, [searchParams])
+  // Separate state for applied filters (what the query actually uses)
+  const [appliedFilters, setAppliedFilters] = useState(filters)
 
-  // Fetch leads with pagination and filters
-  const fetchLeads = async () => {
-    setLoading(true)
-    try {
+  const [currentPage, setCurrentPage] = useState(() => {
+    const page = searchParams.get('page')
+    return page ? parseInt(page) : 1
+  })
+
+  // React Query for fetching contacts
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['contacts', currentPage, appliedFilters],
+    queryFn: async () => {
       const params = new URLSearchParams()
       params.set('page', currentPage.toString())
-      if (filters.phone) params.set('phone', filters.phone)
-      if (filters.email) params.set('email', filters.email)
-      if (filters.city) params.set('city', filters.city)
-      if (filters.state) params.set('state', filters.state)
+
+      if (appliedFilters.first_name)
+        params.set('first_name', appliedFilters.first_name)
+      if (appliedFilters.last_name)
+        params.set('last_name', appliedFilters.last_name)
+      if (appliedFilters.email) params.set('email', appliedFilters.email)
+      if (appliedFilters.city) params.set('city', appliedFilters.city)
 
       const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`
-      )
-      if (res.ok) {
-        const data = await res.json()
-        console.log(data)
-        setLeads(data.data)
-        if (data.page_info) {
-          setTotalPages(data.page_info.total_pages)
+        `${ENV.VITE_BACKEND_BASE_URL}/contacts?${params.toString()}`,
+        {
+          credentials: 'include',
         }
-      }
-    } catch (err) {
-      console.error(err)
-      toast.error('Failed to fetch leads')
-    } finally {
-      setLoading(false)
-    }
-  }
+      )
+      if (!res.ok) throw new Error('Failed to fetch contacts')
+      return res.json()
+    },
+  })
 
-  useEffect(() => {
-    fetchLeads()
-  }, [currentPage, searchParams]) // refetch on page or param change
+  const contacts: Contact[] = data?.data || []
+  const pageInfo = data?.page_info || { page: 1, total_pages: 1 }
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters({ ...filters, [e.target.name]: e.target.value })
@@ -91,61 +74,39 @@ export default function LeadsPage() {
 
   const handleSearch = () => {
     const params = new URLSearchParams()
-    if (filters.phone) params.set('phone', filters.phone)
+    if (filters.first_name) params.set('first_name', filters.first_name)
+    if (filters.last_name) params.set('last_name', filters.last_name)
     if (filters.email) params.set('email', filters.email)
     if (filters.city) params.set('city', filters.city)
-    if (filters.state) params.set('state', filters.state)
+
     // Reset to page 1 on search
     params.set('page', '1')
     setSearchParams(params)
+
+    // Apply filters to trigger query
+    setAppliedFilters(filters)
+    setCurrentPage(1)
   }
 
   const handleClear = () => {
+    const emptyFilters = {
+      first_name: '',
+      last_name: '',
+      email: '',
+      city: '',
+    }
+    setFilters(emptyFilters)
+    setAppliedFilters(emptyFilters)
     setSearchParams(new URLSearchParams())
-    // State will sync via useEffect
+    setCurrentPage(1)
   }
 
   const handlePageChange = (page: number) => {
+    setCurrentPage(page)
     const params = new URLSearchParams(searchParams)
     params.set('page', page.toString())
     setSearchParams(params)
   }
-
-  // const handleSaveLead = async (e: React.FormEvent) => {
-  //   e.preventDefault()
-  //   setSubmitting(true)
-
-  //   console.log(formData)
-  //   return
-
-  //   try {
-  //     const res = await fetch('http://localhost:8080/leads/', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(formData),
-  //     })
-
-  //     if (res.ok) {
-  //       toast.success('Lead added successfully')
-  //       setIsDialogOpen(false)
-  //       fetchLeads()
-  //       setFormData({
-  //         full_name: '',
-  //         phone_number: '',
-  //         designation: '',
-  //         city: '',
-  //         state: '',
-  //       })
-  //     } else {
-  //       const err = await res.json()
-  //       toast.error(err.detail || 'Error adding lead')
-  //     }
-  //   } catch {
-  //     toast.error('Network error')
-  //   } finally {
-  //     setSubmitting(false)
-  //   }
-  // }
 
   return (
     <div className='p-4 space-y-4'>
@@ -156,8 +117,15 @@ export default function LeadsPage() {
         </div>
 
         <div className='flex gap-2'>
-          <Button variant='outline' size='icon' onClick={fetchLeads}>
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <Button
+            variant='outline'
+            size='icon'
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+            />
           </Button>
         </div>
       </div>
@@ -165,16 +133,25 @@ export default function LeadsPage() {
       {/* ---------------- Layout ---------------- */}
       <div className='grid grid-cols-[260px_1fr] gap-4'>
         {/* -------- Filters -------- */}
-        {/* -------- Filters -------- */}
-        <div className='border rounded-md p-3 space-y-4 h-fit'>
+        <div className='border rounded-md p-3 space-y-4 h-fit bg-background'>
           <h3 className='font-semibold text-sm'>Filter Contacts by</h3>
 
           <div className='space-y-2'>
-            <Label>Mobile / Phone</Label>
+            <Label>First Name</Label>
             <Input
-              name='phone'
-              placeholder='Mobile / Phone'
-              value={filters.phone}
+              name='first_name'
+              placeholder='First Name'
+              value={filters.first_name}
+              onChange={handleFilterChange}
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>Last Name</Label>
+            <Input
+              name='last_name'
+              placeholder='Last Name'
+              value={filters.last_name}
               onChange={handleFilterChange}
             />
           </div>
@@ -199,16 +176,6 @@ export default function LeadsPage() {
             />
           </div>
 
-          <div className='space-y-2'>
-            <Label>State</Label>
-            <Input
-              name='state'
-              placeholder='State'
-              value={filters.state}
-              onChange={handleFilterChange}
-            />
-          </div>
-
           <div className='flex gap-2 pt-2'>
             <Button className='flex-1' onClick={handleSearch}>
               Search
@@ -220,62 +187,62 @@ export default function LeadsPage() {
         </div>
 
         {/* -------- Table -------- */}
-        {/* -------- Table -------- */}
-        <div className='flex flex-col gap-4'>
-          <div className='border rounded-md p-2'>
-            <Table>
-              <TableCaption>Contacts list</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {leads.length === 0 && !loading ? (
+        <div className='flex flex-col gap-4 min-w-0 h-[550px]'>
+          <div className='border rounded-md p-2 overflow-y-auto'>
+            {isLoading ? (
+              <div className='flex items-center justify-center h-64'>
+                <RefreshCw className='h-8 w-8 animate-spin text-muted-foreground' />
+              </div>
+            ) : (
+              <Table>
+                <TableCaption>Contacts list</TableCaption>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={3} className='text-center h-24'>
-                      No contacts found
-                    </TableCell>
+                    <TableHead>Contact Name</TableHead>
+                    <TableHead>Designation</TableHead>
+                    <TableHead>Mobile</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>City</TableHead>
+                    <TableHead>State</TableHead>
                   </TableRow>
-                ) : (
-                  leads.map((lead) => (
-                    <TableRow
-                      key={lead.id}
-                      className='cursor-pointer hover:bg-accent'
-                      onClick={() => navigate('/update-contacts')}
-                    >
-                      <TableCell>
-                        <div className='font-medium'>{lead.full_name}</div>
-                        <div className='text-xs text-muted-foreground'>
-                          {lead.company || 'Individual'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>{lead.email}</div>
-                        <div className='text-xs text-muted-foreground'>
-                          {lead.phone_number}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className='text-xs'>
-                          Created: {formatExactDate(lead.created_at) || '—'}
-                        </div>
-                        <div className='text-xs'>
-                          Updated: {formatExactDate(lead.updated_at) || '—'}
-                        </div>
+                </TableHeader>
+
+                <TableBody>
+                  {contacts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className='text-center h-24'>
+                        No contacts found
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    contacts.map((contact) => (
+                      <TableRow
+                        key={contact.id}
+                        className='cursor-pointer hover:bg-accent'
+                        onClick={() => navigate(`/contacts/${contact.id}`)}
+                      >
+                        <TableCell>
+                          <div className='font-medium'>
+                            {contact.first_name} {contact.last_name}
+                          </div>
+                        </TableCell>
+                        <TableCell>{contact.designation || '—'}</TableCell>
+                        <TableCell>{contact.mobile || '—'}</TableCell>
+                        <TableCell>{contact.phone || '—'}</TableCell>
+                        <TableCell>{contact.email || '—'}</TableCell>
+                        <TableCell>{contact.city || '—'}</TableCell>
+                        <TableCell>{contact.state || '—'}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </div>
           <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
+            currentPage={pageInfo.page}
+            totalPages={pageInfo.total_pages}
             onPageChange={handlePageChange}
           />
         </div>
