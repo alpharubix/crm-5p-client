@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -119,19 +119,21 @@
   }
 }
 
-::-webkit-scrollbar {
-  width: 8px;
+.thin-scrollbar::-webkit-scrollbar {
+  width: 4px;
 }
 
-::-webkit-scrollbar-track {
-  background: #e5dddd ;
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #9ca3af; /* gray-400 */
+  border-radius: 9999px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 10px;
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6; /* gray-100 */
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+/* Firefox */
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #f3f4f6;
 }

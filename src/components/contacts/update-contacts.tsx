@@ -80,6 +80,7 @@ export default function UpdateContacts() {
   })
 
   const contactData = apiResponse?.data?.[0]
+  const userName = contactData?.contact_owner?.full_name
 
   useEffect(() => {
     if (contactData) {
@@ -121,7 +122,7 @@ export default function UpdateContacts() {
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <h1 className='text-lg font-semibold'>
-          Contact Owner: <span className='text-primary font-bold'>User</span>
+          Contact Owner: <span className='text-primary font-bold'>{userName}</span>
         </h1>
       </div>
 
