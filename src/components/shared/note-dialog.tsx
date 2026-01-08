@@ -20,7 +20,7 @@ const noteSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(6, 'Description must be at least 6 characters'),
+    .min(2, 'Description must be at least 2 characters'),
 })
 
 type NoteFormValues = z.infer<typeof noteSchema>
