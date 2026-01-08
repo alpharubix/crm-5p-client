@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input'
 import { ENV } from '@/conf'
 import Pagination from '@/components/shared/pagination'
 import type { Contact } from '@/types'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function ContactsPage() {
   const navigate = useNavigate()
@@ -26,8 +27,7 @@ export default function ContactsPage() {
   /* ---------------- Filters ---------------- */
   // Initialize filters from URL
   const [filters, setFilters] = useState({
-    first_name: searchParams.get('first_name') || '',
-    last_name: searchParams.get('last_name') || '',
+    full_name: searchParams.get('full_name') || '',
     email: searchParams.get('email') || '',
     city: searchParams.get('city') || '',
   })
@@ -47,10 +47,8 @@ export default function ContactsPage() {
       const params = new URLSearchParams()
       params.set('page', currentPage.toString())
 
-      if (appliedFilters.first_name)
-        params.set('first_name', appliedFilters.first_name)
-      if (appliedFilters.last_name)
-        params.set('last_name', appliedFilters.last_name)
+      if (appliedFilters.full_name)
+        params.set('full_name', appliedFilters.full_name)
       if (appliedFilters.email) params.set('email', appliedFilters.email)
       if (appliedFilters.city) params.set('city', appliedFilters.city)
 
@@ -74,8 +72,7 @@ export default function ContactsPage() {
 
   const handleSearch = () => {
     const params = new URLSearchParams()
-    if (filters.first_name) params.set('first_name', filters.first_name)
-    if (filters.last_name) params.set('last_name', filters.last_name)
+    if (filters.full_name) params.set('full_name', filters.full_name)
     if (filters.email) params.set('email', filters.email)
     if (filters.city) params.set('city', filters.city)
 
@@ -90,8 +87,7 @@ export default function ContactsPage() {
 
   const handleClear = () => {
     const emptyFilters = {
-      first_name: '',
-      last_name: '',
+      full_name: '',
       email: '',
       city: '',
     }
@@ -116,6 +112,17 @@ export default function ContactsPage() {
           <p className='text-muted-foreground'>Manage your contacts here.</p>
         </div>
 
+        {isLoading ? (
+          <Skeleton className='w-24 h-4' />
+        ) : (
+          <div className='flex gap-2 items-center justify-start'>
+            <h3 className='font-semibold text-muted-foreground'>
+              Total Contacts :
+            </h3>
+            <p className='text-muted-foreground'>{pageInfo.data_size}</p>
+          </div>
+        )}
+
         <div className='flex gap-2'>
           <Button
             variant='outline'
@@ -137,21 +144,11 @@ export default function ContactsPage() {
           <h3 className='font-semibold text-sm'>Filter Contacts by</h3>
 
           <div className='space-y-2'>
-            <Label>First Name</Label>
+            <Label>Full Name</Label>
             <Input
-              name='first_name'
-              placeholder='First Name'
-              value={filters.first_name}
-              onChange={handleFilterChange}
-            />
-          </div>
-
-          <div className='space-y-2'>
-            <Label>Last Name</Label>
-            <Input
-              name='last_name'
-              placeholder='Last Name'
-              value={filters.last_name}
+              name='full_name'
+              placeholder='Full Name'
+              value={filters.full_name}
               onChange={handleFilterChange}
             />
           </div>
