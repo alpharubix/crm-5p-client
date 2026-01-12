@@ -62,7 +62,7 @@ export default function UpdateDeals() {
   const data = watch()
 
   const onSave = (values: UpdateDealFormValues) => {
-    console.log('SAVE DEAL', values)
+    // console.log('SAVE DEAL', values)
     setIsEdit(false)
     reset(values)
   }

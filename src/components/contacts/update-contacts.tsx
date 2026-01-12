@@ -104,7 +104,7 @@ export default function UpdateContacts() {
   const data = watch()
 
   const onSave = (values: UpdateContactFormValues) => {
-    console.log('SAVE CONTACT', values)
+    // console.log('SAVE CONTACT', values)
     setIsEdit(false)
     reset(values)
   }

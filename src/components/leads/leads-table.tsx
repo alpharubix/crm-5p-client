@@ -18,7 +18,7 @@ type Props = {
 
 export default function LeadsTable({ leads, loading }: Props) {
 
-  console.log("LeadsTable", leads);
+  // console.log("LeadsTable", leads);
 
   const navigate = useNavigate()
 

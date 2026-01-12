@@ -55,7 +55,7 @@ export default function AddContactDialog() {
 
   const onSubmit = async (data: AddContactFormValues) => {
     setSubmitting(true)
-    console.log('Submitting Contact Data:', data)
+    // console.log('Submitting Contact Data:', data)
 
     // Simulate API call
     setTimeout(() => {

@@ -12,7 +12,7 @@ export function useLeads() {
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/`)
       if (res.ok) {
         const data = await res.json()
-        console.log('data', data)
+        // console.log('data', data)
         setLeads(data.data)
       }
     } finally {

@@ -210,7 +210,7 @@ export default function UpdateAccounts() {
   const accountData = apiResponse?.data?.[0]
 
   const contacts = accountData?.account_linked_contact || []
-  console.log('contacts', contacts)
+  // console.log('contacts', contacts)
 
   const notes = accountData?.notes || []
   const ownerName = accountData?.owner?.full_name || 'User'
