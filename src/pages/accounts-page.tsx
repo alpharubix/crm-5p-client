@@ -30,26 +30,51 @@ export default function AccountsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // Initialize filters from URL
   const [filters, setFilters] = useState({
     accountName: searchParams.get('accountName') || '',
     accountStatus: searchParams.get('accountStatus') || '',
     source: searchParams.get('source') || '',
-    // businessType: searchParams.get('businessType') || '',
     city: searchParams.get('city') || '',
     state: searchParams.get('state') || '',
+    accountOwnerId: searchParams.get('accountOwnerId') || '',
+    // businessType: searchParams.get('businessType') || '',
     // pincode: searchParams.get('pincode') || '',
     // businessStatus: searchParams.get('businessStatus') || '',
     // callBackDate: undefined as Date | undefined,
   })
 
-  // Separate state for applied filters (what the query actually uses)
   const [appliedFilters, setAppliedFilters] = useState(filters)
 
   const [currentPage, setCurrentPage] = useState(() => {
     const page = searchParams.get('page')
     return page ? Number(page) : 1
   })
+
+  const {
+    data: ownerResponse,
+    isSuccess,
+    error,
+  } = useQuery({
+    queryKey: ['account-owners'],
+    queryFn: async () => {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/user/filter`, {
+        credentials: 'include',
+      })
+
+      if (res.status === 403) {
+        return { forbidden: true }
+      }
+
+      if (!res.ok) throw new Error('Failed')
+
+      return res.json()
+    },
+    retry: false,
+  })
+
+  const showOwnerFilter = isSuccess && !ownerResponse?.forbidden
+
+  const owners = ownerResponse?.data ?? []
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['accounts', currentPage, appliedFilters],
@@ -62,23 +87,16 @@ export default function AccountsPage() {
       if (appliedFilters.accountStatus)
         params.set('account_status', appliedFilters.accountStatus)
       if (appliedFilters.source) params.set('source', appliedFilters.source)
-      // if (appliedFilters.businessType)
-      // params.set('type_of_business', appliedFilters.businessType)
       if (appliedFilters.city) params.set('city', appliedFilters.city)
       if (appliedFilters.state) params.set('state', appliedFilters.state)
-      // if (appliedFilters.pincode) params.set('pincode', appliedFilters.pincode)
-      // if (appliedFilters.businessStatus)
-      //   params.set('business_status', appliedFilters.businessStatus)
-      // if (appliedFilters.callBackDate)
-      //   params.set(
-      //     'call_back_date_time',
-      //     appliedFilters.callBackDate.toISOString()
-      //   )
+      if (appliedFilters.accountOwnerId)
+        params.set('account_owner_id', appliedFilters.accountOwnerId)
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`,
         { credentials: 'include' }
       )
+
       if (!res.ok) throw new Error('Failed to fetch')
       return res.json()
     },
@@ -96,20 +114,10 @@ export default function AccountsPage() {
     params.set('page', '1')
 
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        // @ts-ignore
-        if (value instanceof Date) {
-          params.set(key, value.toISOString())
-        } else {
-          params.set(key, String(value))
-        }
-      }
+      if (value) params.set(key, String(value))
     })
 
-    // Update URL params
     setSearchParams(params)
-
-    // Apply filters to trigger query
     setAppliedFilters(filters)
     setCurrentPage(1)
   }
@@ -119,13 +127,11 @@ export default function AccountsPage() {
       accountName: '',
       accountStatus: '',
       source: '',
-      // businessType: '',
       city: '',
       state: '',
-      // pincode: '',
-      // businessStatus: '',
-      // callBackDate: undefined,
+      accountOwnerId: '',
     }
+
     setFilters(emptyFilters)
     setAppliedFilters(emptyFilters)
     setSearchParams(new URLSearchParams())
@@ -150,7 +156,7 @@ export default function AccountsPage() {
         {isLoading ? (
           <Skeleton className='w-24 h-4' />
         ) : (
-          <div className='flex gap-2 items-center justify-start'>
+          <div className='flex gap-2 items-center'>
             <h3 className='font-semibold text-muted-foreground'>
               Total Accounts :
             </h3>
@@ -171,6 +177,29 @@ export default function AccountsPage() {
       <div className='grid grid-cols-[260px_1fr] gap-4'>
         <div className='border rounded-md p-3 space-y-4 bg-background h-fit'>
           <h3 className='font-semibold text-sm'>Filter Accounts by</h3>
+
+          {showOwnerFilter && (
+            <div className='space-y-2'>
+              <Label>Account Owner</Label>
+              <Select
+                value={filters.accountOwnerId}
+                onValueChange={(val) =>
+                  handleFilterChange('accountOwnerId', val)
+                }
+              >
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Account Owner' />
+                </SelectTrigger>
+                <SelectContent>
+                  {owners.map((owner: any) => (
+                    <SelectItem key={owner.id} value={owner.id}>
+                      {owner.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className='space-y-2'>
             <Label>Account Name</Label>
@@ -221,37 +250,6 @@ export default function AccountsPage() {
             </Select>
           </div>
 
-          {/* <div className='space-y-2'>
-            <Label>Type of Business</Label>
-            <Select
-              value={filters.businessType}
-              onValueChange={(val) => handleFilterChange('businessType', val)}
-            >
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Type of Business' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='-None-'>-None-</SelectItem>
-                <SelectItem value='Manufacturer'>Manufacturer</SelectItem>
-                <SelectItem value='Distributor'>Distributor</SelectItem>
-                <SelectItem value='Franchise/FOFO'>Franchise/FOFO</SelectItem>
-                <SelectItem value='Wholesale Trader'>
-                  Wholesale Trader
-                </SelectItem>
-                <SelectItem value='Retailer'>Retailer</SelectItem>
-                <SelectItem value='Super Stockist'>Super Stockist</SelectItem>
-                <SelectItem value='Sub Distributor'>Sub Distributor</SelectItem>
-                <SelectItem value='Inst Customers'>Inst Customers</SelectItem>
-                <SelectItem value='Govt Institutions'>
-                  Govt Institutions
-                </SelectItem>
-                <SelectItem value='Co Operative Society'>
-                  Co Operative Society
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div> */}
-
           <div className='space-y-2'>
             <Label>City</Label>
             <Input
@@ -269,40 +267,6 @@ export default function AccountsPage() {
               onChange={(e) => handleFilterChange('state', e.target.value)}
             />
           </div>
-
-          {/* <div className='space-y-2'>
-            <Label>Pincode</Label>
-            <Input
-              placeholder='Pincode'
-              value={filters.pincode}
-              onChange={(e) => handleFilterChange('pincode', e.target.value)}
-            />
-          </div> */}
-
-          {/* <div className='space-y-2'>
-            <Label>Business Status</Label>
-            <Select
-              value={filters.businessStatus}
-              onValueChange={(val) => handleFilterChange('businessStatus', val)}
-            >
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Business Status' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='Active'>Active</SelectItem>
-                <SelectItem value='Inactive'>Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div> */}
-
-          {/* <div className='space-y-2 flex flex-col'>
-            <Label>Call Back Date</Label>
-            <DateField
-              value={filters.callBackDate}
-              isEdit={true}
-              onChange={(date) => handleFilterChange('callBackDate', date)}
-            />
-          </div> */}
 
           <div className='flex gap-2 pt-2'>
             <Button className='flex-1' onClick={handleSearch}>
