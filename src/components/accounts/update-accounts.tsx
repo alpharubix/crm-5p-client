@@ -682,6 +682,7 @@ export default function UpdateAccounts() {
                 <TableRow>
                   <TableHead>Contact Name</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>Mobile</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -700,6 +701,7 @@ export default function UpdateAccounts() {
                   contacts.map((contact: any) => (
                     <TableRow key={contact.id}>
                       <TableCell>{contact.last_name || '—'}</TableCell>
+                      <TableCell>{contact.phone || '—'}</TableCell>
                       <TableCell>{contact.mobile || '—'}</TableCell>
                       <TableCell>{contact.email || '—'}</TableCell>
                       <TableCell>

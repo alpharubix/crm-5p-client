@@ -4,12 +4,19 @@ import './index.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from './components/ui/sonner.tsx'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // STOP refetch on tab switch
+      retry: 1, // avoid infinite retries
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+    },
+  },
+})
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
     <App />
     <Toaster richColors position='top-right' />
-
   </QueryClientProvider>
 )
