@@ -210,6 +210,7 @@ export default function UpdateAccounts() {
   // console.log('contacts', contacts)
 
   const notes = accountData?.notes || []
+  console.log('notes', notes)
   const ownerName = accountData?.owner?.full_name || 'User'
 
   // Populate form when data loads
@@ -730,20 +731,22 @@ export default function UpdateAccounts() {
                 key={note.parent_id || i}
                 className='bg-muted/30 p-3 rounded-lg border'
               >
-                <p className='text-sm'>{note.note}</p>
+                <p className='text-sm'>{note.Note_Content}</p>
                 <div className='flex gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
                   <span>
-                    Module:{' '}
-                    <Badge variant='outline' className='text-[10px] h-4'>
-                      Account
-                    </Badge>
+                    Created By:{' '}
+                    {note.Created_By?.name || '—'}
                   </span>
                   <span>
-                    Created: {new Date(note.created_time).toLocaleDateString()}
+                    Created Time: {new Date(note.Created_Time).toLocaleDateString() || '—'}
                   </span>
                   <span>
-                    Modified:{' '}
-                    {new Date(note.modified_time).toLocaleDateString()}
+                    Modified By:{' '}
+                    {note.Modified_By?.name || '—'}
+                  </span>
+                  <span>
+                    Modified Time:{' '}
+                    {new Date(note.Modified_Time).toLocaleDateString() || '—'}
                   </span>
                 </div>
               </div>
