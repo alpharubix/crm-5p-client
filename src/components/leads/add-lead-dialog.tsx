@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -81,7 +81,7 @@ export default function AddLeadDialog({ open, onClose, onSuccess }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
           <DialogTitle>Add New Lead</DialogTitle>
           <DialogDescription>
@@ -89,7 +89,7 @@ export default function AddLeadDialog({ open, onClose, onSuccess }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSaveLead} className="grid gap-4 py-4">
+        <form onSubmit={handleSaveLead} className='grid gap-4 py-4'>
           {[
             ['full_name', 'Name'],
             ['email', 'Email'],
@@ -97,21 +97,21 @@ export default function AddLeadDialog({ open, onClose, onSuccess }: Props) {
             ['pan', 'PAN'],
             ['gstin', 'GSTIN'],
           ].map(([name, label]) => (
-            <div key={name} className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">{label}</Label>
+            <div key={name} className='grid grid-cols-4 items-center gap-4'>
+              <Label className='text-right'>{label}</Label>
               <Input
                 name={name}
                 value={(formData as any)[name]}
                 onChange={handleInputChange}
-                className="col-span-3"
+                className='col-span-3'
                 required
               />
             </div>
           ))}
 
           <DialogFooter>
-            <Button type="submit" disabled={submitting}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type='submit' disabled={submitting}>
+              {submitting && <Spinner className='mr-2 h-4 w-4' />}
               Save Lead
             </Button>
           </DialogFooter>

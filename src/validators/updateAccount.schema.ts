@@ -15,6 +15,8 @@ export const updateAccountSchema = z.object({
 
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
 
   residentialOwnership: z.string().optional(),
   residentialLocation: z.string().optional(),

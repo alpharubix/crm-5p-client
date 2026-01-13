@@ -19,6 +19,7 @@ import { ENV } from '@/conf'
 import Pagination from '@/components/shared/pagination'
 import type { Contact } from '@/types'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 
 export default function ContactsPage() {
   const navigate = useNavigate()
@@ -130,9 +131,11 @@ export default function ContactsPage() {
             onClick={() => refetch()}
             disabled={isLoading}
           >
-            <RefreshCw
-              className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
-            />
+            {isLoading ? (
+              <Spinner className='h-4 w-4' />
+            ) : (
+              <RefreshCw className='h-4 w-4' />
+            )}
           </Button>
         </div>
       </div>
@@ -188,13 +191,13 @@ export default function ContactsPage() {
           <div className='border rounded-md flex-1 overflow-auto relative'>
             {isLoading ? (
               <div className='flex items-center justify-center h-64'>
-                <RefreshCw className='h-8 w-8 animate-spin text-muted-foreground' />
+                <Spinner className='h-8 w-8 text-muted-foreground' />
               </div>
             ) : (
               <table className='w-full caption-bottom text-sm'>
                 <TableCaption>Contacts list</TableCaption>
                 <TableHeader>
-                  <TableRow className='sticky top-0 z-10 bg-background'>
+                  <TableRow className='sticky top-0 z-10 bg-background hover:bg-accent'>
                     <TableHead>Contact Name</TableHead>
                     <TableHead>Designation</TableHead>
                     <TableHead>Mobile</TableHead>

@@ -47,7 +47,9 @@ export function TeamSwitcher({
                 <span className='truncate font-medium'>
                   {user?.user_name || activeTeam.name}
                 </span>
-                {/* <span className="truncate text-xs">{activeTeam.plan}</span> */}
+                <span className='truncate text-xs'>
+                  {user?.role.toUpperCase()}
+                </span>
               </div>
               {/* <ChevronsUpDown className="ml-auto" /> */}
             </SidebarMenuButton>

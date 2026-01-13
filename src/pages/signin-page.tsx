@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Card,
   CardContent,
@@ -34,7 +35,7 @@ export function SignInPage({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
   })
@@ -93,7 +94,10 @@ export function SignInPage({
                 )}
               </Field>
 
-              <Button type='submit'>Sign In</Button>
+              <Button type='submit' disabled={isSubmitting} className='w-full'>
+                {isSubmitting && <Spinner className='mr-2 h-4 w-4' />}
+                Sign In
+              </Button>
             </FieldGroup>
           </form>
         </CardContent>

@@ -13,6 +13,8 @@ import SectionHeader from '@/components/shared/section-header'
 import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
 import NoteDialog from '@/components/shared/note-dialog'
+import { Spinner } from '@/components/ui/spinner'
+import { useNavigate } from 'react-router-dom'
 
 import {
   updateContactSchema,
@@ -44,6 +46,7 @@ function mapContactToForm(apiData: any): UpdateContactFormValues {
 export default function UpdateContacts() {
   const { id } = useParams()
   const [isEdit, setIsEdit] = useState(false)
+  const navigate = useNavigate()
 
   const {
     register,
@@ -81,6 +84,8 @@ export default function UpdateContacts() {
 
   const contactData = apiResponse?.data?.[0]
   const userName = contactData?.contact_owner?.full_name
+  const accountId = contactData?.parent_account?.id
+  console.log(accountId)
 
   useEffect(() => {
     if (contactData) {
@@ -110,7 +115,11 @@ export default function UpdateContacts() {
   }
 
   if (isLoading) {
-    return <div className='p-4'>Loading contact...</div>
+    return (
+      <div className='flex items-center justify-center p-8'>
+        <Spinner className='h-8 w-8 text-muted-foreground' />
+      </div>
+    )
   }
 
   if (error || (apiResponse && !contactData)) {
@@ -122,8 +131,12 @@ export default function UpdateContacts() {
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <h1 className='text-lg font-semibold'>
-          Contact Owner: <span className='text-primary font-bold'>{userName}</span>
+          Contact Owner:{' '}
+          <span className='text-primary font-bold'>{userName}</span>
         </h1>
+        <Button onClick={() => navigate(`/accounts/${accountId}`)}>
+          Go To Account Information
+        </Button>
       </div>
 
       <Card className='overflow-hidden space-y-1'>
@@ -169,6 +182,10 @@ export default function UpdateContacts() {
             <FieldRow label='Created By'>
               <span>{data.createdBy}</span>
             </FieldRow>
+
+            <FieldRow label='Modified By'>
+              <span>{data.modifiedBy}</span>
+            </FieldRow>
           </div>
 
           <div>
@@ -213,10 +230,6 @@ export default function UpdateContacts() {
               ) : (
                 <span>{data.secondaryEmail || '—'}</span>
               )}
-            </FieldRow>
-
-            <FieldRow label='Modified By'>
-              <span>{data.modifiedBy}</span>
             </FieldRow>
           </div>
         </CardContent>
