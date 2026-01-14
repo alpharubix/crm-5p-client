@@ -26,6 +26,8 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Skeleton } from '@/components/ui/skeleton'
 
+import { Spinner } from '@/components/ui/spinner'
+
 export default function AccountsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -170,7 +172,11 @@ export default function AccountsPage() {
           onClick={() => refetch()}
           disabled={isLoading}
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          {isLoading ? (
+            <Spinner className='h-4 w-4' />
+          ) : (
+            <RefreshCw className='h-4 w-4' />
+          )}
         </Button>
       </div>
 
@@ -281,14 +287,14 @@ export default function AccountsPage() {
         <div className='flex flex-col gap-4 min-w-0 h-[550px]'>
           {isLoading ? (
             <div className='flex items-center justify-center h-64 border rounded-md'>
-              <RefreshCw className='h-8 w-8 animate-spin text-muted-foreground' />
+              <Spinner className='h-8 w-8 text-muted-foreground' />
             </div>
           ) : (
             <>
               <div className='border rounded-md flex-1 overflow-auto relative'>
                 <table className='w-full caption-bottom text-sm'>
                   <TableHeader>
-                    <TableRow className='sticky top-0 z-10 bg-background'>
+                    <TableRow className='sticky top-0 z-10 bg-background hover:bg-accent'>
                       <TableHead>Account Name</TableHead>
                       <TableHead>Account Owner</TableHead>
                       <TableHead>Account Status</TableHead>

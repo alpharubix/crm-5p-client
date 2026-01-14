@@ -1,6 +1,7 @@
 export interface User {
-  id: string
+  user_id: string
   email: string
-  name?: string
-  user_name?: string
+  role: string
+  user_name: string
+  is_logged_in: boolean
 }

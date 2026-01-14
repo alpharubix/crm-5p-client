@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useBeforeUnload, useParams } from 'react-router-dom'
+import { useBeforeUnload, useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
@@ -9,8 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Table,
   TableBody,
@@ -25,6 +23,7 @@ import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
 import DateField from '@/components/shared/date-field'
 import NoteDialog from '@/components/shared/note-dialog'
+import { Spinner } from '@/components/ui/spinner'
 import AddContactDialog from './add-contact-dialog'
 
 import {
@@ -50,6 +49,8 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     businessStatus: apiData.business_status || 'Active',
     firstName: apiData.first_name || '',
     lastName: apiData.last_name || '',
+    phone: apiData.phone || '',
+    email: apiData.email || '',
     residentialOwnership: apiData.residential_ownership || undefined,
     residentialLocation: apiData.residential_location || '',
     noOfYears: apiData.no_of_years || '',
@@ -98,6 +99,8 @@ function mapFormToApi(
     business_status: { value: formData.businessStatus, key: 'businessStatus' },
     first_name: { value: formData.firstName, key: 'firstName' },
     last_name: { value: formData.lastName, key: 'lastName' },
+    phone: { value: formData.phone, key: 'phone' },
+    email: { value: formData.email, key: 'email' },
     residential_ownership: {
       value: formData.residentialOwnership,
       key: 'residentialOwnership',
@@ -166,17 +169,11 @@ export default function UpdateAccounts() {
   const queryClient = useQueryClient()
   const [isEdit, setIsEdit] = useState(false)
 
+  const navigate = useNavigate()
+
   const form = useForm<UpdateAccountFormValues>({
     // @ts-ignore
     resolver: zodResolver(updateAccountSchema),
-    defaultValues: {
-      source: 'Himalaya',
-      accountStatus: 'Awareness',
-      accountStage: 'Initial Pitch',
-      businessStatus: 'Active',
-      country: 'India',
-      createdBy: 'System User',
-    },
   })
 
   const {
@@ -213,6 +210,7 @@ export default function UpdateAccounts() {
   // console.log('contacts', contacts)
 
   const notes = accountData?.notes || []
+  console.log('notes', notes)
   const ownerName = accountData?.owner?.full_name || 'User'
 
   // Populate form when data loads
@@ -261,6 +259,7 @@ export default function UpdateAccounts() {
   )
 
   const data = watch()
+  // console.log('data', data)
 
   const onSave = (values: UpdateAccountFormValues) => {
     updateMutation.mutate(values)
@@ -290,7 +289,11 @@ export default function UpdateAccounts() {
   }
 
   if (isLoading) {
-    return <div className='p-4'>Loading account...</div>
+    return (
+      <div className='flex items-center justify-center p-8'>
+        <Spinner className='h-8 w-8 text-muted-foreground' />
+      </div>
+    )
   }
 
   if (error || !accountData) {
@@ -322,7 +325,11 @@ export default function UpdateAccounts() {
               disabled={!isDirty || updateMutation.isPending}
               onClick={handleSubmit(onSave)}
             >
-              {updateMutation.isPending ? 'Saving...' : 'Save'}
+              {updateMutation.isPending ? (
+                <Spinner className='mr-2 h-4 w-4' />
+              ) : (
+                'Save'
+              )}
             </Button>
             <Button
               size='sm'
@@ -372,7 +379,14 @@ export default function UpdateAccounts() {
             </FieldRow>
 
             <FieldRow label='WABA Interested'>
-              <span>{data.wabaInterested ? 'Yes' : 'No'}</span>
+              <SelectField
+                value={data.wabaInterested ? 'Yes' : 'No'}
+                isEdit={isEdit}
+                options={['Yes', 'No']}
+                onChange={(v) =>
+                  setValue('wabaInterested', v === 'Yes', { shouldDirty: true })
+                }
+              />
             </FieldRow>
           </div>
 
@@ -450,6 +464,52 @@ export default function UpdateAccounts() {
           </div>
         </CardContent>
 
+        <div className='mx-3'>
+          <h3 className='mb-4 font-bold text-center text-xs uppercase tracking-widest'>
+            CONTACTS
+          </h3>
+          <div className='border rounded-md mb-3 overflow-hidden'>
+            <Table>
+              <TableHeader className='bg-muted'>
+                <TableRow>
+                  <TableHead>Contact Name</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Email</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {contacts.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={3}
+                      className='text-center text-muted-foreground'
+                    >
+                      No contacts available
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  contacts.map((contact: any) => (
+                    <TableRow
+                      key={contact.id}
+                      onClick={() => navigate(`/contacts/${contact.id}`)}
+                      className='cursor-pointer'
+                    >
+                      <TableCell>{contact.last_name || '—'}</TableCell>
+                      <TableCell>{contact.phone || '—'}</TableCell>
+                      <TableCell>{contact.mobile || '—'}</TableCell>
+                      <TableCell>{contact.email || '—'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className='flex justify-center items-center'>
+            <AddContactDialog />
+          </div>
+        </div>
+
         {/* ================= Customer Basic Details ================= */}
         <SectionHeader title='Customer Basic Details' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
@@ -477,6 +537,14 @@ export default function UpdateAccounts() {
             <FieldRow label='Created By'>
               <span>{data.createdBy}</span>
             </FieldRow>
+
+            <FieldRow label='Phone No'>
+              {isEdit ? (
+                <Input {...register('phone')} className='h-8' />
+              ) : (
+                <span>{data.phone}</span>
+              )}
+            </FieldRow>
           </div>
 
           <div>
@@ -502,6 +570,14 @@ export default function UpdateAccounts() {
 
             <FieldRow label='Premise Ownership'>
               <span>{data.premiseOwnership || '—'}</span>
+            </FieldRow>
+
+            <FieldRow label='Email'>
+              {isEdit ? (
+                <Input {...register('email')} className='h-8' />
+              ) : (
+                <span>{data.email || '—'}</span>
+              )}
             </FieldRow>
           </div>
         </CardContent>
@@ -582,7 +658,11 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
           <div className='md:border-r'>
             <FieldRow label='Street'>
-              <span>{data.street || '—'}</span>
+              {isEdit ? (
+                <Input {...register('street')} className='h-8' />
+              ) : (
+                <span>{data.street || '—'}</span>
+              )}
             </FieldRow>
             <FieldRow label='State'>
               {isEdit ? (
@@ -651,20 +731,22 @@ export default function UpdateAccounts() {
                 key={note.parent_id || i}
                 className='bg-muted/30 p-3 rounded-lg border'
               >
-                <p className='text-sm'>{note.note}</p>
+                <p className='text-sm'>{note.Note_Content}</p>
                 <div className='flex gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
                   <span>
-                    Module:{' '}
-                    <Badge variant='outline' className='text-[10px] h-4'>
-                      Account
-                    </Badge>
+                    Created By:{' '}
+                    {note.Created_By?.name || '—'}
                   </span>
                   <span>
-                    Created: {new Date(note.created_time).toLocaleDateString()}
+                    Created Time: {new Date(note.Created_Time).toLocaleDateString() || '—'}
                   </span>
                   <span>
-                    Modified:{' '}
-                    {new Date(note.modified_time).toLocaleDateString()}
+                    Modified By:{' '}
+                    {note.Modified_By?.name || '—'}
+                  </span>
+                  <span>
+                    Modified Time:{' '}
+                    {new Date(note.Modified_Time).toLocaleDateString() || '—'}
                   </span>
                 </div>
               </div>
@@ -672,53 +754,6 @@ export default function UpdateAccounts() {
           )}
           <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
-
-        {/* ================= Contacts ================= */}
-        <div className='mx-3'>
-          <h3 className='font-semibold text-lg mt-8 mb-4'>Contacts</h3>
-          <div className='border rounded-md mb-3 overflow-hidden'>
-            <Table>
-              <TableHeader className='bg-muted'>
-                <TableRow>
-                  <TableHead>Contact Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Mobile</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contacts.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={3}
-                      className='text-center text-muted-foreground'
-                    >
-                      No contacts available
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  contacts.map((contact: any) => (
-                    <TableRow key={contact.id}>
-                      <TableCell>{contact.last_name || '—'}</TableCell>
-                      <TableCell>{contact.phone || '—'}</TableCell>
-                      <TableCell>{contact.mobile || '—'}</TableCell>
-                      <TableCell>{contact.email || '—'}</TableCell>
-                      <TableCell>
-                        <Button variant='ghost' size='sm'>
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          <div className='flex justify-center items-center'>
-            <AddContactDialog />
-          </div>
-        </div>
       </Card>
     </div>
   )

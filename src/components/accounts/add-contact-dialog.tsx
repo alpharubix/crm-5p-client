@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { User, Loader2 } from 'lucide-react'
+import { User } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -145,7 +146,7 @@ export default function AddContactDialog() {
               Cancel
             </Button>
             <Button type='submit' disabled={submitting}>
-              {submitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              {submitting && <Spinner className='mr-2 h-4 w-4' />}
               Save
             </Button>
           </DialogFooter>
