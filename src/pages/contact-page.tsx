@@ -1,7 +1,11 @@
 import { RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -23,6 +27,7 @@ import { Spinner } from '@/components/ui/spinner'
 
 export default function ContactsPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
 
   /* ---------------- Filters ---------------- */
@@ -31,6 +36,8 @@ export default function ContactsPage() {
     full_name: searchParams.get('full_name') || '',
     email: searchParams.get('email') || '',
     city: searchParams.get('city') || '',
+    mobile: searchParams.get('mobile') || '',
+    phone: searchParams.get('phone') || '',
   })
 
   // Separate state for applied filters (what the query actually uses)
@@ -52,16 +59,19 @@ export default function ContactsPage() {
         params.set('full_name', appliedFilters.full_name)
       if (appliedFilters.email) params.set('email', appliedFilters.email)
       if (appliedFilters.city) params.set('city', appliedFilters.city)
+      if (appliedFilters.mobile) params.set('mobile', appliedFilters.mobile)
+      if (appliedFilters.phone) params.set('phone', appliedFilters.phone)
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/contacts?${params.toString()}`,
         {
           credentials: 'include',
-        }
+        },
       )
       if (!res.ok) throw new Error('Failed to fetch contacts')
       return res.json()
     },
+    placeholderData: keepPreviousData,
   })
 
   const contacts: Contact[] = data?.data || []
@@ -76,7 +86,8 @@ export default function ContactsPage() {
     if (filters.full_name) params.set('full_name', filters.full_name)
     if (filters.email) params.set('email', filters.email)
     if (filters.city) params.set('city', filters.city)
-
+    if (filters.mobile) params.set('mobile', filters.mobile)
+    if (filters.phone) params.set('phone', filters.phone)
     // Reset to page 1 on search
     params.set('page', '1')
     setSearchParams(params)
@@ -91,6 +102,8 @@ export default function ContactsPage() {
       full_name: '',
       email: '',
       city: '',
+      mobile: '',
+      phone: '',
     }
     setFilters(emptyFilters)
     setAppliedFilters(emptyFilters)
@@ -103,6 +116,25 @@ export default function ContactsPage() {
     const params = new URLSearchParams(searchParams)
     params.set('page', page.toString())
     setSearchParams(params)
+  }
+
+  const handleRowClick = async (id: string) => {
+    try {
+      await queryClient.ensureQueryData({
+        queryKey: ['contact', id],
+        queryFn: async () => {
+          const res = await fetch(
+            `${ENV.VITE_BACKEND_BASE_URL}/contacts?contact_id=${id}`,
+            { credentials: 'include' },
+          )
+          if (!res.ok) throw new Error('Failed to fetch contact')
+          return res.json()
+        },
+      })
+      navigate(`/contacts/${id}`)
+    } catch (error) {
+      navigate(`/contacts/${id}`)
+    }
   }
 
   return (
@@ -167,6 +199,26 @@ export default function ContactsPage() {
           </div>
 
           <div className='space-y-2'>
+            <Label>Mobile</Label>
+            <Input
+              name='mobile'
+              placeholder='Mobile'
+              value={filters.mobile}
+              onChange={handleFilterChange}
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>Phone</Label>
+            <Input
+              name='phone'
+              placeholder='Phone'
+              value={filters.phone}
+              onChange={handleFilterChange}
+            />
+          </div>
+
+          <div className='space-y-2'>
             <Label>City</Label>
             <Input
               name='city'
@@ -220,7 +272,7 @@ export default function ContactsPage() {
                       <TableRow
                         key={contact.id}
                         className='cursor-pointer hover:bg-accent'
-                        onClick={() => navigate(`/contacts/${contact.id}`)}
+                        onClick={() => handleRowClick(contact.id)}
                       >
                         <TableCell>
                           <div className='font-medium'>

@@ -23,19 +23,26 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { useQuery } from '@tanstack/react-query'
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from '@tanstack/react-query'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { Spinner } from '@/components/ui/spinner'
+import { formatExactDate } from '@/utils/date-formatter'
 
 export default function AccountsPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [filters, setFilters] = useState({
     accountName: searchParams.get('accountName') || '',
     accountStatus: searchParams.get('accountStatus') || '',
     source: searchParams.get('source') || '',
+    phone: searchParams.get('phone') || '',
     city: searchParams.get('city') || '',
     state: searchParams.get('state') || '',
     accountOwnerId: searchParams.get('accountOwnerId') || '',
@@ -89,6 +96,7 @@ export default function AccountsPage() {
       if (appliedFilters.accountStatus)
         params.set('account_status', appliedFilters.accountStatus)
       if (appliedFilters.source) params.set('source', appliedFilters.source)
+      if (appliedFilters.phone) params.set('phone', appliedFilters.phone)
       if (appliedFilters.city) params.set('city', appliedFilters.city)
       if (appliedFilters.state) params.set('state', appliedFilters.state)
       if (appliedFilters.accountOwnerId)
@@ -96,12 +104,13 @@ export default function AccountsPage() {
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`,
-        { credentials: 'include' }
+        { credentials: 'include' },
       )
 
       if (!res.ok) throw new Error('Failed to fetch')
       return res.json()
     },
+    placeholderData: keepPreviousData,
   })
 
   const accounts = data?.data || []
@@ -129,6 +138,7 @@ export default function AccountsPage() {
       accountName: '',
       accountStatus: '',
       source: '',
+      phone: '',
       city: '',
       state: '',
       accountOwnerId: '',
@@ -145,6 +155,29 @@ export default function AccountsPage() {
     const params = new URLSearchParams(searchParams)
     params.set('page', page.toString())
     setSearchParams(params)
+  }
+
+  const handleRowClick = async (id: string) => {
+    try {
+      // Prefetch data before navigating
+      // This will trigger the global progress bar (via useIsFetching)
+      // and ensure the next page has data ready immediately.
+      await queryClient.ensureQueryData({
+        queryKey: ['account', id],
+        queryFn: async () => {
+          const res = await fetch(
+            `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
+            { credentials: 'include' },
+          )
+          if (!res.ok) throw new Error('Failed to fetch account')
+          return res.json()
+        },
+      })
+      navigate(`/accounts/${id}`)
+    } catch (error) {
+      // If fetch fails, navigate anyway so the user sees the error on the page
+      navigate(`/accounts/${id}`)
+    }
   }
 
   return (
@@ -241,6 +274,15 @@ export default function AccountsPage() {
           </div>
 
           <div className='space-y-2'>
+            <Label>Phone</Label>
+            <Input
+              placeholder='Phone'
+              value={filters.phone}
+              onChange={(e) => handleFilterChange('phone', e.target.value)}
+            />
+          </div>
+
+          <div className='space-y-2'>
             <Label>Source</Label>
             <Select
               value={filters.source}
@@ -318,7 +360,7 @@ export default function AccountsPage() {
                         <TableRow
                           key={acc.id}
                           className='cursor-pointer hover:bg-accent'
-                          onClick={() => navigate(`/accounts/${acc.id}`)}
+                          onClick={() => handleRowClick(acc.id)}
                         >
                           <TableCell className='font-medium text-primary'>
                             {acc.account_name}
@@ -343,9 +385,10 @@ export default function AccountsPage() {
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.call_back_date_time
-                              ? new Date(
-                                  acc.call_back_date_time
-                                ).toLocaleString()
+                              ? formatExactDate(
+                                  acc.call_back_date_time,
+                                  'dd MMM yyyy, hh:mm a',
+                                )
                               : '—'}
                           </TableCell>
                         </TableRow>
