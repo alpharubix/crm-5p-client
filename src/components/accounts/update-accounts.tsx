@@ -547,7 +547,7 @@ export default function UpdateAccounts() {
         <SectionHeader title='Customer Basic Details' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
-            <FieldRow label='First Name' error={errors.firstName?.message}>
+            <FieldRow label='First Name'>
               {isEdit ? (
                 <Input {...register('firstName')} className='h-8' />
               ) : (
@@ -571,7 +571,7 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
 
-            <FieldRow label='No of Years...'>
+            <FieldRow label='No of Years...' error={errors.noOfYears?.message}>
               {isEdit ? (
                 <Input {...register('noOfYears')} className='h-8' />
               ) : (
@@ -583,7 +583,7 @@ export default function UpdateAccounts() {
               <span>{data.createdBy}</span>
             </FieldRow>
 
-            <FieldRow label='Phone No'>
+            <FieldRow label='Phone No' error={errors.phone?.message}>
               {isEdit ? (
                 <Input {...register('phone')} className='h-8' />
               ) : (
@@ -633,7 +633,7 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
 
-            <FieldRow label='Email'>
+            <FieldRow label='Email' error={errors.email?.message}>
               {isEdit ? (
                 <Input {...register('email')} className='h-8' />
               ) : (
@@ -658,7 +658,10 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
 
-            <FieldRow label='Business Vintage (No of Years)'>
+            <FieldRow
+              label='Business Vintage (No of Years)'
+              error={errors.businessVintage?.message}
+            >
               {isEdit ? (
                 <Input {...register('businessVintage')} className='h-8' />
               ) : (
@@ -784,14 +787,20 @@ export default function UpdateAccounts() {
                 <span>{data.ref1Name || '—'}</span>
               )}
             </FieldRow>
-            <FieldRow label='Phone of Person 1'>
+            <FieldRow
+              label='Phone of Person 1'
+              error={errors.ref1Phone?.message}
+            >
               {isEdit ? (
                 <Input {...register('ref1Phone')} className='h-8' />
               ) : (
                 <span>{data.ref1Phone || '—'}</span>
               )}
             </FieldRow>
-            <FieldRow label='Email ID Person 1'>
+            <FieldRow
+              label='Email ID Person 1'
+              error={errors.ref1Email?.message}
+            >
               {isEdit ? (
                 <Input {...register('ref1Email')} className='h-8' />
               ) : (
@@ -807,14 +816,20 @@ export default function UpdateAccounts() {
                 <span>{data.ref2Name || '—'}</span>
               )}
             </FieldRow>
-            <FieldRow label='Phone of Person 2'>
+            <FieldRow
+              label='Phone of Person 2'
+              error={errors.ref2Phone?.message}
+            >
               {isEdit ? (
                 <Input {...register('ref2Phone')} className='h-8' />
               ) : (
                 <span>{data.ref2Phone || '—'}</span>
               )}
             </FieldRow>
-            <FieldRow label='Email ID Person 2'>
+            <FieldRow
+              label='Email ID Person 2'
+              error={errors.ref2Email?.message}
+            >
               {isEdit ? (
                 <Input {...register('ref2Email')} className='h-8' />
               ) : (

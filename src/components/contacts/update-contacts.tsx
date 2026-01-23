@@ -251,7 +251,7 @@ export default function UpdateContacts() {
               />
             </FieldRow>
 
-            <FieldRow label='Mobile'>
+            <FieldRow label='Mobile' error={errors.mobile?.message}>
               {isEdit ? (
                 <Input {...register('mobile')} className='h-8' />
               ) : (
@@ -259,7 +259,7 @@ export default function UpdateContacts() {
               )}
             </FieldRow>
 
-            <FieldRow label='Phone'>
+            <FieldRow label='Phone' error={errors.phone?.message}>
               {isEdit ? (
                 <Input {...register('phone')} className='h-8' />
               ) : (
