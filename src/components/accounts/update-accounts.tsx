@@ -18,6 +18,14 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+
 import SectionHeader from '@/components/shared/section-header'
 import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
@@ -31,6 +39,7 @@ import {
   type UpdateAccountFormValues,
 } from '@/validators/updateAccount.schema'
 import { ENV } from '@/conf'
+import { formatExactDate } from '@/utils/date-formatter'
 
 // Map API response to form values
 function mapAccountToForm(apiData: any): UpdateAccountFormValues {
@@ -51,39 +60,41 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     lastName: apiData.last_name || '',
     phone: apiData.phone || '',
     email: apiData.email || '',
-    residentialOwnership: apiData.residential_ownership || undefined,
-    residentialLocation: apiData.residential_location || '',
-    noOfYears: apiData.no_of_years || '',
+    residentialOwnership:
+      apiData.custom_fields?.residential_ownership || undefined,
+    residentialLocation: apiData.custom_fields?.residential_location || '',
+    noOfYears: apiData.custom_fields?.no_of_years || '',
     createdBy: apiData.created_by?.full_name || 'NA',
-    mothersName: apiData.mothers_name || '',
-    preferredLanguage: apiData.preferred_language || '',
-    premiseLocation: apiData.premise_location || '',
-    premiseOwnership: apiData.premise_ownership || undefined,
-    businessRegistrationType: apiData.business_registration_type || undefined,
-    businessVintage: apiData.business_vintage || undefined,
-    suppliers: apiData.suppliers || '',
-    description: apiData.description || '',
+    mothersName: apiData.custom_fields?.mothers_name || '',
+    preferredLanguage: apiData.custom_fields?.preferred_language || '',
+    premiseLocation: apiData.custom_fields?.premise_location || '',
+    premiseOwnership: apiData.custom_fields?.premise_ownership || undefined,
+    businessRegistrationType:
+      apiData.custom_fields?.business_registration_type || undefined,
+    businessVintage: apiData.custom_fields?.business_vintage || undefined,
+    suppliers: apiData.custom_fields?.suppliers || '',
+    description: apiData.custom_fields?.description || '',
     parentAccount: apiData.parent_account || '',
     typeOfBusiness: apiData.type_of_business || undefined,
     industry: apiData.industry || undefined,
-    street: apiData.street || '',
+    street: apiData.custom_fields?.street || '',
     state: apiData.state || '',
     code: apiData.pincode || '',
     city: apiData.city || '',
     country: apiData.country || 'India',
-    ref1Name: apiData.ref1_name || '',
-    ref1Phone: apiData.ref1_phone || '',
-    ref1Email: apiData.ref1_email || '',
-    ref2Name: apiData.ref2_name || '',
-    ref2Phone: apiData.ref2_phone || '',
-    ref2Email: apiData.ref2_email || '',
+    ref1Name: apiData.custom_fields?.ref1_name || '',
+    ref1Phone: apiData.custom_fields?.ref1_phone || '',
+    ref1Email: apiData.custom_fields?.ref1_email || '',
+    ref2Name: apiData.custom_fields?.ref2_name || '',
+    ref2Phone: apiData.custom_fields?.ref2_phone || '',
+    ref2Email: apiData.custom_fields?.ref2_email || '',
   }
 }
 
 // Map form values to API payload
 function mapFormToApi(
   formData: UpdateAccountFormValues,
-  dirtyFields: Partial<Record<keyof UpdateAccountFormValues, boolean>>
+  dirtyFields: Partial<Record<keyof UpdateAccountFormValues, boolean>>,
 ): any {
   const allFields = {
     assignment_date: { value: formData.assignmentDate, key: 'assignmentDate' },
@@ -168,6 +179,7 @@ export default function UpdateAccounts() {
   const { id } = useParams()
   const queryClient = useQueryClient()
   const [isEdit, setIsEdit] = useState(false)
+  const [openAllNotes, setOpenAllNotes] = useState(false)
 
   const navigate = useNavigate()
 
@@ -195,7 +207,7 @@ export default function UpdateAccounts() {
     queryFn: async () => {
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
-        { credentials: 'include' }
+        { credentials: 'include' },
       )
       if (!res.ok) throw new Error('Failed to fetch account')
       return res.json()
@@ -205,12 +217,19 @@ export default function UpdateAccounts() {
 
   // Extract account data and related entities
   const accountData = apiResponse?.data?.[0]
+  console.log('accountData', accountData)
 
   const contacts = accountData?.account_linked_contact || []
   // console.log('contacts', contacts)
 
   const notes = accountData?.notes || []
-  console.log('notes', notes)
+
+  const sortedNotes = [...notes].sort((a: any, b: any) => {
+    return (
+      new Date(b.Created_Time).getTime() - new Date(a.Created_Time).getTime()
+    )
+  })
+
   const ownerName = accountData?.owner?.full_name || 'User'
 
   // Populate form when data loads
@@ -221,10 +240,16 @@ export default function UpdateAccounts() {
     }
   }, [accountData, reset])
 
+  console.log('dirtyFields', dirtyFields)
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateAccountFormValues) => {
+      console.log('values', values)
+      console.log('dirtyFields', dirtyFields)
+
       const payload = mapFormToApi(values, dirtyFields)
+      console.log('payload', payload)
+
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -254,11 +279,13 @@ export default function UpdateAccounts() {
           e.returnValue = ''
         }
       },
-      [isDirty]
-    )
+      [isDirty],
+    ),
   )
 
   const data = watch()
+  console.log(data)
+
   // console.log('data', data)
 
   const onSave = (values: UpdateAccountFormValues) => {
@@ -299,6 +326,12 @@ export default function UpdateAccounts() {
   if (error || !accountData) {
     return <div className='p-4'>Account not found</div>
   }
+
+  const MAX_NOTES_VISIBLE = 3
+  const showViewMore = sortedNotes.length > MAX_NOTES_VISIBLE
+  const visibleNotes = showViewMore
+    ? sortedNotes.slice(0, MAX_NOTES_VISIBLE)
+    : sortedNotes
 
   return (
     <div className='space-y-6 bg-background min-h-screen'>
@@ -514,7 +547,7 @@ export default function UpdateAccounts() {
         <SectionHeader title='Customer Basic Details' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
-            <FieldRow label='First Name' error={errors.firstName?.message}>
+            <FieldRow label='First Name'>
               {isEdit ? (
                 <Input {...register('firstName')} className='h-8' />
               ) : (
@@ -523,22 +556,34 @@ export default function UpdateAccounts() {
             </FieldRow>
 
             <FieldRow label='Residential Ownership'>
-              <span>{data.residentialOwnership || '—'}</span>
+              {isEdit ? (
+                <Input {...register('residentialOwnership')} className='h-8' />
+              ) : (
+                <span>{data.residentialOwnership || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Residential Location'>
-              <span>{data.residentialLocation || '—'}</span>
+              {isEdit ? (
+                <Input {...register('residentialLocation')} className='h-8' />
+              ) : (
+                <span>{data.residentialLocation || '—'}</span>
+              )}
             </FieldRow>
 
-            <FieldRow label='No of Years...'>
-              <span>{data.noOfYears || '—'}</span>
+            <FieldRow label='No of Years...' error={errors.noOfYears?.message}>
+              {isEdit ? (
+                <Input {...register('noOfYears')} className='h-8' />
+              ) : (
+                <span>{data.noOfYears || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Created By'>
               <span>{data.createdBy}</span>
             </FieldRow>
 
-            <FieldRow label='Phone No'>
+            <FieldRow label='Phone No' error={errors.phone?.message}>
               {isEdit ? (
                 <Input {...register('phone')} className='h-8' />
               ) : (
@@ -557,22 +602,38 @@ export default function UpdateAccounts() {
             </FieldRow>
 
             <FieldRow label='Mothers Name'>
-              <span>{data.mothersName || '—'}</span>
+              {isEdit ? (
+                <Input {...register('mothersName')} className='h-8' />
+              ) : (
+                <span>{data.mothersName || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Preferred Language'>
-              <span>{data.preferredLanguage || '—'}</span>
+              {isEdit ? (
+                <Input {...register('preferredLanguage')} className='h-8' />
+              ) : (
+                <span>{data.preferredLanguage || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Premise Location'>
-              <span>{data.premiseLocation || '—'}</span>
+              {isEdit ? (
+                <Input {...register('premiseLocation')} className='h-8' />
+              ) : (
+                <span>{data.premiseLocation || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Premise Ownership'>
-              <span>{data.premiseOwnership || '—'}</span>
+              {isEdit ? (
+                <Input {...register('premiseOwnership')} className='h-8' />
+              ) : (
+                <span>{data.premiseOwnership || '—'}</span>
+              )}
             </FieldRow>
 
-            <FieldRow label='Email'>
+            <FieldRow label='Email' error={errors.email?.message}>
               {isEdit ? (
                 <Input {...register('email')} className='h-8' />
               ) : (
@@ -587,19 +648,41 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
             <FieldRow label='Business Registration Type'>
-              <span>{data.businessRegistrationType || '—'}</span>
+              {isEdit ? (
+                <Input
+                  {...register('businessRegistrationType')}
+                  className='h-8'
+                />
+              ) : (
+                <span>{data.businessRegistrationType || '—'}</span>
+              )}
             </FieldRow>
 
-            <FieldRow label='Business Vintage (No of Years)'>
-              <span>{data.businessVintage ?? '—'}</span>
+            <FieldRow
+              label='Business Vintage (No of Years)'
+              error={errors.businessVintage?.message}
+            >
+              {isEdit ? (
+                <Input {...register('businessVintage')} className='h-8' />
+              ) : (
+                <span>{data.businessVintage ?? '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Suppliers'>
-              <span>{data.suppliers || '—'}</span>
+              {isEdit ? (
+                <Input {...register('suppliers')} className='h-8' />
+              ) : (
+                <span>{data.suppliers || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Description'>
-              <span>{data.description || '—'}</span>
+              {isEdit ? (
+                <Input {...register('description')} className='h-8' />
+              ) : (
+                <span>{data.description || '—'}</span>
+              )}
             </FieldRow>
           </div>
 
@@ -698,60 +781,139 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
           <div className='md:border-r'>
             <FieldRow label='Name of Person 1'>
-              <span>{data.ref1Name || '—'}</span>
+              {isEdit ? (
+                <Input {...register('ref1Name')} className='h-8' />
+              ) : (
+                <span>{data.ref1Name || '—'}</span>
+              )}
             </FieldRow>
-            <FieldRow label='Phone of Person 1'>
-              <span>{data.ref1Phone || '—'}</span>
+            <FieldRow
+              label='Phone of Person 1'
+              error={errors.ref1Phone?.message}
+            >
+              {isEdit ? (
+                <Input {...register('ref1Phone')} className='h-8' />
+              ) : (
+                <span>{data.ref1Phone || '—'}</span>
+              )}
             </FieldRow>
-            <FieldRow label='Email ID Person 1'>
-              <span>{data.ref1Email || '—'}</span>
+            <FieldRow
+              label='Email ID Person 1'
+              error={errors.ref1Email?.message}
+            >
+              {isEdit ? (
+                <Input {...register('ref1Email')} className='h-8' />
+              ) : (
+                <span>{data.ref1Email || '—'}</span>
+              )}
             </FieldRow>
           </div>
           <div>
             <FieldRow label='Name of Person 2'>
-              <span>{data.ref2Name || '—'}</span>
+              {isEdit ? (
+                <Input {...register('ref2Name')} className='h-8' />
+              ) : (
+                <span>{data.ref2Name || '—'}</span>
+              )}
             </FieldRow>
-            <FieldRow label='Phone of Person 2'>
-              <span>{data.ref2Phone || '—'}</span>
+            <FieldRow
+              label='Phone of Person 2'
+              error={errors.ref2Phone?.message}
+            >
+              {isEdit ? (
+                <Input {...register('ref2Phone')} className='h-8' />
+              ) : (
+                <span>{data.ref2Phone || '—'}</span>
+              )}
             </FieldRow>
-            <FieldRow label='Email ID Person 2'>
-              <span>{data.ref2Email || '—'}</span>
+            <FieldRow
+              label='Email ID Person 2'
+              error={errors.ref2Email?.message}
+            >
+              {isEdit ? (
+                <Input {...register('ref2Email')} className='h-8' />
+              ) : (
+                <span>{data.ref2Email || '—'}</span>
+              )}
             </FieldRow>
           </div>
         </CardContent>
 
         {/* ================= Notes ================= */}
         <SectionHeader title='Notes' />
+
         <CardContent className='p-4 space-y-3'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground'>
+              Total Notes:{' '}
+              <span className='font-semibold'>{sortedNotes.length}</span>
+            </p>
+
+            {showViewMore && (
+              <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
+                <DialogTrigger asChild>
+                  <Button size='sm' variant='outline'>
+                    View More
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent className='min-w-4xl'>
+                  <DialogHeader>
+                    <DialogTitle>All Notes ({sortedNotes.length})</DialogTitle>
+                  </DialogHeader>
+
+                  <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
+                    {sortedNotes.map((note: any, i: number) => (
+                      <div
+                        key={note.parent_id || i}
+                        className='bg-muted/30 p-3 rounded-lg border'
+                      >
+                        <p className='text-sm'>{note.Note_Content}</p>
+
+                        <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                          <span>
+                            Created By: {note.Created_By?.name || '—'}
+                          </span>
+                          <span>
+                            Created Date:{' '}
+                            {formatExactDate(
+                              note.Created_Time,
+                              'dd MMM yyyy, hh:mm a',
+                            ) || '—'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
           {notes.length === 0 ? (
             <p className='text-sm text-muted-foreground'>No notes available</p>
           ) : (
-            notes.map((note: any, i: number) => (
+            visibleNotes.map((note: any, i: number) => (
               <div
                 key={note.parent_id || i}
                 className='bg-muted/30 p-3 rounded-lg border'
               >
                 <p className='text-sm'>{note.Note_Content}</p>
-                <div className='flex gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+
+                <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                  <span>Created By: {note.Created_By?.name || '—'}</span>
                   <span>
-                    Created By:{' '}
-                    {note.Created_By?.name || '—'}
-                  </span>
-                  <span>
-                    Created Time: {new Date(note.Created_Time).toLocaleDateString() || '—'}
-                  </span>
-                  <span>
-                    Modified By:{' '}
-                    {note.Modified_By?.name || '—'}
-                  </span>
-                  <span>
-                    Modified Time:{' '}
-                    {new Date(note.Modified_Time).toLocaleDateString() || '—'}
+                    Created Date:{' '}
+                    {formatExactDate(
+                      note.Created_Time,
+                      'dd MMM yyyy, hh:mm a',
+                    ) || '—'}
                   </span>
                 </div>
               </div>
             ))
           )}
+
           <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
       </Card>

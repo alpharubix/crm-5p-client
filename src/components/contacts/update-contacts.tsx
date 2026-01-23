@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useBeforeUnload, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -43,8 +44,42 @@ function mapContactToForm(apiData: any): UpdateContactFormValues {
   }
 }
 
+// Map form values to API payload
+function mapFormToApi(
+  formData: UpdateContactFormValues,
+  dirtyFields: Partial<Record<keyof UpdateContactFormValues, boolean>>,
+): any {
+  const allFields = {
+    first_name: { value: formData.firstName, key: 'firstName' },
+    last_name: { value: formData.lastName, key: 'lastName' },
+    designation: { value: formData.designation, key: 'designation' },
+    email: { value: formData.email, key: 'email' },
+    secondary_email: { value: formData.secondaryEmail, key: 'secondaryEmail' },
+    mobile: { value: formData.mobile, key: 'mobile' },
+    phone: { value: formData.phone, key: 'phone' },
+    lead_source: { value: formData.leadSource, key: 'leadSource' },
+    street: { value: formData.street, key: 'street' },
+    city: { value: formData.city, key: 'city' },
+    state: { value: formData.state, key: 'state' },
+    country: { value: formData.country, key: 'country' },
+    pincode: { value: formData.pincode, key: 'pincode' },
+  }
+
+  const payload: any = {}
+
+  Object.entries(allFields).forEach(([apiKey, { value, key }]) => {
+    // @ts-ignore
+    if (dirtyFields[key]) {
+      payload[apiKey] = value
+    }
+  })
+
+  return payload
+}
+
 export default function UpdateContacts() {
   const { id } = useParams()
+  const queryClient = useQueryClient()
   const [isEdit, setIsEdit] = useState(false)
   const navigate = useNavigate()
 
@@ -54,7 +89,7 @@ export default function UpdateContacts() {
     watch,
     setValue,
     reset,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, dirtyFields },
   } = useForm<UpdateContactFormValues>({
     resolver: zodResolver(updateContactSchema),
     defaultValues: {
@@ -74,7 +109,7 @@ export default function UpdateContacts() {
     queryFn: async () => {
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/contacts?contact_id=${id}`,
-        { credentials: 'include' }
+        { credentials: 'include' },
       )
       if (!res.ok) throw new Error('Failed to fetch contact')
       return res.json()
@@ -93,6 +128,30 @@ export default function UpdateContacts() {
     }
   }, [contactData, reset])
 
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async (values: UpdateContactFormValues) => {
+      const payload = mapFormToApi(values, dirtyFields)
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/contacts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Failed to update contact')
+      return res.json()
+    },
+    onSuccess: (data, variables) => {
+      toast.success('Contact updated successfully')
+      setIsEdit(false)
+      reset(variables) // Reset with submitted values to clear dirty state
+      queryClient.invalidateQueries({ queryKey: ['contact', id] })
+    },
+    onError: () => {
+      toast.error('Failed to update contact')
+    },
+  })
+
   // Warn on browser close/refresh if dirty
   useBeforeUnload(
     React.useCallback(
@@ -102,16 +161,14 @@ export default function UpdateContacts() {
           e.returnValue = ''
         }
       },
-      [isDirty]
-    )
+      [isDirty],
+    ),
   )
 
   const data = watch()
 
   const onSave = (values: UpdateContactFormValues) => {
-    // console.log('SAVE CONTACT', values)
-    setIsEdit(false)
-    reset(values)
+    updateMutation.mutate(values)
   }
 
   if (isLoading) {
@@ -134,9 +191,40 @@ export default function UpdateContacts() {
           Contact Owner:{' '}
           <span className='text-primary font-bold'>{userName}</span>
         </h1>
-        <Button onClick={() => navigate(`/accounts/${accountId}`)}>
-          Go To Account Information
-        </Button>
+        <div className='flex items-center gap-2'>
+          {!isEdit ? (
+            <Button size='sm' onClick={() => setIsEdit(true)}>
+              Update
+            </Button>
+          ) : (
+            <div className='flex gap-2'>
+              <Button
+                size='sm'
+                disabled={!isDirty || updateMutation.isPending}
+                onClick={handleSubmit(onSave)}
+              >
+                {updateMutation.isPending ? (
+                  <Spinner className='mr-2 h-4 w-4' />
+                ) : (
+                  'Save'
+                )}
+              </Button>
+              <Button
+                size='sm'
+                variant='outline'
+                onClick={() => {
+                  reset()
+                  setIsEdit(false)
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+          <Button onClick={() => navigate(`/accounts/${accountId}`)}>
+            Go To Account Information
+          </Button>
+        </div>
       </div>
 
       <Card className='overflow-hidden space-y-1'>
@@ -163,7 +251,7 @@ export default function UpdateContacts() {
               />
             </FieldRow>
 
-            <FieldRow label='Mobile'>
+            <FieldRow label='Mobile' error={errors.mobile?.message}>
               {isEdit ? (
                 <Input {...register('mobile')} className='h-8' />
               ) : (
@@ -171,7 +259,7 @@ export default function UpdateContacts() {
               )}
             </FieldRow>
 
-            <FieldRow label='Phone'>
+            <FieldRow label='Phone' error={errors.phone?.message}>
               {isEdit ? (
                 <Input {...register('phone')} className='h-8' />
               ) : (
@@ -206,11 +294,7 @@ export default function UpdateContacts() {
             </FieldRow>
 
             <FieldRow label='Account Name'>
-              {isEdit ? (
-                <Input {...register('accountName')} className='h-8' />
-              ) : (
-                <span>{data.accountName || '—'}</span>
-              )}
+              <span>{data.accountName || '—'}</span>
             </FieldRow>
 
             <FieldRow label='Email' error={errors.email?.message}>

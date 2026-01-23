@@ -10,11 +10,13 @@ import UpdateAccounts from './components/accounts/update-accounts'
 import UpdateContacts from './components/contacts/update-contacts'
 import NotFoundPage from './pages/not-found-page'
 import { SignInPage } from './pages/signin-page'
+import { GlobalProgressBar } from './components/global-progress-bar'
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <GlobalProgressBar />
         <Routes>
           <Route element={<PublicRoute />}>
             <Route path='/' element={<Navigate to='/login' replace />} />
