@@ -60,39 +60,41 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     lastName: apiData.last_name || '',
     phone: apiData.phone || '',
     email: apiData.email || '',
-    residentialOwnership: apiData.residential_ownership || undefined,
-    residentialLocation: apiData.residential_location || '',
-    noOfYears: apiData.no_of_years || '',
+    residentialOwnership:
+      apiData.custom_fields?.residential_ownership || undefined,
+    residentialLocation: apiData.custom_fields?.residential_location || '',
+    noOfYears: apiData.custom_fields?.no_of_years || '',
     createdBy: apiData.created_by?.full_name || 'NA',
-    mothersName: apiData.mothers_name || '',
-    preferredLanguage: apiData.preferred_language || '',
-    premiseLocation: apiData.premise_location || '',
-    premiseOwnership: apiData.premise_ownership || undefined,
-    businessRegistrationType: apiData.business_registration_type || undefined,
-    businessVintage: apiData.business_vintage || undefined,
-    suppliers: apiData.suppliers || '',
-    description: apiData.description || '',
+    mothersName: apiData.custom_fields?.mothers_name || '',
+    preferredLanguage: apiData.custom_fields?.preferred_language || '',
+    premiseLocation: apiData.custom_fields?.premise_location || '',
+    premiseOwnership: apiData.custom_fields?.premise_ownership || undefined,
+    businessRegistrationType:
+      apiData.custom_fields?.business_registration_type || undefined,
+    businessVintage: apiData.custom_fields?.business_vintage || undefined,
+    suppliers: apiData.custom_fields?.suppliers || '',
+    description: apiData.custom_fields?.description || '',
     parentAccount: apiData.parent_account || '',
     typeOfBusiness: apiData.type_of_business || undefined,
     industry: apiData.industry || undefined,
-    street: apiData.street || '',
+    street: apiData.custom_fields?.street || '',
     state: apiData.state || '',
     code: apiData.pincode || '',
     city: apiData.city || '',
     country: apiData.country || 'India',
-    ref1Name: apiData.ref1_name || '',
-    ref1Phone: apiData.ref1_phone || '',
-    ref1Email: apiData.ref1_email || '',
-    ref2Name: apiData.ref2_name || '',
-    ref2Phone: apiData.ref2_phone || '',
-    ref2Email: apiData.ref2_email || '',
+    ref1Name: apiData.custom_fields?.ref1_name || '',
+    ref1Phone: apiData.custom_fields?.ref1_phone || '',
+    ref1Email: apiData.custom_fields?.ref1_email || '',
+    ref2Name: apiData.custom_fields?.ref2_name || '',
+    ref2Phone: apiData.custom_fields?.ref2_phone || '',
+    ref2Email: apiData.custom_fields?.ref2_email || '',
   }
 }
 
 // Map form values to API payload
 function mapFormToApi(
   formData: UpdateAccountFormValues,
-  dirtyFields: Partial<Record<keyof UpdateAccountFormValues, boolean>>
+  dirtyFields: Partial<Record<keyof UpdateAccountFormValues, boolean>>,
 ): any {
   const allFields = {
     assignment_date: { value: formData.assignmentDate, key: 'assignmentDate' },
@@ -205,7 +207,7 @@ export default function UpdateAccounts() {
     queryFn: async () => {
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
-        { credentials: 'include' }
+        { credentials: 'include' },
       )
       if (!res.ok) throw new Error('Failed to fetch account')
       return res.json()
@@ -215,6 +217,7 @@ export default function UpdateAccounts() {
 
   // Extract account data and related entities
   const accountData = apiResponse?.data?.[0]
+  console.log('accountData', accountData)
 
   const contacts = accountData?.account_linked_contact || []
   // console.log('contacts', contacts)
@@ -237,10 +240,16 @@ export default function UpdateAccounts() {
     }
   }, [accountData, reset])
 
+  console.log('dirtyFields', dirtyFields)
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateAccountFormValues) => {
+      console.log('values', values)
+      console.log('dirtyFields', dirtyFields)
+
       const payload = mapFormToApi(values, dirtyFields)
+      console.log('payload', payload)
+
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -270,11 +279,13 @@ export default function UpdateAccounts() {
           e.returnValue = ''
         }
       },
-      [isDirty]
-    )
+      [isDirty],
+    ),
   )
 
   const data = watch()
+  console.log(data)
+
   // console.log('data', data)
 
   const onSave = (values: UpdateAccountFormValues) => {
@@ -545,15 +556,27 @@ export default function UpdateAccounts() {
             </FieldRow>
 
             <FieldRow label='Residential Ownership'>
-              <span>{data.residentialOwnership || '—'}</span>
+              {isEdit ? (
+                <Input {...register('residentialOwnership')} className='h-8' />
+              ) : (
+                <span>{data.residentialOwnership || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Residential Location'>
-              <span>{data.residentialLocation || '—'}</span>
+              {isEdit ? (
+                <Input {...register('residentialLocation')} className='h-8' />
+              ) : (
+                <span>{data.residentialLocation || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='No of Years...'>
-              <span>{data.noOfYears || '—'}</span>
+              {isEdit ? (
+                <Input {...register('noOfYears')} className='h-8' />
+              ) : (
+                <span>{data.noOfYears || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Created By'>
@@ -579,19 +602,35 @@ export default function UpdateAccounts() {
             </FieldRow>
 
             <FieldRow label='Mothers Name'>
-              <span>{data.mothersName || '—'}</span>
+              {isEdit ? (
+                <Input {...register('mothersName')} className='h-8' />
+              ) : (
+                <span>{data.mothersName || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Preferred Language'>
-              <span>{data.preferredLanguage || '—'}</span>
+              {isEdit ? (
+                <Input {...register('preferredLanguage')} className='h-8' />
+              ) : (
+                <span>{data.preferredLanguage || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Premise Location'>
-              <span>{data.premiseLocation || '—'}</span>
+              {isEdit ? (
+                <Input {...register('premiseLocation')} className='h-8' />
+              ) : (
+                <span>{data.premiseLocation || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Premise Ownership'>
-              <span>{data.premiseOwnership || '—'}</span>
+              {isEdit ? (
+                <Input {...register('premiseOwnership')} className='h-8' />
+              ) : (
+                <span>{data.premiseOwnership || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Email'>
@@ -609,19 +648,38 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
             <FieldRow label='Business Registration Type'>
-              <span>{data.businessRegistrationType || '—'}</span>
+              {isEdit ? (
+                <Input
+                  {...register('businessRegistrationType')}
+                  className='h-8'
+                />
+              ) : (
+                <span>{data.businessRegistrationType || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Business Vintage (No of Years)'>
-              <span>{data.businessVintage ?? '—'}</span>
+              {isEdit ? (
+                <Input {...register('businessVintage')} className='h-8' />
+              ) : (
+                <span>{data.businessVintage ?? '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Suppliers'>
-              <span>{data.suppliers || '—'}</span>
+              {isEdit ? (
+                <Input {...register('suppliers')} className='h-8' />
+              ) : (
+                <span>{data.suppliers || '—'}</span>
+              )}
             </FieldRow>
 
             <FieldRow label='Description'>
-              <span>{data.description || '—'}</span>
+              {isEdit ? (
+                <Input {...register('description')} className='h-8' />
+              ) : (
+                <span>{data.description || '—'}</span>
+              )}
             </FieldRow>
           </div>
 
@@ -720,24 +778,48 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
           <div className='md:border-r'>
             <FieldRow label='Name of Person 1'>
-              <span>{data.ref1Name || '—'}</span>
+              {isEdit ? (
+                <Input {...register('ref1Name')} className='h-8' />
+              ) : (
+                <span>{data.ref1Name || '—'}</span>
+              )}
             </FieldRow>
             <FieldRow label='Phone of Person 1'>
-              <span>{data.ref1Phone || '—'}</span>
+              {isEdit ? (
+                <Input {...register('ref1Phone')} className='h-8' />
+              ) : (
+                <span>{data.ref1Phone || '—'}</span>
+              )}
             </FieldRow>
             <FieldRow label='Email ID Person 1'>
-              <span>{data.ref1Email || '—'}</span>
+              {isEdit ? (
+                <Input {...register('ref1Email')} className='h-8' />
+              ) : (
+                <span>{data.ref1Email || '—'}</span>
+              )}
             </FieldRow>
           </div>
           <div>
             <FieldRow label='Name of Person 2'>
-              <span>{data.ref2Name || '—'}</span>
+              {isEdit ? (
+                <Input {...register('ref2Name')} className='h-8' />
+              ) : (
+                <span>{data.ref2Name || '—'}</span>
+              )}
             </FieldRow>
             <FieldRow label='Phone of Person 2'>
-              <span>{data.ref2Phone || '—'}</span>
+              {isEdit ? (
+                <Input {...register('ref2Phone')} className='h-8' />
+              ) : (
+                <span>{data.ref2Phone || '—'}</span>
+              )}
             </FieldRow>
             <FieldRow label='Email ID Person 2'>
-              <span>{data.ref2Email || '—'}</span>
+              {isEdit ? (
+                <Input {...register('ref2Email')} className='h-8' />
+              ) : (
+                <span>{data.ref2Email || '—'}</span>
+              )}
             </FieldRow>
           </div>
         </CardContent>
@@ -781,7 +863,7 @@ export default function UpdateAccounts() {
                             Created Date:{' '}
                             {formatExactDate(
                               note.Created_Time,
-                              'dd MMM yyyy, hh:mm a'
+                              'dd MMM yyyy, hh:mm a',
                             ) || '—'}
                           </span>
                         </div>
@@ -809,7 +891,7 @@ export default function UpdateAccounts() {
                     Created Date:{' '}
                     {formatExactDate(
                       note.Created_Time,
-                      'dd MMM yyyy, hh:mm a'
+                      'dd MMM yyyy, hh:mm a',
                     ) || '—'}
                   </span>
                 </div>
