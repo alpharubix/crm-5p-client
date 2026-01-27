@@ -7,6 +7,7 @@ import { RefreshCw } from 'lucide-react'
 import { ENV } from '@/conf'
 
 import { Button } from '@/components/ui/button'
+import HighlightedText from '@/components/shared/highlighted-text'
 import {
   Table,
   TableBody,
@@ -363,7 +364,10 @@ export default function AccountsPage() {
                           onClick={() => handleRowClick(acc.id)}
                         >
                           <TableCell className='font-medium text-primary'>
-                            {acc.account_name}
+                            <HighlightedText
+                              text={acc.account_name}
+                              highlight={appliedFilters.accountName}
+                            />
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.owner?.full_name || '—'}
@@ -378,10 +382,16 @@ export default function AccountsPage() {
                             {acc.type_of_business || '—'}
                           </TableCell>
                           <TableCell className='text-primary'>
-                            {acc.city || '—'}
+                            <HighlightedText
+                              text={acc.city}
+                              highlight={appliedFilters.city}
+                            />
                           </TableCell>
                           <TableCell className='text-primary'>
-                            {acc.state || '—'}
+                            <HighlightedText
+                              text={acc.state}
+                              highlight={appliedFilters.state}
+                            />
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.call_back_date_time

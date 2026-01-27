@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
+import HighlightedText from '@/components/shared/highlighted-text'
 import {
   Table,
   TableBody,
@@ -276,14 +277,37 @@ export default function ContactsPage() {
                       >
                         <TableCell>
                           <div className='font-medium'>
-                            {contact.first_name} {contact.last_name}
+                            <HighlightedText
+                              text={`${contact.first_name} ${contact.last_name}`}
+                              highlight={appliedFilters.full_name}
+                            />
                           </div>
                         </TableCell>
                         <TableCell>{contact.designation || '—'}</TableCell>
-                        <TableCell>{contact.mobile || '—'}</TableCell>
-                        <TableCell>{contact.phone || '—'}</TableCell>
-                        <TableCell>{contact.email || '—'}</TableCell>
-                        <TableCell>{contact.city || '—'}</TableCell>
+                        <TableCell>
+                          <HighlightedText
+                            text={contact.mobile}
+                            highlight={appliedFilters.mobile}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <HighlightedText
+                            text={contact.phone}
+                            highlight={appliedFilters.phone}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <HighlightedText
+                            text={contact.email}
+                            highlight={appliedFilters.email}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <HighlightedText
+                            text={contact.city}
+                            highlight={appliedFilters.city}
+                          />
+                        </TableCell>
                         <TableCell>{contact.state || '—'}</TableCell>
                       </TableRow>
                     ))
