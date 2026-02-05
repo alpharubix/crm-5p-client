@@ -285,6 +285,34 @@ export default function AccountsPage() {
               <SelectContent>
                 <SelectItem value='Himalaya'>Himalaya</SelectItem>
                 <SelectItem value='CavinKare'>CavinKare</SelectItem>
+                <SelectItem value='ALL INDIA CHEMISTS AND DRUGGISTS ASSOCIATION OF INDIA'>
+                  ALL INDIA CHEMISTS AND DRUGGISTS ASSOCIATION OF INDIA
+                </SelectItem>
+                <SelectItem value='All India Hardware Association (Based in Mumbai Charni Road)'>
+                  All India Hardware Association (Based in Mumbai Charni Road)
+                </SelectItem>
+                <SelectItem value='Alpharubix'>Alpharubix</SelectItem>
+                <SelectItem value='Condor Footwear'>Condor Footwear</SelectItem>
+                <SelectItem value='DVG Dist Petroleum'>
+                  DVG Dist Petroleum
+                </SelectItem>
+                <SelectItem value='Federation of Hotel and Restaurant Association of India (Based in New Delhi)'>
+                  Federation of Hotel and Restaurant Association of India (Based
+                  in New Delhi)
+                </SelectItem>
+                <SelectItem value='Havells'>Havells</SelectItem>
+                <SelectItem value='Liberty'>Liberty</SelectItem>
+                <SelectItem value='Marico'>Marico</SelectItem>
+                <SelectItem value='Reference'>Reference</SelectItem>
+                <SelectItem value='Retail Association of India'>
+                  Retail Association of India
+                </SelectItem>
+                <SelectItem value='SME CHAMBER'>SME CHAMBER</SelectItem>
+                <SelectItem value='Swastik'>Swastik</SelectItem>
+                <SelectItem value='Unicharm'>Unicharm</SelectItem>
+                <SelectItem value='Vibhava Marketing'>
+                  Vibhava Marketing
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -333,6 +361,7 @@ export default function AccountsPage() {
                       <TableHead>Account Status</TableHead>
                       <TableHead>Source</TableHead>
                       <TableHead>Type of Business</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>City</TableHead>
                       <TableHead>State</TableHead>
                       <TableHead>Call Back Date / Time</TableHead>
@@ -370,6 +399,12 @@ export default function AccountsPage() {
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.type_of_business || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            <HighlightedText
+                              text={acc.phone}
+                              highlight={appliedFilters.phone}
+                            />
                           </TableCell>
                           <TableCell className='text-primary'>
                             <HighlightedText

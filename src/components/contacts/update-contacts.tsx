@@ -27,15 +27,15 @@ function mapContactToForm(apiData: any): UpdateContactFormValues {
   return {
     firstName: apiData.first_name || '',
     lastName: apiData.last_name || '',
-    leadSource: apiData.lead_source || 'Website',
+    leadSource: apiData.lead_source || '',
     designation: apiData.designation || '',
     mobile: apiData.mobile || '',
     phone: apiData.phone || '',
     accountName: apiData.parent_account?.account_name || '',
     email: apiData.email || '',
     secondaryEmail: apiData.secondary_email || '',
-    createdBy: apiData.created_by?.full_name || 'System Driven Field (User)',
-    modifiedBy: apiData.modified_by?.full_name || 'System Driven Field (User)',
+    createdBy: apiData.created_by?.full_name || '',
+    modifiedBy: apiData.modified_by?.full_name || '',
     street: apiData.street || '',
     state: apiData.state || '',
     pincode: apiData.pincode || '',
@@ -93,7 +93,7 @@ export default function UpdateContacts() {
   } = useForm<UpdateContactFormValues>({
     resolver: zodResolver(updateContactSchema),
     defaultValues: {
-      leadSource: 'Website',
+      leadSource: '',
       createdBy: 'System Driven Field (User)',
       modifiedBy: 'System Driven Field (User)',
       country: 'India',

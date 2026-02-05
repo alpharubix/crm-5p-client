@@ -47,15 +47,15 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     assignmentDate: apiData.assignment_date
       ? new Date(apiData.assignment_date)
       : undefined,
-    source: apiData.source || 'NA',
+    source: apiData.source || '',
     distributorCode: apiData.distributor_code || '',
-    wabaInterested: apiData.waba_interested || false,
+    wabaInterested: apiData.waba_interested || '',
     callBackDate: apiData.call_back_date_time
       ? new Date(apiData.call_back_date_time)
       : undefined,
-    accountStatus: apiData.account_status || 'Awareness',
-    accountStage: apiData.account_stage || 'Initial Pitch',
-    businessStatus: apiData.business_status || 'Active',
+    accountStatus: apiData.account_status || '',
+    accountStage: apiData.account_stage || '',
+    businessStatus: apiData.business_status || '',
     firstName: apiData.first_name || '',
     lastName: apiData.last_name || '',
     phone: apiData.phone || '',
@@ -64,7 +64,7 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
       apiData.custom_fields?.residential_ownership || undefined,
     residentialLocation: apiData.custom_fields?.residential_location || '',
     noOfYears: apiData.custom_fields?.no_of_years || '',
-    createdBy: apiData.created_by?.full_name || 'NA',
+    createdBy: apiData.created_by?.full_name || '',
     mothersName: apiData.custom_fields?.mothers_name || '',
     preferredLanguage: apiData.custom_fields?.preferred_language || '',
     premiseLocation: apiData.custom_fields?.premise_location || '',
@@ -448,6 +448,10 @@ export default function UpdateAccounts() {
                   'Not Interested',
                   'Location Unserviceable',
                   'Lender Review',
+                  'Yet to be dialed',
+                  'Contact Established',
+                  'Contact Not Established',
+                  'Wrong Number',
                 ]}
                 onChange={(v) =>
                   setValue('accountStatus', v, { shouldDirty: true })
@@ -555,12 +559,26 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
 
-            <FieldRow label='Residential Ownership'>
-              {isEdit ? (
-                <Input {...register('residentialOwnership')} className='h-8' />
-              ) : (
-                <span>{data.residentialOwnership || '—'}</span>
-              )}
+            <FieldRow
+              label='Residential Ownership'
+              error={errors.residentialOwnership?.message}
+            >
+              <SelectField
+                value={data.residentialOwnership}
+                isEdit={isEdit}
+                options={[
+                  'Self Owned',
+                  'Rented',
+                  'Parent Owned',
+                  'Leased',
+                  'Children Owned',
+                  'Spouse Owned',
+                  'Relative Owned',
+                ]}
+                onChange={(v) =>
+                  setValue('residentialOwnership', v, { shouldDirty: true })
+                }
+              />
             </FieldRow>
 
             <FieldRow label='Residential Location'>
@@ -571,7 +589,10 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
 
-            <FieldRow label='No of Years...' error={errors.noOfYears?.message}>
+            <FieldRow
+              label='No of Years residing in current residence'
+              error={errors.noOfYears?.message}
+            >
               {isEdit ? (
                 <Input {...register('noOfYears')} className='h-8' />
               ) : (
@@ -617,7 +638,7 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
 
-            <FieldRow label='Premise Location'>
+            <FieldRow label='Business Premise Location'>
               {isEdit ? (
                 <Input {...register('premiseLocation')} className='h-8' />
               ) : (
@@ -625,12 +646,26 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
 
-            <FieldRow label='Premise Ownership'>
-              {isEdit ? (
-                <Input {...register('premiseOwnership')} className='h-8' />
-              ) : (
-                <span>{data.premiseOwnership || '—'}</span>
-              )}
+            <FieldRow
+              label='Business Premise Ownership'
+              error={errors.premiseOwnership?.message}
+            >
+              <SelectField
+                value={data.premiseOwnership}
+                isEdit={isEdit}
+                options={[
+                  'Self Owned',
+                  'Rented',
+                  'Parent Owned',
+                  'Leased',
+                  'Children Owned',
+                  'Spouse Owned',
+                  'Relative Owned',
+                ]}
+                onChange={(v) =>
+                  setValue('premiseOwnership', v, { shouldDirty: true })
+                }
+              />
             </FieldRow>
 
             <FieldRow label='Email' error={errors.email?.message}>
