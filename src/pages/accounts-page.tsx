@@ -33,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 import { Spinner } from '@/components/ui/spinner'
 import { formatExactDate } from '@/utils/date-formatter'
+import UploadCsv from '@/components/accounts/csv-upload'
 
 export default function AccountsPage() {
   const navigate = useNavigate()
@@ -200,18 +201,7 @@ export default function AccountsPage() {
           </div>
         )}
 
-        <Button
-          variant='outline'
-          size='icon'
-          onClick={() => refetch()}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Spinner className='h-4 w-4' />
-          ) : (
-            <RefreshCw className='h-4 w-4' />
-          )}
-        </Button>
+        <UploadCsv isLoading={isLoading} refetch={refetch} />
       </div>
 
       <div className='grid grid-cols-[260px_1fr] gap-4'>
