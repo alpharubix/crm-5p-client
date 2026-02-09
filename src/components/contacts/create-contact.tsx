@@ -146,7 +146,7 @@ export default function CreateContact() {
 
   return (
     <div className='space-y-6 mb-10'>
-      <div className='flex justify-between items-center'>
+      <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <h1 className='text-2xl font-bold'>Create Contact</h1>
         <div className='flex gap-2'>
           <Button

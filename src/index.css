@@ -117,23 +117,35 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Global Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
 }
 
+/* Utility class if specifically needed, but global covers most */
 .thin-scrollbar::-webkit-scrollbar {
   width: 4px;
-}
-
-.thin-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #9ca3af; /* gray-400 */
-  border-radius: 9999px;
-}
-
-.thin-scrollbar::-webkit-scrollbar-track {
-  background: #f3f4f6; /* gray-100 */
-}
-
-/* Firefox */
-.thin-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #9ca3af #f3f4f6;
+  height: 4px;
 }
