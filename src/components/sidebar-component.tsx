@@ -36,21 +36,22 @@ export default function SidebarComponent() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
+        <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
+          <SidebarTrigger className='-ml-1' />
 
-          <div className="ml-auto flex items-center gap-2">
-            <Sun className="h-5 w-5" />
+          <div className='ml-auto flex items-center gap-2'>
+            <Sun className='h-5 w-5' />
             <Switch
-              id="dark-mode"
+              id='dark-mode'
+              className='cursor-pointer'
               checked={darkMode}
               onCheckedChange={handleThemeChange}
             />
-            <Moon className="h-5 w-5" />
+            <Moon className='h-5 w-5' />
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className='flex flex-1 flex-col gap-4 p-4'>
           <Outlet />
         </div>
       </SidebarInset>

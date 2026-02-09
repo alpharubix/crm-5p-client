@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -160,7 +160,22 @@ export default function ContactsPage() {
         <div className='flex gap-2'>
           <Button
             variant='outline'
+            className='cursor-pointer'
+            onClick={() => navigate('/contacts-create')}
+          >
+            {isLoading ? (
+              <Spinner className='h-4 w-4' />
+            ) : (
+              <>
+                <Plus className='h-4 w-4' />
+                Add Contact
+              </>
+            )}
+          </Button>
+          <Button
+            variant='outline'
             size='icon'
+            className='cursor-pointer'
             onClick={() => refetch()}
             disabled={isLoading}
           >
@@ -230,10 +245,14 @@ export default function ContactsPage() {
           </div>
 
           <div className='flex gap-2 pt-2'>
-            <Button className='flex-1' onClick={handleSearch}>
+            <Button className='flex-1 cursor-pointer' onClick={handleSearch}>
               Search
             </Button>
-            <Button variant='outline' onClick={handleClear}>
+            <Button
+              variant='outline'
+              className='cursor-pointer'
+              onClick={handleClear}
+            >
               Clear
             </Button>
           </div>

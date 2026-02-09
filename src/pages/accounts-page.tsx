@@ -336,10 +336,14 @@ export default function AccountsPage() {
           </div>
 
           <div className='flex gap-2 pt-2'>
-            <Button className='flex-1' onClick={handleSearch}>
+            <Button className='flex-1 cursor-pointer' onClick={handleSearch}>
               Search
             </Button>
-            <Button variant='outline' onClick={handleClear}>
+            <Button
+              variant='outline'
+              className='cursor-pointer'
+              onClick={handleClear}
+            >
               Clear
             </Button>
           </div>

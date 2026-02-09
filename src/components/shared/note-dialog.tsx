@@ -61,7 +61,7 @@ export default function NoteDialog({ onAddNote }: NoteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant='ghost' size='sm' className='w-full'>
+        <Button variant='ghost' size='sm' className='w-full cursor-pointer'>
           <PlusCircle className='w-4 h-4 mr-2' /> Add Note
         </Button>
       </DialogTrigger>
@@ -86,7 +86,9 @@ export default function NoteDialog({ onAddNote }: NoteDialogProps) {
             )}
           </div>
           <DialogFooter>
-            <Button type='submit'>Save Note</Button>
+            <Button type='submit' className='cursor-pointer'>
+              Save Note
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -120,7 +120,7 @@ export default function UpdateContacts() {
   const contactData = apiResponse?.data?.[0]
   const userName = contactData?.contact_owner?.full_name
   const accountId = contactData?.parent_account?.id
-  console.log(accountId)
+  // console.log(accountId)
 
   useEffect(() => {
     if (contactData) {
@@ -193,13 +193,18 @@ export default function UpdateContacts() {
         </h1>
         <div className='flex items-center gap-2'>
           {!isEdit ? (
-            <Button size='sm' onClick={() => setIsEdit(true)}>
+            <Button
+              size='sm'
+              className='cursor-pointer'
+              onClick={() => setIsEdit(true)}
+            >
               Update
             </Button>
           ) : (
             <div className='flex gap-2'>
               <Button
                 size='sm'
+                className='cursor-pointer'
                 disabled={!isDirty || updateMutation.isPending}
                 onClick={handleSubmit(onSave)}
               >
@@ -211,6 +216,7 @@ export default function UpdateContacts() {
               </Button>
               <Button
                 size='sm'
+                className='cursor-pointer'
                 variant='outline'
                 onClick={() => {
                   reset()
@@ -221,7 +227,10 @@ export default function UpdateContacts() {
               </Button>
             </div>
           )}
-          <Button onClick={() => navigate(`/accounts/${accountId}`)}>
+          <Button
+            className='cursor-pointer'
+            onClick={() => navigate(`/accounts/${accountId}`)}
+          >
             Go To Account Information
           </Button>
         </div>
@@ -244,7 +253,25 @@ export default function UpdateContacts() {
               <SelectField
                 value={data.leadSource}
                 isEdit={isEdit}
-                options={['Website', 'Referral']}
+                options={[
+                  'Himalaya',
+                  'CavinKare',
+                  'ALL INDIA CHEMISTS AND DRUGGISTS ASSOCIATION OF INDIA',
+                  'All India Hardware Association (Based in Mumbai Charni Road)',
+                  'Alpharubix',
+                  'Condor Footwear',
+                  'DVG Dist Petroleum',
+                  'Federation of Hotel and Restaurant Association of India (Based in New Delhi)',
+                  'Havells',
+                  'Liberty',
+                  'Marico',
+                  'Reference',
+                  'Retail Association of India',
+                  'SME CHAMBER',
+                  'Swastik',
+                  'Unicharm',
+                  'Vibhava Marketing',
+                ]}
                 onChange={(v) =>
                   setValue('leadSource', v, { shouldDirty: true })
                 }
