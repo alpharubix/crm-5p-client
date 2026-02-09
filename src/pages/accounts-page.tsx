@@ -205,7 +205,7 @@ export default function AccountsPage() {
       </div>
 
       <div className='grid grid-cols-[260px_1fr] gap-4'>
-        <div className='border rounded-md p-3 space-y-4 bg-background h-fit'>
+        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-200px)]'>
           <h3 className='font-semibold text-sm'>Filter Accounts by</h3>
 
           {showOwnerFilter && (
@@ -349,7 +349,7 @@ export default function AccountsPage() {
           </div>
         </div>
 
-        <div className='flex flex-col gap-4 min-w-0 h-[550px]'>
+        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]'>
           {isLoading ? (
             <div className='flex items-center justify-center h-64 border rounded-md'>
               <Spinner className='h-8 w-8 text-muted-foreground' />

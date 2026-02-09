@@ -259,7 +259,7 @@ export default function ContactsPage() {
         </div>
 
         {/* -------- Table -------- */}
-        <div className='flex flex-col gap-4 min-w-0 h-[550px]'>
+        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]'>
           <div className='border rounded-md flex-1 overflow-auto relative'>
             {isLoading ? (
               <div className='flex items-center justify-center h-64'>
