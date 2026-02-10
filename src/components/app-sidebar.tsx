@@ -54,17 +54,17 @@ const data = {
         // }
       ],
     },
-    // {
-    //   title: 'Tickets',
-    //   url: '#',
-    //   icon: BookOpen,
-    //   items: [
-    //     {
-    //       title: 'Desk',
-    //       url: '/desk',
-    //     },
-    //   ],
-    // },
+    {
+      title: 'Logs',
+      url: '#',
+      icon: BookOpen,
+      items: [
+        {
+          title: 'Audit Log',
+          url: '/audit-logs',
+        },
+      ],
+    },
   ],
 }
 

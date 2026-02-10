@@ -12,6 +12,7 @@ import NotFoundPage from './pages/not-found-page'
 import { SignInPage } from './pages/signin-page'
 import { GlobalProgressBar } from './components/global-progress-bar'
 import CreateContact from './components/contacts/create-contact'
+import AuditLogs from './components/log/audit-log'
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
             <Route path='/contacts/:id' element={<UpdateContacts />} />
             <Route path='/contacts-create' element={<CreateContact />} />
             <Route path='*' element={<NotFoundPage />} />
+            <Route path='/audit-logs' element={<AuditLogs />} />
           </Route>
         </Routes>
       </BrowserRouter>
