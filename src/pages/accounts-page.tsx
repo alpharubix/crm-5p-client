@@ -33,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 import { Spinner } from '@/components/ui/spinner'
 import { formatExactDate } from '@/utils/date-formatter'
+import UploadCsv from '@/components/accounts/csv-upload'
 
 export default function AccountsPage() {
   const navigate = useNavigate()
@@ -200,22 +201,11 @@ export default function AccountsPage() {
           </div>
         )}
 
-        <Button
-          variant='outline'
-          size='icon'
-          onClick={() => refetch()}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Spinner className='h-4 w-4' />
-          ) : (
-            <RefreshCw className='h-4 w-4' />
-          )}
-        </Button>
+        <UploadCsv isLoading={isLoading} refetch={refetch} />
       </div>
 
       <div className='grid grid-cols-[260px_1fr] gap-4'>
-        <div className='border rounded-md p-3 space-y-4 bg-background h-fit'>
+        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-200px)]'>
           <h3 className='font-semibold text-sm'>Filter Accounts by</h3>
 
           {showOwnerFilter && (
@@ -295,6 +285,34 @@ export default function AccountsPage() {
               <SelectContent>
                 <SelectItem value='Himalaya'>Himalaya</SelectItem>
                 <SelectItem value='CavinKare'>CavinKare</SelectItem>
+                <SelectItem value='ALL INDIA CHEMISTS AND DRUGGISTS ASSOCIATION OF INDIA'>
+                  ALL INDIA CHEMISTS AND DRUGGISTS ASSOCIATION OF INDIA
+                </SelectItem>
+                <SelectItem value='All India Hardware Association (Based in Mumbai Charni Road)'>
+                  All India Hardware Association (Based in Mumbai Charni Road)
+                </SelectItem>
+                <SelectItem value='Alpharubix'>Alpharubix</SelectItem>
+                <SelectItem value='Condor Footwear'>Condor Footwear</SelectItem>
+                <SelectItem value='DVG Dist Petroleum'>
+                  DVG Dist Petroleum
+                </SelectItem>
+                <SelectItem value='Federation of Hotel and Restaurant Association of India (Based in New Delhi)'>
+                  Federation of Hotel and Restaurant Association of India (Based
+                  in New Delhi)
+                </SelectItem>
+                <SelectItem value='Havells'>Havells</SelectItem>
+                <SelectItem value='Liberty'>Liberty</SelectItem>
+                <SelectItem value='Marico'>Marico</SelectItem>
+                <SelectItem value='Reference'>Reference</SelectItem>
+                <SelectItem value='Retail Association of India'>
+                  Retail Association of India
+                </SelectItem>
+                <SelectItem value='SME CHAMBER'>SME CHAMBER</SelectItem>
+                <SelectItem value='Swastik'>Swastik</SelectItem>
+                <SelectItem value='Unicharm'>Unicharm</SelectItem>
+                <SelectItem value='Vibhava Marketing'>
+                  Vibhava Marketing
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -318,16 +336,20 @@ export default function AccountsPage() {
           </div>
 
           <div className='flex gap-2 pt-2'>
-            <Button className='flex-1' onClick={handleSearch}>
+            <Button className='flex-1 cursor-pointer' onClick={handleSearch}>
               Search
             </Button>
-            <Button variant='outline' onClick={handleClear}>
+            <Button
+              variant='outline'
+              className='cursor-pointer'
+              onClick={handleClear}
+            >
               Clear
             </Button>
           </div>
         </div>
 
-        <div className='flex flex-col gap-4 min-w-0 h-[550px]'>
+        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]'>
           {isLoading ? (
             <div className='flex items-center justify-center h-64 border rounded-md'>
               <Spinner className='h-8 w-8 text-muted-foreground' />
@@ -343,6 +365,7 @@ export default function AccountsPage() {
                       <TableHead>Account Status</TableHead>
                       <TableHead>Source</TableHead>
                       <TableHead>Type of Business</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>City</TableHead>
                       <TableHead>State</TableHead>
                       <TableHead>Call Back Date / Time</TableHead>
@@ -380,6 +403,12 @@ export default function AccountsPage() {
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.type_of_business || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            <HighlightedText
+                              text={acc.phone}
+                              highlight={appliedFilters.phone}
+                            />
                           </TableCell>
                           <TableCell className='text-primary'>
                             <HighlightedText

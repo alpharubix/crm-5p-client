@@ -32,7 +32,6 @@ import SelectField from '@/components/shared/select-field'
 import DateField from '@/components/shared/date-field'
 import NoteDialog from '@/components/shared/note-dialog'
 import { Spinner } from '@/components/ui/spinner'
-import AddContactDialog from './add-contact-dialog'
 
 import {
   updateAccountSchema,
@@ -40,6 +39,14 @@ import {
 } from '@/validators/updateAccount.schema'
 import { ENV } from '@/conf'
 import { formatExactDate } from '@/utils/date-formatter'
+import { Plus } from 'lucide-react'
+
+// Shows "—" only for empty values
+function display(v: any) {
+  if (v === null || v === undefined) return '—'
+  if (typeof v === 'string' && v.trim() === '') return '—'
+  return v
+}
 
 // Map API response to form values
 function mapAccountToForm(apiData: any): UpdateAccountFormValues {
@@ -47,47 +54,52 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     assignmentDate: apiData.assignment_date
       ? new Date(apiData.assignment_date)
       : undefined,
-    source: apiData.source || 'NA',
-    distributorCode: apiData.distributor_code || '',
-    wabaInterested: apiData.waba_interested || false,
+
+    source: apiData.source ?? '',
+    distributorCode: apiData.distributor_code ?? '',
+    firstName: apiData.first_name ?? '',
+    lastName: apiData.last_name ?? '',
+    phone: apiData.phone ?? '',
+    email: apiData.email ?? '',
+    residentialLocation: apiData.custom_fields?.residential_location ?? '',
+    noOfYears: apiData.custom_fields?.no_of_years ?? '',
+    mothersName: apiData.custom_fields?.mothers_name ?? '',
+    preferredLanguage: apiData.custom_fields?.preferred_language ?? '',
+    premiseLocation: apiData.custom_fields?.premise_location ?? '',
+    suppliers: apiData.custom_fields?.suppliers ?? '',
+    description: apiData.custom_fields?.description ?? '',
+    parentAccount: apiData.parent_account ?? '',
+    street: apiData.custom_fields?.street ?? '',
+    state: apiData.state ?? '',
+    code: apiData.pincode ?? '',
+    city: apiData.city ?? '',
+    country: apiData.country ?? 'India',
+    ref1Name: apiData.custom_fields?.ref1_name ?? '',
+    ref1Phone: apiData.custom_fields?.ref1_phone ?? '',
+    ref1Email: apiData.custom_fields?.ref1_email ?? '',
+    ref2Name: apiData.custom_fields?.ref2_name ?? '',
+    ref2Phone: apiData.custom_fields?.ref2_phone ?? '',
+    ref2Email: apiData.custom_fields?.ref2_email ?? '',
+
+    wabaInterested: apiData.waba_interested ?? false,
+
     callBackDate: apiData.call_back_date_time
       ? new Date(apiData.call_back_date_time)
       : undefined,
-    accountStatus: apiData.account_status || 'Awareness',
-    accountStage: apiData.account_stage || 'Initial Pitch',
-    businessStatus: apiData.business_status || 'Active',
-    firstName: apiData.first_name || '',
-    lastName: apiData.last_name || '',
-    phone: apiData.phone || '',
-    email: apiData.email || '',
-    residentialOwnership:
-      apiData.custom_fields?.residential_ownership || undefined,
-    residentialLocation: apiData.custom_fields?.residential_location || '',
-    noOfYears: apiData.custom_fields?.no_of_years || '',
-    createdBy: apiData.created_by?.full_name || 'NA',
-    mothersName: apiData.custom_fields?.mothers_name || '',
-    preferredLanguage: apiData.custom_fields?.preferred_language || '',
-    premiseLocation: apiData.custom_fields?.premise_location || '',
-    premiseOwnership: apiData.custom_fields?.premise_ownership || undefined,
+
+    accountStatus: apiData.account_status ?? '',
+    accountStage: apiData.account_stage ?? '',
+    businessStatus: apiData.business_status ?? '',
+
+    residentialOwnership: apiData.custom_fields?.residential_ownership ?? '',
+    premiseOwnership: apiData.custom_fields?.premise_ownership ?? '',
     businessRegistrationType:
-      apiData.custom_fields?.business_registration_type || undefined,
-    businessVintage: apiData.custom_fields?.business_vintage || undefined,
-    suppliers: apiData.custom_fields?.suppliers || '',
-    description: apiData.custom_fields?.description || '',
-    parentAccount: apiData.parent_account || '',
-    typeOfBusiness: apiData.type_of_business || undefined,
-    industry: apiData.industry || undefined,
-    street: apiData.custom_fields?.street || '',
-    state: apiData.state || '',
-    code: apiData.pincode || '',
-    city: apiData.city || '',
-    country: apiData.country || 'India',
-    ref1Name: apiData.custom_fields?.ref1_name || '',
-    ref1Phone: apiData.custom_fields?.ref1_phone || '',
-    ref1Email: apiData.custom_fields?.ref1_email || '',
-    ref2Name: apiData.custom_fields?.ref2_name || '',
-    ref2Phone: apiData.custom_fields?.ref2_phone || '',
-    ref2Email: apiData.custom_fields?.ref2_email || '',
+      apiData.custom_fields?.business_registration_type ?? '',
+    businessVintage: apiData.custom_fields?.business_vintage ?? '',
+    typeOfBusiness: apiData.type_of_business ?? '',
+    industry: apiData.industry ?? '',
+
+    createdBy: apiData.created_by?.full_name ?? '',
   }
 }
 
@@ -217,7 +229,7 @@ export default function UpdateAccounts() {
 
   // Extract account data and related entities
   const accountData = apiResponse?.data?.[0]
-  console.log('accountData', accountData)
+  // console.log('accountData', accountData)
 
   const contacts = accountData?.account_linked_contact || []
   // console.log('contacts', contacts)
@@ -240,15 +252,15 @@ export default function UpdateAccounts() {
     }
   }, [accountData, reset])
 
-  console.log('dirtyFields', dirtyFields)
+  // console.log('dirtyFields', dirtyFields)
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateAccountFormValues) => {
-      console.log('values', values)
-      console.log('dirtyFields', dirtyFields)
+      // console.log('values', values)
+      // console.log('dirtyFields', dirtyFields)
 
       const payload = mapFormToApi(values, dirtyFields)
-      console.log('payload', payload)
+      // console.log('payload', payload)
 
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/accounts/${id}`, {
         method: 'PUT',
@@ -270,6 +282,8 @@ export default function UpdateAccounts() {
     },
   })
 
+  // console.log('updateMutation', updateMutation)
+
   // Warn on browser close/refresh if dirty
   useBeforeUnload(
     useCallback(
@@ -284,7 +298,7 @@ export default function UpdateAccounts() {
   )
 
   const data = watch()
-  console.log(data)
+  // console.log(data)
 
   // console.log('data', data)
 
@@ -348,13 +362,18 @@ export default function UpdateAccounts() {
         </div>
 
         {!isEdit ? (
-          <Button size='sm' onClick={() => setIsEdit(true)}>
+          <Button
+            size='sm'
+            className='cursor-pointer'
+            onClick={() => setIsEdit(true)}
+          >
             Update
           </Button>
         ) : (
           <div className='flex gap-2'>
             <Button
               size='sm'
+              className='cursor-pointer'
               disabled={!isDirty || updateMutation.isPending}
               onClick={handleSubmit(onSave)}
             >
@@ -366,6 +385,7 @@ export default function UpdateAccounts() {
             </Button>
             <Button
               size='sm'
+              className='cursor-pointer'
               variant='outline'
               onClick={() => {
                 reset()
@@ -395,7 +415,25 @@ export default function UpdateAccounts() {
               <SelectField
                 value={data.source}
                 isEdit={isEdit}
-                options={['Himalaya', 'CavinKare']}
+                options={[
+                  'Himalaya',
+                  'CavinKare',
+                  'ALL INDIA CHEMISTS AND DRUGGISTS ASSOCIATION OF INDIA',
+                  'All India Hardware Association (Based in Mumbai Charni Road)',
+                  'Alpharubix',
+                  'Condor Footwear',
+                  'DVG Dist Petroleum',
+                  'Federation of Hotel and Restaurant Association of India (Based in New Delhi)',
+                  'Havells',
+                  'Liberty',
+                  'Marico',
+                  'Reference',
+                  'Retail Association of India',
+                  'SME CHAMBER',
+                  'Swastik',
+                  'Unicharm',
+                  'Vibhava Marketing',
+                ]}
                 onChange={(v) => setValue('source', v, { shouldDirty: true })}
               />
             </FieldRow>
@@ -413,7 +451,14 @@ export default function UpdateAccounts() {
 
             <FieldRow label='WABA Interested'>
               <SelectField
-                value={data.wabaInterested ? 'Yes' : 'No'}
+                value={
+                  data.wabaInterested === null ||
+                  data.wabaInterested === undefined
+                    ? '—'
+                    : data.wabaInterested
+                      ? 'Yes'
+                      : 'No'
+                }
                 isEdit={isEdit}
                 options={['Yes', 'No']}
                 onChange={(v) =>
@@ -428,6 +473,8 @@ export default function UpdateAccounts() {
               <DateField
                 value={data.callBackDate}
                 isEdit={isEdit}
+                showTime={true}
+                disablePast={true}
                 onChange={(d) =>
                   setValue('callBackDate', d, { shouldDirty: true })
                 }
@@ -448,6 +495,10 @@ export default function UpdateAccounts() {
                   'Not Interested',
                   'Location Unserviceable',
                   'Lender Review',
+                  'Yet to be dialed',
+                  'Contact Established',
+                  'Contact Not Established',
+                  'Wrong Number',
                 ]}
                 onChange={(v) =>
                   setValue('accountStatus', v, { shouldDirty: true })
@@ -501,45 +552,62 @@ export default function UpdateAccounts() {
           <h3 className='mb-4 font-bold text-center text-xs uppercase tracking-widest'>
             CONTACTS
           </h3>
-          <div className='border rounded-md mb-3 overflow-hidden'>
-            <Table>
-              <TableHeader className='bg-muted'>
-                <TableRow>
-                  <TableHead>Contact Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Mobile</TableHead>
-                  <TableHead>Email</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contacts.length === 0 ? (
+          <div>
+            <div className='border rounded-md mb-3 overflow-hidden'>
+              <Table>
+                <TableHeader className='bg-muted'>
                   <TableRow>
-                    <TableCell
-                      colSpan={3}
-                      className='text-center text-muted-foreground'
-                    >
-                      No contacts available
-                    </TableCell>
+                    <TableHead>Contact Name</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Mobile</TableHead>
+                    <TableHead>Email</TableHead>
                   </TableRow>
-                ) : (
-                  contacts.map((contact: any) => (
-                    <TableRow
-                      key={contact.id}
-                      onClick={() => navigate(`/contacts/${contact.id}`)}
-                      className='cursor-pointer'
-                    >
-                      <TableCell>{contact.last_name || '—'}</TableCell>
-                      <TableCell>{contact.phone || '—'}</TableCell>
-                      <TableCell>{contact.mobile || '—'}</TableCell>
-                      <TableCell>{contact.email || '—'}</TableCell>
+                </TableHeader>
+                <TableBody>
+                  {contacts.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className='text-center text-muted-foreground'
+                      >
+                        No contacts available
+                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          <div className='flex justify-center items-center'>
-            <AddContactDialog />
+                  ) : (
+                    contacts.map((contact: any) => (
+                      <TableRow
+                        key={contact.id}
+                        onClick={() => navigate(`/contacts/${contact.id}`)}
+                        className='cursor-pointer'
+                      >
+                        <TableCell>{contact.last_name || '—'}</TableCell>
+                        <TableCell>{contact.phone || '—'}</TableCell>
+                        <TableCell>{contact.mobile || '—'}</TableCell>
+                        <TableCell>{contact.email || '—'}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <div className='w-[150px] mx-auto flex justify-center'>
+              <Button
+                variant='outline'
+                onClick={() =>
+                  navigate(`/contacts-create`, {
+                    state: {
+                      accountId: id,
+                      accountName: accountData?.account_name,
+                      leadSource: data.source,
+                    },
+                  })
+                }
+                className='w-full'
+              >
+                <Plus className='h-4 w-4' />
+                Add Contact
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -551,43 +619,60 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('firstName')} className='h-8' />
               ) : (
-                <span>{data.firstName || '—'}</span>
+                <span>{display(data.firstName)}</span>
               )}
             </FieldRow>
 
-            <FieldRow label='Residential Ownership'>
-              {isEdit ? (
-                <Input {...register('residentialOwnership')} className='h-8' />
-              ) : (
-                <span>{data.residentialOwnership || '—'}</span>
-              )}
+            <FieldRow
+              label='Residential Ownership'
+              error={errors.residentialOwnership?.message}
+            >
+              <SelectField
+                value={display(data.residentialOwnership)}
+                isEdit={isEdit}
+                options={[
+                  'Self Owned',
+                  'Rented',
+                  'Parent Owned',
+                  'Leased',
+                  'Children Owned',
+                  'Spouse Owned',
+                  'Relative Owned',
+                ]}
+                onChange={(v) =>
+                  setValue('residentialOwnership', v, { shouldDirty: true })
+                }
+              />
             </FieldRow>
 
             <FieldRow label='Residential Location'>
               {isEdit ? (
                 <Input {...register('residentialLocation')} className='h-8' />
               ) : (
-                <span>{data.residentialLocation || '—'}</span>
+                <span>{display(data.residentialLocation)}</span>
               )}
             </FieldRow>
 
-            <FieldRow label='No of Years...' error={errors.noOfYears?.message}>
+            <FieldRow
+              label='No of Years residing in current residence'
+              error={errors.noOfYears?.message}
+            >
               {isEdit ? (
                 <Input {...register('noOfYears')} className='h-8' />
               ) : (
-                <span>{data.noOfYears || '—'}</span>
+                <span>{display(data.noOfYears)}</span>
               )}
             </FieldRow>
 
             <FieldRow label='Created By'>
-              <span>{data.createdBy}</span>
+              <span>{display(data.createdBy)}</span>
             </FieldRow>
 
             <FieldRow label='Phone No' error={errors.phone?.message}>
               {isEdit ? (
                 <Input {...register('phone')} className='h-8' />
               ) : (
-                <span>{data.phone}</span>
+                <span>{display(data.phone)}</span>
               )}
             </FieldRow>
           </div>
@@ -597,7 +682,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('lastName')} className='h-8' />
               ) : (
-                <span>{data.lastName || '—'}</span>
+                <span>{display(data.lastName)}</span>
               )}
             </FieldRow>
 
@@ -605,7 +690,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('mothersName')} className='h-8' />
               ) : (
-                <span>{data.mothersName || '—'}</span>
+                <span>{display(data.mothersName)}</span>
               )}
             </FieldRow>
 
@@ -613,31 +698,45 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('preferredLanguage')} className='h-8' />
               ) : (
-                <span>{data.preferredLanguage || '—'}</span>
+                <span>{display(data.preferredLanguage)}</span>
               )}
             </FieldRow>
 
-            <FieldRow label='Premise Location'>
+            <FieldRow label='Business Premise Location'>
               {isEdit ? (
                 <Input {...register('premiseLocation')} className='h-8' />
               ) : (
-                <span>{data.premiseLocation || '—'}</span>
+                <span>{display(data.premiseLocation)}</span>
               )}
             </FieldRow>
 
-            <FieldRow label='Premise Ownership'>
-              {isEdit ? (
-                <Input {...register('premiseOwnership')} className='h-8' />
-              ) : (
-                <span>{data.premiseOwnership || '—'}</span>
-              )}
+            <FieldRow
+              label='Business Premise Ownership'
+              error={errors.premiseOwnership?.message}
+            >
+              <SelectField
+                value={display(data.premiseOwnership)}
+                isEdit={isEdit}
+                options={[
+                  'Self Owned',
+                  'Rented',
+                  'Parent Owned',
+                  'Leased',
+                  'Children Owned',
+                  'Spouse Owned',
+                  'Relative Owned',
+                ]}
+                onChange={(v) =>
+                  setValue('premiseOwnership', v, { shouldDirty: true })
+                }
+              />
             </FieldRow>
 
             <FieldRow label='Email' error={errors.email?.message}>
               {isEdit ? (
                 <Input {...register('email')} className='h-8' />
               ) : (
-                <span>{data.email || '—'}</span>
+                <span>{display(data.email)}</span>
               )}
             </FieldRow>
           </div>
@@ -654,7 +753,7 @@ export default function UpdateAccounts() {
                   className='h-8'
                 />
               ) : (
-                <span>{data.businessRegistrationType || '—'}</span>
+                <span>{display(data.businessRegistrationType)}</span>
               )}
             </FieldRow>
 
@@ -665,7 +764,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('businessVintage')} className='h-8' />
               ) : (
-                <span>{data.businessVintage ?? '—'}</span>
+                <span>{display(data.businessVintage)}</span>
               )}
             </FieldRow>
 
@@ -673,7 +772,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('suppliers')} className='h-8' />
               ) : (
-                <span>{data.suppliers || '—'}</span>
+                <span>{display(data.suppliers)}</span>
               )}
             </FieldRow>
 
@@ -681,19 +780,19 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('description')} className='h-8' />
               ) : (
-                <span>{data.description || '—'}</span>
+                <span>{display(data.description)}</span>
               )}
             </FieldRow>
           </div>
 
           <div>
             <FieldRow label='Parent Account'>
-              <span>{data.parentAccount || '—'}</span>
+              <span>{display(data.parentAccount)}</span>
             </FieldRow>
 
             <FieldRow label='Type of Business'>
               <SelectField
-                value={data.typeOfBusiness}
+                value={display(data.typeOfBusiness)}
                 isEdit={isEdit}
                 options={[
                   'Manufacturer',
@@ -715,7 +814,7 @@ export default function UpdateAccounts() {
 
             <FieldRow label='Industry'>
               <SelectField
-                value={data.industry}
+                value={display(data.industry)}
                 isEdit={isEdit}
                 options={[
                   'Pharma',
@@ -744,21 +843,21 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('street')} className='h-8' />
               ) : (
-                <span>{data.street || '—'}</span>
+                <span>{display(data.street)}</span>
               )}
             </FieldRow>
             <FieldRow label='State'>
               {isEdit ? (
                 <Input {...register('state')} className='h-8' />
               ) : (
-                <span>{data.state || '—'}</span>
+                <span>{display(data.state)}</span>
               )}
             </FieldRow>
             <FieldRow label='Code'>
               {isEdit ? (
                 <Input {...register('code')} className='h-8' />
               ) : (
-                <span>{data.code || '—'}</span>
+                <span>{display(data.code)}</span>
               )}
             </FieldRow>
           </div>
@@ -767,11 +866,11 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('city')} className='h-8' />
               ) : (
-                <span>{data.city || '—'}</span>
+                <span>{display(data.city)}</span>
               )}
             </FieldRow>
             <FieldRow label='Country'>
-              <span>{data.country || '—'}</span>
+              <span>{display(data.country)}</span>
             </FieldRow>
           </div>
         </CardContent>
@@ -784,7 +883,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('ref1Name')} className='h-8' />
               ) : (
-                <span>{data.ref1Name || '—'}</span>
+                <span>{display(data.ref1Name)}</span>
               )}
             </FieldRow>
             <FieldRow
@@ -794,7 +893,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('ref1Phone')} className='h-8' />
               ) : (
-                <span>{data.ref1Phone || '—'}</span>
+                <span>{display(data.ref1Phone)}</span>
               )}
             </FieldRow>
             <FieldRow
@@ -804,7 +903,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('ref1Email')} className='h-8' />
               ) : (
-                <span>{data.ref1Email || '—'}</span>
+                <span>{display(data.ref1Email)}</span>
               )}
             </FieldRow>
           </div>
@@ -813,7 +912,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('ref2Name')} className='h-8' />
               ) : (
-                <span>{data.ref2Name || '—'}</span>
+                <span>{display(data.ref2Name)}</span>
               )}
             </FieldRow>
             <FieldRow
@@ -823,7 +922,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('ref2Phone')} className='h-8' />
               ) : (
-                <span>{data.ref2Phone || '—'}</span>
+                <span>{display(data.ref2Phone)}</span>
               )}
             </FieldRow>
             <FieldRow
@@ -833,7 +932,7 @@ export default function UpdateAccounts() {
               {isEdit ? (
                 <Input {...register('ref2Email')} className='h-8' />
               ) : (
-                <span>{data.ref2Email || '—'}</span>
+                <span>{display(data.ref2Email)}</span>
               )}
             </FieldRow>
           </div>
@@ -852,7 +951,11 @@ export default function UpdateAccounts() {
             {showViewMore && (
               <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
                 <DialogTrigger asChild>
-                  <Button size='sm' variant='outline'>
+                  <Button
+                    size='sm'
+                    className='cursor-pointer'
+                    variant='outline'
+                  >
                     View More
                   </Button>
                 </DialogTrigger>
