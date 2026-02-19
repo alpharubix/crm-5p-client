@@ -189,9 +189,9 @@ export default function ContactsPage() {
       </div>
 
       {/* ---------------- Layout ---------------- */}
-      <div className='grid grid-cols-[260px_1fr] gap-4'>
+      <div className='grid grid-cols-[260px_1fr] gap-4'> 
         {/* -------- Filters -------- */}
-        <div className='border rounded-md p-3 space-y-4 h-fit bg-background'>
+        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(90vh-200px)]'>
           <h3 className='font-semibold text-sm'>Filter Contacts by</h3>
 
           <div className='space-y-2'>

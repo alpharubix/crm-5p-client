@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/auth-context'
-import ProtectedRoute from './components/protected-route'
+import ProtectedRoute, { ProtectedLogRoute } from './components/protected-route'
 import PublicRoute from './components/public-routes'
 
 import SidebarComponent from './components/sidebar-component'
@@ -38,7 +38,9 @@ export default function App() {
             <Route path='/contacts/:id' element={<UpdateContacts />} />
             <Route path='/contacts-create' element={<CreateContact />} />
             <Route path='*' element={<NotFoundPage />} />
-            <Route path='/audit-logs' element={<AuditLogs />} />
+            <Route element={<ProtectedLogRoute />}>
+              <Route path='/audit-logs' element={<AuditLogs />} />
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>

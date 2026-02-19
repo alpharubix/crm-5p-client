@@ -12,3 +12,16 @@ export default function ProtectedRoute({ children }: any) {
 
   return children ? <>{children}</> : <Outlet />
 }
+
+
+export function ProtectedLogRoute({ children }: any) {
+  const { user, isLoading } = useAuth()
+
+  if (isLoading) return null
+
+  if (user?.role !== 'super_admin') {
+    return <Navigate to='/accounts' replace />
+  }
+
+  return children ? <>{children}</> : <Outlet />
+}

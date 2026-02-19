@@ -260,6 +260,15 @@ export default function AccountsPage() {
                   Location Unserviceable
                 </SelectItem>
                 <SelectItem value='Lender Review'>Lender Review</SelectItem>
+                <SelectItem value='Yet to be dialed'>
+                  Yet to be dialed
+                </SelectItem>
+                <SelectItem value='Contact Established'>
+                  Contact Established
+                </SelectItem>
+                <SelectItem value='Contact Not Established'>
+                  Contact Not Established
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
