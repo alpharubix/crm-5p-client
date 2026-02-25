@@ -44,6 +44,7 @@ export default function AccountsPage() {
     accountName: searchParams.get('accountName') || '',
     accountStatus: searchParams.get('accountStatus') || '',
     source: searchParams.get('source') || '',
+    industry: searchParams.get('industry') || '',
     phone: searchParams.get('phone') || '',
     city: searchParams.get('city') || '',
     state: searchParams.get('state') || '',
@@ -98,6 +99,8 @@ export default function AccountsPage() {
       if (appliedFilters.accountStatus)
         params.set('account_status', appliedFilters.accountStatus)
       if (appliedFilters.source) params.set('source', appliedFilters.source)
+      if (appliedFilters.industry)
+        params.set('industry', appliedFilters.industry)
       if (appliedFilters.phone) params.set('phone', appliedFilters.phone)
       if (appliedFilters.city) params.set('city', appliedFilters.city)
       if (appliedFilters.state) params.set('state', appliedFilters.state)
@@ -140,6 +143,7 @@ export default function AccountsPage() {
       accountName: '',
       accountStatus: '',
       source: '',
+      industry: '',
       phone: '',
       city: '',
       state: '',
@@ -260,6 +264,15 @@ export default function AccountsPage() {
                   Location Unserviceable
                 </SelectItem>
                 <SelectItem value='Lender Review'>Lender Review</SelectItem>
+                <SelectItem value='Yet to be dialed'>
+                  Yet to be dialed
+                </SelectItem>
+                <SelectItem value='Contact Established'>
+                  Contact Established
+                </SelectItem>
+                <SelectItem value='Contact Not Established'>
+                  Contact Not Established
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -318,6 +331,33 @@ export default function AccountsPage() {
           </div>
 
           <div className='space-y-2'>
+            <Label>Industry</Label>
+            <Select
+              value={filters.industry}
+              onValueChange={(val) => handleFilterChange('industry', val)}
+            >
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder='Industry' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='Pharma'>Pharma</SelectItem>
+                <SelectItem value='AHP'>AHP</SelectItem>
+                <SelectItem value='CPD'>CPD</SelectItem>
+                <SelectItem value='FMCG'>FMCG</SelectItem>
+                <SelectItem value='OTX'>OTX</SelectItem>
+                <SelectItem value='Footwear'>Footwear</SelectItem>
+                <SelectItem value='OTC'>OTC</SelectItem>
+                <SelectItem value='RAAGA'>RAAGA</SelectItem>
+                <SelectItem value='Hardware'>Hardware</SelectItem>
+                <SelectItem value='Electronics'>Electronics</SelectItem>
+                <SelectItem value='DVG Dist Petroleum'>
+                  DVG Dist Petroleum
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className='space-y-2'>
             <Label>City</Label>
             <Input
               placeholder='City'
@@ -365,6 +405,7 @@ export default function AccountsPage() {
                       <TableHead>Account Status</TableHead>
                       <TableHead>Source</TableHead>
                       <TableHead>Type of Business</TableHead>
+                      <TableHead>Industry</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>City</TableHead>
                       <TableHead>State</TableHead>
@@ -403,6 +444,9 @@ export default function AccountsPage() {
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.type_of_business || '—'}
+                          </TableCell>
+                          <TableCell className='text-primary'>
+                            {acc.industry || '—'}
                           </TableCell>
                           <TableCell className='text-primary'>
                             <HighlightedText

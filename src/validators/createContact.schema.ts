@@ -2,10 +2,13 @@ import { z } from 'zod'
 
 export const createContactSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
+  lastName: z.string().optional(),
   designation: z.string().optional(),
   accountId: z.string().min(1, 'Account is required'),
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  email: z
+    .string()
+    .min(1, { message: 'This field has to be filled.' })
+    .email('This is not a valid email.'),
   secondaryEmail: z
     .string()
     .email('Invalid email address')
@@ -21,7 +24,7 @@ export const createContactSchema = z.object({
     .regex(/^\+?[0-9\s-]{10,15}$/, 'Invalid phone number')
     .optional()
     .or(z.literal('')),
-  leadSource: z.string().optional(),
+  leadSource: z.string().min(1, 'Lead source is required'),
   street: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),

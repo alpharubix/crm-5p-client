@@ -499,6 +499,9 @@ export default function UpdateAccounts() {
                   'Contact Established',
                   'Contact Not Established',
                   'Wrong Number',
+                  'Yet to be dialed',
+                  'Contact Established',
+                  'Contact Not Established',
                 ]}
                 onChange={(v) =>
                   setValue('accountStatus', v, { shouldDirty: true })
