@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 export const createContactSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().min(3, 'Last name is required'),
   designation: z.string().optional(),
   accountId: z.string().min(1, 'Account is required'),
   email: z
@@ -17,8 +17,7 @@ export const createContactSchema = z.object({
   mobile: z
     .string()
     .regex(/^\+?[0-9\s-]{10,15}$/, 'Invalid mobile number')
-    .optional()
-    .or(z.literal('')),
+    .min(10, 'Mobile number is required'),
   phone: z
     .string()
     .regex(/^\+?[0-9\s-]{10,15}$/, 'Invalid phone number')
