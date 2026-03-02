@@ -54,17 +54,17 @@ const data = {
         // }
       ],
     },
-    // {
-    //   title: 'Tickets',
-    //   url: '#',
-    //   icon: BookOpen,
-    //   items: [
-    //     {
-    //       title: 'Desk',
-    //       url: '/desk',
-    //     },
-    //   ],
-    // },
+    {
+      title: 'Logs',
+      url: '#',
+      icon: BookOpen,
+      items: [
+        {
+          title: 'Audit Log',
+          url: '/audit-logs',
+        },
+      ],
+    },
   ],
 }
 
@@ -85,7 +85,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain
+          items={data.navMain.filter((item) => {
+            if (item.title === 'Logs') {
+              return user?.role === 'super_admin'
+            }
+            return true
+          })}
+        />
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
