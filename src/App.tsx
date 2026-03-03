@@ -13,11 +13,13 @@ import { SignInPage } from './pages/signin-page'
 import { GlobalProgressBar } from './components/global-progress-bar'
 import CreateContact from './components/contacts/create-contact'
 import AuditLogs from './components/log/audit-log'
+import HoliEffect from './components/holi-effect'
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <HoliEffect />
         <GlobalProgressBar />
         <Routes>
           <Route element={<PublicRoute />}>
