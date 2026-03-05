@@ -32,24 +32,24 @@ export type Deal = {
   updated_at: string
   type_of_login: string
   amount_required: string
-  disbursement_date: Date
+  disbursement_date: string
   lender_name: string
   assignee_id: string
   deal_owner_id: string
   type_of_case_login: string
   processing_fees: string
-  lender_login_date: Date
+  lender_login_date: string
   customer_rejection_reason: string
   created_by: string
   ticket_login: string
   mm_charges: string
-  loan_start_date: Date
+  loan_start_date: string
   customer_rejection_status_explanation: string
   modified_by: string
   ticket_id: string
   case_stage: string
   insurance_amount: string
-  loan_end_date: Date
+  loan_end_date: string
   lender_rejection_reason: string
   account_id: string
   id: string

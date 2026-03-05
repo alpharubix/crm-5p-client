@@ -14,13 +14,21 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
-import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from '@tanstack/react-query'
 import type { Deal } from '@/types'
 import { ENV } from '@/conf'
 import users from '@/utils/users.json'
 import Pagination from '@/components/shared/pagination'
+import { useNavigate } from 'react-router-dom'
+import { formatExactDate } from '@/utils/date-formatter'
 
 const DealsPage = () => {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [currentPage, setCurrentPage] = useState(() => {
@@ -48,13 +56,32 @@ const DealsPage = () => {
 
   const DealsData: Deal[] = data?.data || []
   const pageInfo = data?.page_info || { page: 1, total_pages: 1 }
-  console.log(pageInfo)
+  // console.log(pageInfo)
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     const params = new URLSearchParams(searchParams)
     params.set('page', page.toString())
     setSearchParams(params)
+  }
+
+  const handleRowClick = async (id: string) => {
+    try {
+      await queryClient.ensureQueryData({
+        queryKey: ['deal', id],
+        queryFn: async () => {
+          const res = await fetch(
+            `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${id}`,
+            { credentials: 'include' },
+          )
+          if (!res.ok) throw new Error('Failed to fetch deal')
+          return res.json()
+        },
+      })
+      navigate(`/deals/${id}`)
+    } catch (error) {
+      navigate(`/deals/${id}`)
+    }
   }
 
   return (
@@ -119,6 +146,7 @@ const DealsPage = () => {
                   <TableRow
                     key={deal.id}
                     className='cursor-pointer hover:bg-accent'
+                    onClick={() => handleRowClick(deal.id)}
                   >
                     <TableCell className='font-medium'>
                       {deal.account_name}
@@ -135,7 +163,14 @@ const DealsPage = () => {
 
                     <TableCell>{deal.disbursed_amount || '-'}</TableCell>
 
-                    <TableCell>{deal.deal_call_back_datetime || '-'}</TableCell>
+                    <TableCell>
+                      {deal.deal_call_back_datetime
+                        ? formatExactDate(
+                            deal.deal_call_back_datetime,
+                            'dd MMM yyyy, hh:mm a',
+                          )
+                        : '—'}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
