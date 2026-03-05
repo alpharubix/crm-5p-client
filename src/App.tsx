@@ -15,7 +15,7 @@ import CreateContact from './components/contacts/create-contact'
 import AuditLogs from './components/log/audit-log'
 import HoliEffect from './components/holi-effect'
 import DealsPage from './pages/deals-page'
-import UpdateDeals from './components/deals/update-deals'
+// import UpdateDeals from './components/deals/update-deals'
 
 export default function App() {
   return (
@@ -43,7 +43,7 @@ export default function App() {
             <Route path='/contacts-create' element={<CreateContact />} />
             <Route path='/deals' element={<DealsPage />} />
             {/* /deals/:id */}
-            <Route path='/update-deals' element={<UpdateDeals />} />
+            {/* <Route path='/update-deals' element={<UpdateDeals />} /> */}
 
             <Route path='*' element={<NotFoundPage />} />
             <Route element={<ProtectedLogRoute />}>
