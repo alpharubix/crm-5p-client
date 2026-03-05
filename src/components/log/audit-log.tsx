@@ -163,7 +163,7 @@ export default function AuditLogs() {
                           <div className='flex items-center gap-2'>
                             <Avatar className='h-8 w-8'>
                               <AvatarFallback>
-                                {userName.charAt(0)}
+                                {userName?.charAt(0)}
                               </AvatarFallback>
                             </Avatar>
                             <div className='flex flex-col'>
