@@ -6,14 +6,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-
+import { useNavigate } from 'react-router-dom'
 import SectionHeader from '@/components/shared/section-header'
 import FieldRow from '@/components/shared/field-row'
-import DateField from '@/components/shared/date-field'
-import SelectField from '@/components/shared/select-field'
-import NoteDialog from '@/components/shared/note-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { ENV } from '@/conf'
 import type { Deal } from '@/types'
@@ -28,6 +23,7 @@ import { formatExactDate } from '@/utils/date-formatter'
 export default function UpdateDeals() {
   const { id } = useParams()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [isEdit, setIsEdit] = useState(false)
 
   const {
@@ -89,7 +85,7 @@ export default function UpdateDeals() {
       </div>
     )
   }
-  console.log({ dealResponse })
+  // console.log({ dealResponse })
   return (
     <div className='space-y-6 bg-background min-h-screen'>
       {/* HEADER */}
@@ -100,6 +96,13 @@ export default function UpdateDeals() {
             {dealData.account_name || `#${dealData.id}`}
           </span>
         </h1>
+        <Button
+          variant='default'
+          onClick={() => navigate(`/accounts/${dealData.account_id}`)}
+          className='ml-2'
+        >
+          Go to Accounts
+        </Button>
       </div>
 
       <Card className='overflow-hidden space-y-1'>
