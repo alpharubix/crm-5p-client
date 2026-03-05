@@ -1015,6 +1015,7 @@ export default function UpdateAccounts() {
                       'dd MMM yyyy, hh:mm a',
                     ) || '—'}
                   </span>
+                  <div className='font-bold'>Module : {note.module}</div>
                 </div>
               </div>
             ))

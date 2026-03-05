@@ -20,42 +20,34 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { Label } from '@/components/ui/label'
 import DateField from '@/components/shared/date-field'
 
 import type { Deal } from '@/types'
 import { formatExactDate } from '@/utils/date-formatter'
-
-const DealsData: Deal[] = [
-  {
-    id: 1,
-    account_name: 'Pradeep Traders',
-    stage: 'Yet to Lender Login',
-    amount: '50,00,000.00',
-    lender: 'Kotak Mahindra Bank Ltd',
-    closing_date: '2025-12-12T14:07:37.194785+05:30',
-    deal_owner: 'Ashok',
-    last_activity_time: '2025-12-12T14:07:37.194785+05:30',
-    deal_type: 'Business Loan',
-  },
-  {
-    id: 2,
-    account_name: 'Janta Medical',
-    stage: 'Disbursed',
-    amount: '25,00,000.00',
-    lender: 'HDFC Bank',
-    closing_date: '2025-11-10T10:30:00+05:30',
-    deal_owner: 'Sahil',
-    last_activity_time: '2025-11-11T09:00:00+05:30',
-    deal_type: 'Working Capital',
-  },
-]
+import { ENV } from '@/conf'
 
 const ITEMS_PER_PAGE = 5
 
 const DealsPage = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: async () => {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/deals`, {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('Failed to fetch contacts')
+      return res.json()
+    },
+    placeholderData: keepPreviousData,
+  })
+
+  const DealsData: Deal[] = data?.data || []
+  console.log(DealsData)
 
   const [deals] = useState<Deal[]>(DealsData)
   const [currentPage, setCurrentPage] = useState(1)
@@ -68,18 +60,6 @@ const DealsPage = () => {
       ? new Date(searchParams.get('disbursementDate')!)
       : undefined,
   })
-
-  // Trigger search when URL changes? Or just init?
-  // User asked to "store in url". Usually this implies URL is truth.
-  // But also added Search button. So updating URL happens on Search click.
-  // And `filteredDeals` should depend on `filters` (which is synced with URL/Input).
-  // Ideally, `filters` state drives UI inputs, and ONLY changes URL on "Search".
-  // And `filteredDeals` should likely be derived from URL params or `filters`?
-  // If "Search" button exists, `filteredDeals` should probably depend on the *applied* filters (which match URL).
-  // So: Inputs -> local state. Search Click -> update URL. URL changes -> update `appliedFilters` state?
-  // Or: URL is the source of truth for the list.
-  // Local state is for the form inputs.
-  // Let's do that: `appliedFilters` derived from URL. Inputs have their own state.
 
   useEffect(() => {
     setCurrentPage(1)
@@ -149,7 +129,7 @@ const DealsPage = () => {
 
   const paginatedDeals = filteredDeals.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    currentPage * ITEMS_PER_PAGE,
   )
 
   return (
@@ -241,56 +221,48 @@ const DealsPage = () => {
             <TableCaption>A list of recent deals.</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead>Deal Details</TableHead>
-                <TableHead>Stage</TableHead>
-                <TableHead>Closing Date</TableHead>
-                <TableHead>Deal Owner</TableHead>
-                <TableHead>Last Activity</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>Account Name</TableHead>
+                <TableHead>Deal Type</TableHead>
+                <TableHead>Case Stage</TableHead>
+                <TableHead>Disbursement Amount</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Deal Call Back DateTime</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              {paginatedDeals.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className='text-center h-24'>
-                    No deals found
+              {DealsData.map((deal) => (
+                <TableRow
+                  key={deal.id}
+                  className='cursor-pointer hover:bg-accent'
+                  onClick={() => navigate('/update-deals')}
+                >
+                  <TableCell className='font-medium'>
+                    <div className='text-lg'>{deal.lender}</div>
+                    <div className='text-sm text-muted-foreground'>
+                      {deal.account_name}
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <span className='inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-sm font-semibold text-blue-800'>
+                      {deal.stage}
+                    </span>
+                  </TableCell>
+
+                  <TableCell>{formatExactDate(deal.closing_date)}</TableCell>
+
+                  <TableCell>{deal.deal_owner}</TableCell>
+
+                  <TableCell>
+                    {formatExactDate(deal.last_activity_time)}
+                  </TableCell>
+
+                  <TableCell className='font-semibold'>
+                    ₹ {deal.amount}
                   </TableCell>
                 </TableRow>
-              ) : (
-                paginatedDeals.map((deal) => (
-                  <TableRow
-                    key={deal.id}
-                    className='cursor-pointer hover:bg-accent'
-                    onClick={() => navigate('/update-deals')}
-                  >
-                    <TableCell className='font-medium'>
-                      <div className='text-lg'>{deal.lender}</div>
-                      <div className='text-sm text-muted-foreground'>
-                        Account: {deal.account_name}
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <span className='inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-sm font-semibold text-blue-800'>
-                        {deal.stage}
-                      </span>
-                    </TableCell>
-
-                    <TableCell>{formatExactDate(deal.closing_date)}</TableCell>
-
-                    <TableCell>{deal.deal_owner}</TableCell>
-
-                    <TableCell>
-                      {formatExactDate(deal.last_activity_time)}
-                    </TableCell>
-
-                    <TableCell className='font-semibold'>
-                      ₹ {deal.amount}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              ))} 
             </TableBody>
           </Table>
 
