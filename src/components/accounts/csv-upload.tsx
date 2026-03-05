@@ -70,7 +70,7 @@ const UploadCsv = ({
                       formData.append('file', file)
 
                       const res = await fetch(
-                        `${ENV.VITE_BACKEND_BASE_URL}/accounts/upload-accounts-csv`,
+                        `${ENV.VITE_BACKEND_BASE_URL}/accounts/accounts-update-csv-upload`,
                         {
                           method: 'POST',
                           body: formData,
