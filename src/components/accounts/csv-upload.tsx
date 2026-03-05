@@ -38,7 +38,7 @@ const UploadCsv = ({
                 ) : (
                   <>
                     <Upload className='h-4 w-4 mr-2' />
-                    Accounts Re-Assignment
+                    Accounts CSV Upload
                   </>
                 )}
               </Button>
@@ -80,9 +80,15 @@ const UploadCsv = ({
 
                       if (!res.ok) throw new Error('Upload failed')
 
-                      toast.success((await res.json()).message)
+                      const data = await res.json()
+
+                      data.row_errors.length > 0 &&
+                        toast.error(`Total errors ${data.row_errors.length}`)
+                      toast.success(
+                        `Total inserted ${data.total_inserted} and total updated ${data.total_updated} accounts`,
+                      )
                     } catch (error) {
-                      toast.error('Failed to upload accounts')
+                      toast.error('Upload failed')
                     } finally {
                       setUploadLoading(false)
                     }
