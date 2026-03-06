@@ -21,7 +21,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <HoliEffect />
+        {/* <HoliEffect /> */}
         <GlobalProgressBar />
         <Routes>
           <Route element={<PublicRoute />}>
