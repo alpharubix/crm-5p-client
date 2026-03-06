@@ -149,3 +149,7 @@
   width: 4px;
   height: 4px;
 }
+
+.b-red {
+  outline: 1px solid red;
+}

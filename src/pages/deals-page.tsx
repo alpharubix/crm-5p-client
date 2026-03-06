@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -122,17 +121,16 @@ const DealsPage = () => {
       </div>
 
       <div className='flex flex-col gap-4 min-w-0'>
-        <div className='border rounded-md p-2 overflow-y-auto h-[calc(90vh-200px)]'>
+        <div className='border rounded-md overflow-y-auto h-[calc(90vh-200px)]'>
           {isLoading ? (
             <div className='flex items-center justify-center h-64'>
               <Spinner className='h-8 w-8 text-muted-foreground' />
             </div>
           ) : (
-            <Table>
-              <TableCaption>A list of recent deals.</TableCaption>
-              <TableHeader>
+            <table className='w-full caption-bottom text-sm '>
+              <TableHeader className='sticky top-0 z-10 bg-background hover:bg-accent'>
                 <TableRow>
-                  <TableHead>Account Name</TableHead>
+                  <TableHead>Deal Name</TableHead>
                   <TableHead>Owner</TableHead>
                   <TableHead>Deal Type</TableHead>
                   <TableHead>Case Stage</TableHead>
@@ -174,7 +172,7 @@ const DealsPage = () => {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </table>
           )}
         </div>
         <Pagination

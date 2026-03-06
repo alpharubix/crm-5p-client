@@ -557,224 +557,6 @@ export default function UpdateAccounts() {
           </div>
         </CardContent>
 
-        {/* ================= Contacts ================= */}
-        <SectionHeader title='Contacts' />
-        <div className='space-y-4 mx-2'>
-          <div className='flex items-center justify-between'>
-            <p className='text-sm text-muted-foreground'>
-              Total Contacts:{' '}
-              <span className='font-semibold'>{contacts.length}</span>
-            </p>
-
-            {contacts.length > 3 && (
-              <Dialog open={openAllContacts} onOpenChange={setOpenAllContacts}>
-                <DialogTrigger asChild>
-                  <Button size='sm' variant='outline'>
-                    View More
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className='max-w-4xl max-h-[80vh] flex flex-col'>
-                  <DialogHeader>
-                    <DialogTitle>All Contacts ({contacts.length})</DialogTitle>
-                  </DialogHeader>
-                  <div className='overflow-auto'>
-                    <Table>
-                      <TableHeader className='bg-muted sticky top-0 z-10'>
-                        <TableRow>
-                          <TableHead>Contact Name</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>Mobile</TableHead>
-                          <TableHead>Email</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {contacts.map((contact: any) => (
-                          <TableRow
-                            key={contact.id}
-                            onClick={() => {
-                              navigate(`/contacts/${contact.id}`)
-                              setOpenAllContacts(false)
-                            }}
-                            className='cursor-pointer'
-                          >
-                            <TableCell>{contact.last_name || '—'}</TableCell>
-                            <TableCell>{contact.phone || '—'}</TableCell>
-                            <TableCell>{contact.mobile || '—'}</TableCell>
-                            <TableCell>{contact.email || '—'}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-
-          <div className='border rounded-md overflow-hidden'>
-            <Table>
-              <TableHeader className='bg-muted'>
-                <TableRow>
-                  <TableHead>Contact Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Mobile</TableHead>
-                  <TableHead>Email</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contacts.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className='text-center text-muted-foreground'
-                    >
-                      No contacts available
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  contacts.slice(0, 3).map((contact: any) => (
-                    <TableRow
-                      key={contact.id}
-                      onClick={() => navigate(`/contacts/${contact.id}`)}
-                      className='cursor-pointer'
-                    >
-                      <TableCell>{contact.last_name || '—'}</TableCell>
-                      <TableCell>{contact.phone || '—'}</TableCell>
-                      <TableCell>{contact.mobile || '—'}</TableCell>
-                      <TableCell>{contact.email || '—'}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className='flex justify-center'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() =>
-                navigate(`/contacts-create`, {
-                  state: {
-                    accountId: id,
-                    accountName: accountData?.account_name,
-                    leadSource: data.source,
-                  },
-                })
-              }
-            >
-              <Plus className='h-4 w-4 mr-2' />
-              Add Contact
-            </Button>
-          </div>
-        </div>
-
-        {/* ================= Deals ================= */}
-        <SectionHeader title='Deals' />
-        <div className='space-y-4 mx-2'>
-          <div className='flex items-center justify-between'>
-            <p className='text-sm text-muted-foreground'>
-              Total Deals: <span className='font-semibold'>{Deals.length}</span>
-            </p>
-
-            {Deals.length > 3 && (
-              <Dialog open={openAllDeals} onOpenChange={setOpenAllDeals}>
-                <DialogTrigger asChild>
-                  <Button size='sm' variant='outline'>
-                    View More
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className='min-w-4xl'>
-                  <DialogHeader>
-                    <DialogTitle>All Deals ({Deals.length})</DialogTitle>
-                  </DialogHeader>
-                  <div className='overflow-auto'>
-                    <Table>
-                      <TableHeader className='bg-muted sticky top-0 z-10'>
-                        <TableRow>
-                          <TableHead>Account Name</TableHead>
-                          <TableHead>Owner</TableHead>
-                          <TableHead>Deal Type</TableHead>
-                          <TableHead>Case Stage</TableHead>
-                          <TableHead>Disbursement Amount</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {Deals.map((deal: any) => (
-                          <TableRow
-                            key={deal.id}
-                            onClick={() => {
-                              navigate(`/deals/${deal.id}`)
-                              setOpenAllDeals(false)
-                            }}
-                            className='cursor-pointer'
-                          >
-                            <TableCell>{deal.account_name || '—'}</TableCell>
-                            <TableCell>
-                              {(users as Record<string, string>)[
-                                deal.deal_owner_id
-                              ] || '—'}
-                            </TableCell>
-                            <TableCell>{deal.deal_type || '—'}</TableCell>
-                            <TableCell>{deal.case_stage || '—'}</TableCell>
-                            <TableCell>
-                              {deal.disbursement_amount || '—'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-
-          <div className='border rounded-md overflow-hidden'>
-            <Table>
-              <TableHeader className='bg-muted'>
-                <TableRow>
-                  <TableHead>Account Name</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Deal Type</TableHead>
-                  <TableHead>Case Stage</TableHead>
-                  <TableHead>Disbursement Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Deals.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className='text-center text-muted-foreground'
-                    >
-                      No deals available
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  Deals.slice(0, 3).map((deal: any) => (
-                    <TableRow
-                      key={deal.id}
-                      onClick={() => navigate(`/deals/${deal.id}`)}
-                      className='cursor-pointer'
-                    >
-                      <TableCell>{deal.account_name || '—'}</TableCell>
-                      <TableCell>
-                        {(users as Record<string, string>)[
-                          deal.deal_owner_id
-                        ] || '—'}
-                      </TableCell>
-                      <TableCell>{deal.deal_type || '—'}</TableCell>
-                      <TableCell>{deal.case_stage || '—'}</TableCell>
-                      <TableCell>{deal.disbursement_amount || '—'}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-
         {/* ================= Customer Basic Details ================= */}
         <SectionHeader title='Customer Basic Details' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
@@ -1148,6 +930,9 @@ export default function UpdateAccounts() {
                               'dd MMM yyyy, hh:mm a',
                             ) || '—'}
                           </span>
+                          <div className='font-bold'>
+                            Module : {note.module}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1184,6 +969,224 @@ export default function UpdateAccounts() {
 
           <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
+
+        {/* ================= Deals ================= */}
+        <SectionHeader title='Deals' />
+        <div className='space-y-4 mx-2'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground'>
+              Total Deals: <span className='font-semibold'>{Deals.length}</span>
+            </p>
+
+            {Deals.length > 3 && (
+              <Dialog open={openAllDeals} onOpenChange={setOpenAllDeals}>
+                <DialogTrigger asChild>
+                  <Button size='sm' variant='outline'>
+                    View More
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className='min-w-4xl'>
+                  <DialogHeader>
+                    <DialogTitle>All Deals ({Deals.length})</DialogTitle>
+                  </DialogHeader>
+                  <div className='overflow-auto'>
+                    <Table>
+                      <TableHeader className='bg-muted sticky top-0 z-10'>
+                        <TableRow>
+                          <TableHead>Account Name</TableHead>
+                          <TableHead>Owner</TableHead>
+                          <TableHead>Deal Type</TableHead>
+                          <TableHead>Case Stage</TableHead>
+                          <TableHead>Disbursement Amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {Deals.map((deal: any) => (
+                          <TableRow
+                            key={deal.id}
+                            onClick={() => {
+                              navigate(`/deals/${deal.id}`)
+                              setOpenAllDeals(false)
+                            }}
+                            className='cursor-pointer'
+                          >
+                            <TableCell>{deal.account_name || '—'}</TableCell>
+                            <TableCell>
+                              {(users as Record<string, string>)[
+                                deal.deal_owner_id
+                              ] || '—'}
+                            </TableCell>
+                            <TableCell>{deal.deal_type || '—'}</TableCell>
+                            <TableCell>{deal.case_stage || '—'}</TableCell>
+                            <TableCell>
+                              {deal.disbursement_amount || '—'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
+          <div className='border rounded-md overflow-hidden'>
+            <Table>
+              <TableHeader className='bg-muted'>
+                <TableRow>
+                  <TableHead>Account Name</TableHead>
+                  <TableHead>Owner</TableHead>
+                  <TableHead>Deal Type</TableHead>
+                  <TableHead>Case Stage</TableHead>
+                  <TableHead>Disbursement Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Deals.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className='text-center text-muted-foreground'
+                    >
+                      No deals available
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  Deals.slice(0, 3).map((deal: any) => (
+                    <TableRow
+                      key={deal.id}
+                      onClick={() => navigate(`/deals/${deal.id}`)}
+                      className='cursor-pointer'
+                    >
+                      <TableCell>{deal.account_name || '—'}</TableCell>
+                      <TableCell>
+                        {(users as Record<string, string>)[
+                          deal.deal_owner_id
+                        ] || '—'}
+                      </TableCell>
+                      <TableCell>{deal.deal_type || '—'}</TableCell>
+                      <TableCell>{deal.case_stage || '—'}</TableCell>
+                      <TableCell>{deal.disbursement_amount || '—'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        {/* ================= Contacts ================= */}
+        <SectionHeader title='Contacts' />
+        <div className='space-y-4 mx-2'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground'>
+              Total Contacts:{' '}
+              <span className='font-semibold'>{contacts.length}</span>
+            </p>
+
+            {contacts.length > 3 && (
+              <Dialog open={openAllContacts} onOpenChange={setOpenAllContacts}>
+                <DialogTrigger asChild>
+                  <Button size='sm' variant='outline'>
+                    View More
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className='max-w-4xl max-h-[80vh] flex flex-col'>
+                  <DialogHeader>
+                    <DialogTitle>All Contacts ({contacts.length})</DialogTitle>
+                  </DialogHeader>
+                  <div className='overflow-auto'>
+                    <Table>
+                      <TableHeader className='bg-muted sticky top-0 z-10'>
+                        <TableRow>
+                          <TableHead>Contact Name</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Mobile</TableHead>
+                          <TableHead>Email</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {contacts.map((contact: any) => (
+                          <TableRow
+                            key={contact.id}
+                            onClick={() => {
+                              navigate(`/contacts/${contact.id}`)
+                              setOpenAllContacts(false)
+                            }}
+                            className='cursor-pointer'
+                          >
+                            <TableCell>{contact.last_name || '—'}</TableCell>
+                            <TableCell>{contact.phone || '—'}</TableCell>
+                            <TableCell>{contact.mobile || '—'}</TableCell>
+                            <TableCell>{contact.email || '—'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
+          <div className='border rounded-md overflow-hidden'>
+            <Table>
+              <TableHeader className='bg-muted'>
+                <TableRow>
+                  <TableHead>Contact Name</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Email</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {contacts.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className='text-center text-muted-foreground'
+                    >
+                      No contacts available
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  contacts.slice(0, 3).map((contact: any) => (
+                    <TableRow
+                      key={contact.id}
+                      onClick={() => navigate(`/contacts/${contact.id}`)}
+                      className='cursor-pointer'
+                    >
+                      <TableCell>{contact.last_name || '—'}</TableCell>
+                      <TableCell>{contact.phone || '—'}</TableCell>
+                      <TableCell>{contact.mobile || '—'}</TableCell>
+                      <TableCell>{contact.email || '—'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className='flex justify-center'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() =>
+                navigate(`/contacts-create`, {
+                  state: {
+                    accountId: id,
+                    accountName: accountData?.account_name,
+                    leadSource: data.source,
+                  },
+                })
+              }
+            >
+              <Plus className='h-4 w-4 mr-2' />
+              Add Contact
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   )
