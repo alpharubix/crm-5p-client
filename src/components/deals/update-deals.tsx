@@ -123,23 +123,39 @@ export default function UpdateDeals() {
                   : '—'}
               </span>
             </FieldRow>
-            <FieldRow label='Deal Approval Status'>
-              <span>{dealData.case_status || '—'}</span>
+            <FieldRow label='Ticket Login'>
+              <span>{dealData.ticket_login || '—'}</span>
             </FieldRow>
-            <FieldRow label='Stage'>
-              <span>{dealData.type_of_login || '—'}</span>
+            <FieldRow label='Potential'>
+              <span>{dealData.potential || '—'}</span>
             </FieldRow>
           </div>
           <div>
-            <FieldRow label='Disbursement Date'>
+            <FieldRow label='Case Status'>
+              <span>{dealData.case_status || '—'}</span>
+            </FieldRow>
+            <FieldRow label='Case Stage'>
+              <span>{dealData.case_stage || '—'}</span>
+            </FieldRow>
+            <FieldRow label='Targeted Disbursement date'>
               <span>
-                {dealData.disbursement_date
-                  ? new Date(dealData.disbursement_date).toLocaleDateString()
+                {dealData.targeted_disbursement_date
+                  ? formatExactDate(
+                      dealData.targeted_disbursement_date,
+                      'dd MMM yyyy, hh:mm a',
+                    )
                   : '—'}
               </span>
             </FieldRow>
-            <FieldRow label='Closing Date'>
-              <span>{dealData.type_of_case_login || '—'}</span>
+            <FieldRow label='Disbursement Date'>
+              <span>
+                {dealData.disbursement_date
+                  ? formatExactDate(
+                      dealData.disbursement_date,
+                      'dd MMM yyyy, hh:mm a',
+                    )
+                  : '—'}
+              </span>
             </FieldRow>
           </div>
         </CardContent>
@@ -151,27 +167,20 @@ export default function UpdateDeals() {
             <FieldRow label='Deal Name'>
               <span>{dealData.account_name || '—'}</span>
             </FieldRow>
-            <FieldRow label='Start Date'>
+            <FieldRow label='Lender Login Date'>
               <span>
-                {dealData.loan_start_date
+                {dealData.lender_login_date
                   ? formatExactDate(
-                      dealData.loan_start_date,
+                      dealData.lender_login_date,
                       'dd MMM yyyy, hh:mm a',
                     )
                   : '—'}
               </span>
             </FieldRow>
-            <FieldRow label='End Date'>
-              <span>
-                {dealData.loan_end_date
-                  ? formatExactDate(
-                      dealData.loan_end_date,
-                      'dd MMM yyyy, hh:mm a',
-                    )
-                  : '—'}
-              </span>
+            <FieldRow label='Type of case login'>
+              <span>{dealData.type_of_case_login || '—'}</span>
             </FieldRow>
-            <FieldRow label='Amount'>
+            <FieldRow label='Amount Required'>
               <span>{dealData.amount_required || '—'}</span>
             </FieldRow>
             <FieldRow label='Created By'>
@@ -196,11 +205,11 @@ export default function UpdateDeals() {
             <FieldRow label='Lender Name'>
               <span>{dealData.lender_name || '—'}</span>
             </FieldRow>
-            <FieldRow label='Loan Type'>
-              <span>{dealData.loan_type || '—'}</span>
+            <FieldRow label='Lender Code'>
+              <span>{dealData.lender_code || '—'}</span>
             </FieldRow>
-            <FieldRow label='Loan Product'>
-              <span>{dealData.product || '—'}</span>
+            <FieldRow label='Type of Loan'>
+              <span>{dealData.loan_type || '—'}</span>
             </FieldRow>
             <FieldRow label='Interest Type'>
               <span>{dealData.interest_type || '—'}</span>
@@ -215,21 +224,56 @@ export default function UpdateDeals() {
         <SectionHeader title='Funding & Commercials' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
-            <FieldRow label='Sanction Amount'>
-              <span>{dealData.sanction_amount || '—'}</span>
+            <FieldRow label='Approved Amount'>
+              <span>{dealData.approved_amount || '—'}</span>
             </FieldRow>
             <FieldRow label='Processing Fees'>
               <span>{dealData.processing_fees || '—'}</span>
             </FieldRow>
+            <FieldRow label='PF percentage'>
+              <span>{dealData.pf_percentage || '—'}</span>
+            </FieldRow>
             <FieldRow label='Insurance Amount'>
               <span>{dealData.insurance_amount || '—'}</span>
             </FieldRow>
+            <FieldRow label='Loan Start Date'>
+              <span>
+                {dealData.loan_start_date
+                  ? formatExactDate(
+                      dealData.loan_start_date,
+                      'dd MMM yyyy, hh:mm a',
+                    )
+                  : '—'}
+              </span>
+            </FieldRow>
+            <FieldRow label='Loan End Date'>
+              <span>
+                {dealData.loan_end_date
+                  ? formatExactDate(
+                      dealData.loan_end_date,
+                      'dd MMM yyyy, hh:mm a',
+                    )
+                  : '—'}
+              </span>
+            </FieldRow>
           </div>
           <div>
+            <FieldRow label='Sanction Amount'>
+              <span>{dealData.mm_charges || '—'}</span>
+            </FieldRow>
             <FieldRow label='Disbursed Amount'>
-              <span>{dealData.disbursed_amount || '—'}</span>
+              <span>{dealData.mm_charges || '—'}</span>
+            </FieldRow>
+            <FieldRow label='Tenure'>
+              <span>{dealData.mm_charges || '—'}</span>
             </FieldRow>
             <FieldRow label='MM Charges'>
+              <span>{dealData.mm_charges || '—'}</span>
+            </FieldRow>
+            <FieldRow label='Sanction Letter'>
+              <span>{dealData.mm_charges || '—'}</span>
+            </FieldRow>
+            <FieldRow label='Payment Receipt'>
               <span>{dealData.mm_charges || '—'}</span>
             </FieldRow>
           </div>
@@ -257,6 +301,8 @@ export default function UpdateDeals() {
             </FieldRow>
           </div>
         </CardContent>
+        {/* <SectionHeader title='Notes' /> */}
+        <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'></CardContent>
       </Card>
     </div>
   )

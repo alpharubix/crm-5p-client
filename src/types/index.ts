@@ -61,7 +61,7 @@ export type Deal = {
   ticket_number: string
   disbursed_amount: string
   rate_of_interest: string
-  targeted_disbursement_date: Date
+  targeted_disbursement_date: string
   sanction_letter: string
   created_at: string
   deal_type: string
