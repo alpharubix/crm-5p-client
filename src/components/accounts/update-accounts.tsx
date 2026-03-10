@@ -41,6 +41,7 @@ import {
 import { ENV } from '@/conf'
 import { formatExactDate } from '@/utils/date-formatter'
 import { Plus } from 'lucide-react'
+import { formatAmount } from '@/utils/number-formatter'
 
 // Shows "—" only for empty values
 function display(v: any) {
@@ -439,6 +440,7 @@ export default function UpdateAccounts() {
                   'Swastik',
                   'Unicharm',
                   'Vibhava Marketing',
+                  'R1X Website'
                 ]}
                 onChange={(v) => setValue('source', v, { shouldDirty: true })}
               />
@@ -1019,7 +1021,7 @@ export default function UpdateAccounts() {
                             <TableCell>{deal.deal_type || '—'}</TableCell>
                             <TableCell>{deal.case_stage || '—'}</TableCell>
                             <TableCell>
-                              {deal.disbursement_amount || '—'}
+                              {formatAmount(deal.disbursement_amount) || '—'}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -1067,7 +1069,7 @@ export default function UpdateAccounts() {
                       </TableCell>
                       <TableCell>{deal.deal_type || '—'}</TableCell>
                       <TableCell>{deal.case_stage || '—'}</TableCell>
-                      <TableCell>{deal.disbursement_amount || '—'}</TableCell>
+                      <TableCell>{formatAmount(deal.disbursement_amount) || '—'}</TableCell>
                     </TableRow>
                   ))
                 )}

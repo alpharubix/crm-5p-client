@@ -19,6 +19,7 @@ import {
   type UpdateDealFormValues,
 } from '@/validators/updateDeal.schema'
 import { formatExactDate } from '@/utils/date-formatter'
+import { formatAmount } from '@/utils/number-formatter'
 
 export default function UpdateDeals() {
   const { id } = useParams()
@@ -90,12 +91,23 @@ export default function UpdateDeals() {
     <div className='space-y-6 bg-background min-h-screen'>
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
-        <h1 className='text-lg font-semibold'>
-          Deal:{' '}
-          <span className='text-primary font-bold'>
-            {dealData.account_name || `#${dealData.id}`}
-          </span>
-        </h1>
+        <div>
+          <h1 className='text-lg font-semibold'>
+            Deal:{' '}
+            <span className='text-primary font-bold '>
+              {dealData.account_name || `#${dealData.id}`}
+            </span> { }
+            <span className='text-primary font-bold '>
+              {`#${dealData.id}`}
+            </span>
+          </h1>
+          <h1 className='text-lg font-semibold'>
+            Deal Owner Name:{' '}
+            <span className='text-primary font-bold '>
+              {(users as Record<string, string>)[dealData.deal_owner_id] || `#${dealData.id}`}
+            </span>
+          </h1>
+        </div>
         <Button
           variant='default'
           onClick={() => navigate(`/accounts/${dealData.account_id}`)}
@@ -117,9 +129,9 @@ export default function UpdateDeals() {
               <span>
                 {dealData.deal_call_back_datetime
                   ? formatExactDate(
-                      dealData.deal_call_back_datetime,
-                      'dd MMM yyyy, hh:mm a',
-                    )
+                    dealData.deal_call_back_datetime,
+                    'dd MMM yyyy, hh:mm a',
+                  )
                   : '—'}
               </span>
             </FieldRow>
@@ -141,9 +153,9 @@ export default function UpdateDeals() {
               <span>
                 {dealData.targeted_disbursement_date
                   ? formatExactDate(
-                      dealData.targeted_disbursement_date,
-                      'dd MMM yyyy, hh:mm a',
-                    )
+                    dealData.targeted_disbursement_date,
+                    'dd MMM yyyy, hh:mm a',
+                  )
                   : '—'}
               </span>
             </FieldRow>
@@ -151,9 +163,9 @@ export default function UpdateDeals() {
               <span>
                 {dealData.disbursement_date
                   ? formatExactDate(
-                      dealData.disbursement_date,
-                      'dd MMM yyyy, hh:mm a',
-                    )
+                    dealData.disbursement_date,
+                    'dd MMM yyyy, hh:mm a',
+                  )
                   : '—'}
               </span>
             </FieldRow>
@@ -171,9 +183,9 @@ export default function UpdateDeals() {
               <span>
                 {dealData.lender_login_date
                   ? formatExactDate(
-                      dealData.lender_login_date,
-                      'dd MMM yyyy, hh:mm a',
-                    )
+                    dealData.lender_login_date,
+                    'dd MMM yyyy, hh:mm a',
+                  )
                   : '—'}
               </span>
             </FieldRow>
@@ -181,7 +193,7 @@ export default function UpdateDeals() {
               <span>{dealData.type_of_case_login || '—'}</span>
             </FieldRow>
             <FieldRow label='Amount Required'>
-              <span>{dealData.amount_required || '—'}</span>
+              <span>{formatAmount(dealData.amount_required) || '—'}</span>
             </FieldRow>
             <FieldRow label='Created By'>
               <span>
@@ -225,24 +237,24 @@ export default function UpdateDeals() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
             <FieldRow label='Approved Amount'>
-              <span>{dealData.approved_amount || '—'}</span>
+              <span>{formatAmount(dealData.approved_amount) || '—'}</span>
             </FieldRow>
             <FieldRow label='Processing Fees'>
-              <span>{dealData.processing_fees || '—'}</span>
+              <span>{formatAmount(dealData.processing_fees) || '—'}</span>
             </FieldRow>
             <FieldRow label='PF percentage'>
               <span>{dealData.pf_percentage || '—'}</span>
             </FieldRow>
             <FieldRow label='Insurance Amount'>
-              <span>{dealData.insurance_amount || '—'}</span>
+              <span>{formatAmount(dealData.insurance_amount) || '—'}</span>
             </FieldRow>
             <FieldRow label='Loan Start Date'>
               <span>
                 {dealData.loan_start_date
                   ? formatExactDate(
-                      dealData.loan_start_date,
-                      'dd MMM yyyy, hh:mm a',
-                    )
+                    dealData.loan_start_date,
+                    'dd MMM yyyy, hh:mm a',
+                  )
                   : '—'}
               </span>
             </FieldRow>
@@ -250,31 +262,31 @@ export default function UpdateDeals() {
               <span>
                 {dealData.loan_end_date
                   ? formatExactDate(
-                      dealData.loan_end_date,
-                      'dd MMM yyyy, hh:mm a',
-                    )
+                    dealData.loan_end_date,
+                    'dd MMM yyyy, hh:mm a',
+                  )
                   : '—'}
               </span>
             </FieldRow>
           </div>
           <div>
             <FieldRow label='Sanction Amount'>
-              <span>{dealData.mm_charges || '—'}</span>
+              <span>{formatAmount(dealData.sanction_amount) || '—'}</span>
             </FieldRow>
             <FieldRow label='Disbursed Amount'>
-              <span>{dealData.mm_charges || '—'}</span>
+              <span>{formatAmount(dealData.disbursed_amount) || '—'}</span>
             </FieldRow>
             <FieldRow label='Tenure'>
-              <span>{dealData.mm_charges || '—'}</span>
+              <span>{dealData.tenure || '—'}</span>
             </FieldRow>
             <FieldRow label='MM Charges'>
-              <span>{dealData.mm_charges || '—'}</span>
+              <span>{formatAmount(dealData.mm_charges) || '—'}</span>
             </FieldRow>
             <FieldRow label='Sanction Letter'>
-              <span>{dealData.mm_charges || '—'}</span>
+              <span>{dealData.sanction_letter || '—'}</span>
             </FieldRow>
             <FieldRow label='Payment Receipt'>
-              <span>{dealData.mm_charges || '—'}</span>
+              <span>—</span>
             </FieldRow>
           </div>
         </CardContent>

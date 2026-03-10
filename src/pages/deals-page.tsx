@@ -24,6 +24,7 @@ import users from '@/utils/users.json'
 import Pagination from '@/components/shared/pagination'
 import { useNavigate } from 'react-router-dom'
 import { formatExactDate } from '@/utils/date-formatter'
+import { formatAmount } from '@/utils/number-formatter'
 
 const DealsPage = () => {
   const navigate = useNavigate()
@@ -159,14 +160,14 @@ const DealsPage = () => {
 
                     <TableCell>{deal.case_stage || '-'}</TableCell>
 
-                    <TableCell>{deal.disbursed_amount || '-'}</TableCell>
+                    <TableCell>{formatAmount(deal.disbursed_amount) || '-'}</TableCell>
 
                     <TableCell>
                       {deal.deal_call_back_datetime
                         ? formatExactDate(
-                            deal.deal_call_back_datetime,
-                            'dd MMM yyyy, hh:mm a',
-                          )
+                          deal.deal_call_back_datetime,
+                          'dd MMM yyyy, hh:mm a',
+                        )
                         : '—'}
                     </TableCell>
                   </TableRow>
