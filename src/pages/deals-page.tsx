@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
@@ -24,6 +24,7 @@ import users from '@/utils/users.json'
 import Pagination from '@/components/shared/pagination'
 import { useNavigate } from 'react-router-dom'
 import { formatExactDate } from '@/utils/date-formatter'
+import { formatAmount } from '@/utils/number-formatter'
 
 const DealsPage = () => {
   const navigate = useNavigate()
@@ -107,6 +108,14 @@ const DealsPage = () => {
         <div className='flex gap-2'>
           <Button
             variant='outline'
+            className='cursor-pointer'
+            onClick={() => navigate('/deals-create')}
+          >
+            <Plus className='h-4 w-4' />
+            Create Deal
+          </Button>
+          <Button
+            variant='outline'
             size='icon'
             className='cursor-pointer'
             onClick={() => refetch()}
@@ -159,14 +168,14 @@ const DealsPage = () => {
 
                     <TableCell>{deal.case_stage || '-'}</TableCell>
 
-                    <TableCell>{deal.disbursed_amount || '-'}</TableCell>
+                    <TableCell>{formatAmount(deal.disbursed_amount) || '-'}</TableCell>
 
                     <TableCell>
                       {deal.deal_call_back_datetime
                         ? formatExactDate(
-                            deal.deal_call_back_datetime,
-                            'dd MMM yyyy, hh:mm a',
-                          )
+                          deal.deal_call_back_datetime,
+                          'dd MMM yyyy, hh:mm a',
+                        )
                         : '—'}
                     </TableCell>
                   </TableRow>
