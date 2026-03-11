@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
@@ -106,6 +106,14 @@ const DealsPage = () => {
         )}
 
         <div className='flex gap-2'>
+          <Button
+            variant='outline'
+            className='cursor-pointer'
+            onClick={() => navigate('/deals-create')}
+          >
+            <Plus className='h-4 w-4' />
+            Create Deal
+          </Button>
           <Button
             variant='outline'
             size='icon'
