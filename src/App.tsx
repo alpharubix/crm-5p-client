@@ -16,6 +16,8 @@ import AuditLogs from './components/log/audit-log'
 import HoliEffect from './components/holi-effect'
 import DealsPage from './pages/deals-page'
 import UpdateDeals from './components/deals/update-deals'
+import Project from './components/projects/project'
+import Task from './components/projects/task'
 
 export default function App() {
   return (
@@ -45,10 +47,14 @@ export default function App() {
             {/* /deals/:id */}
             <Route path='/deals/:id' element={<UpdateDeals />} />
 
-            <Route path='*' element={<NotFoundPage />} />
             <Route element={<ProtectedLogRoute />}>
               <Route path='/audit-logs' element={<AuditLogs />} />
             </Route>
+            {/* <Route element={<ProtectedLogRoute />}> */}
+            <Route path='/projects' element={<Project />} />
+            <Route path='/projects/:id' element={<Task />} />
+            {/* </Route> */}
+            <Route path='*' element={<NotFoundPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
