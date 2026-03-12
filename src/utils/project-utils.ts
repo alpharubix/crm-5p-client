@@ -8,6 +8,7 @@ export const emptyForm = (): ProjectFormData => ({
   assignees: [],
   startDate: '',
   endDate: '',
+  projectType: '',
 })
 
 export function validate(form: ProjectFormData): FormErrors {

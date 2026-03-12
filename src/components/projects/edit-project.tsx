@@ -20,13 +20,15 @@ import {
 } from '../ui/select'
 import { Badge } from '../ui/badge'
 import { X } from 'lucide-react'
-import { ENV, PRIORITIES, STATUSES } from '@/conf'
+import { ENV, PRIORITIES, PROJECT_TYPES, STATUSES } from '@/conf'
 import type {
   Priority,
   Project,
+  ProjectType,
   ProjectUser,
   Status,
 } from '@/types/project-types'
+import { FieldError } from '../ui/field'
 
 interface EditProjectModalProps {
   open: boolean
@@ -51,6 +53,7 @@ export default function EditProjectModal({
     assignees: [] as ProjectUser[],
     startDate: '',
     endDate: '',
+    projectType: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -61,15 +64,19 @@ export default function EditProjectModal({
         description: project.description ?? '',
         priority: project.priority
           ? ((project.priority.charAt(0).toUpperCase() +
-              project.priority.slice(1)) as Priority)
+            project.priority.slice(1)) as Priority)
           : '',
         status: project.status
           ? ((project.status.charAt(0).toUpperCase() +
-              project.status.replace('_', ' ').slice(1)) as Status)
+            project.status.replace('_', ' ').slice(1)) as Status)
           : '',
-        assignees: project.assignees ?? [],
+        assignees: ((project as any).actioner_ids ?? []).map((id: number) => ({
+          id: String(id),
+          name: String(id),
+        })),
         startDate: (project as any).start_date ?? '',
         endDate: (project as any).end_date ?? '',
+        projectType: (project as any).project_type ?? '',
       })
     }
   }, [project])
@@ -132,6 +139,8 @@ export default function EditProjectModal({
             status: body.status.toLowerCase().replace(' ', '_'),
             start_date: body.startDate,
             end_date: body.endDate,
+            actioner_ids: body.assignees.map((u) => u.id),
+            // project_type: body.projectType.toLowerCase(),
           }),
         },
       )
@@ -196,7 +205,7 @@ export default function EditProjectModal({
           </div>
 
           {/* Priority + Status */}
-          <div className='grid grid-cols-2 gap-3'>
+          <div className='grid grid-cols-3 gap-3'>
             <div>
               <Label className='text-xs font-medium'>
                 Priority <span className='text-red-500'>*</span>
@@ -242,6 +251,27 @@ export default function EditProjectModal({
               {errors.status && (
                 <p className='text-xs text-red-500 mt-1'>{errors.status}</p>
               )}
+            </div>
+
+            <div>
+              <Label className='text-xs font-medium'>
+                Project Type <span className='text-red-500'>*</span>
+              </Label>
+              <Select
+                value={form.projectType}
+                onValueChange={(v) => set('projectType', v as ProjectType)}
+              >
+                <SelectTrigger className='mt-1 h-8 text-sm'>
+                  <SelectValue placeholder='Select' />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_TYPES.map((s) => (
+                    <SelectItem key={s} value={s} className='text-sm'>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

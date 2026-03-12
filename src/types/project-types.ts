@@ -7,6 +7,8 @@ export type Status =
   | 'Completed'
   | 'Cancelled'
 
+export type ProjectType = 'New' | 'Upgradation' | 'Modification'
+
 export interface ProjectUser {
   id: string
   name: string
@@ -18,6 +20,7 @@ export interface ProjectFormData {
   description: string
   priority: Priority | ''
   status: Status | ''
+  projectType: ProjectType | ''
   assignees: ProjectUser[]
   startDate: string
   endDate: string

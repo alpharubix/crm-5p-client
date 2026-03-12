@@ -22,13 +22,15 @@ import type {
   Priority,
   Project,
   ProjectFormData,
+  ProjectType,
   ProjectUser,
   Status,
 } from '@/types/project-types'
 import { emptyForm, validate } from '@/utils/project-utils'
-import { ENV, PRIORITIES, STATUSES, USERS } from '@/conf'
+import { ENV, PRIORITIES, PROJECT_TYPES, STATUSES, USERS } from '@/conf'
 import { X } from 'lucide-react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import tech_team_users from "@/utils/tech_team_users.json"
 
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null
@@ -53,18 +55,8 @@ export default function CreateProjectForm({
     setErrors((e) => ({ ...e, [key]: undefined }))
   }
 
-  const { data: usersData } = useQuery({
-    queryKey: ['users'],
-    queryFn: async () => {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/user/filter`, {
-        credentials: 'include',
-      })
-      if (!res.ok) throw new Error('Failed')
-      return res.json()
-    },
-  })
 
-  const users = usersData?.data ?? []
+  const users = tech_team_users
   function toggleAssignee(user: any) {
     setForm((f) => {
       const exists = f.assignees.some((u) => u.id === user.id)
@@ -91,6 +83,10 @@ export default function CreateProjectForm({
           description: body.description,
           priority: body.priority.toLowerCase(),
           status: body.status.toLowerCase().replace(' ', '_'),
+          start_date: body.startDate,
+          end_date: body.endDate,
+          actioner_ids: body.assignees.map((u) => u.id),
+          project_type: body.projectType.toLowerCase(),
         }),
       })
       if (!res.ok) throw new Error('Failed to create project')
@@ -146,8 +142,8 @@ export default function CreateProjectForm({
           />
         </div>
 
-        {/* Priority + Status */}
-        <div className='grid grid-cols-2 gap-3'>
+        {/* Priority + Status + Project Type */}
+        <div className='grid grid-cols-3 gap-3'>
           <div>
             <Label className='text-xs font-medium'>
               Priority <span className='text-red-500'>*</span>
@@ -191,6 +187,30 @@ export default function CreateProjectForm({
             </Select>
             <FieldError msg={errors.status} />
           </div>
+
+          <div>
+            <Label className='text-xs font-medium'>
+              Project Type <span className='text-red-500'>*</span>
+            </Label>
+            <Select
+              value={form.projectType}
+              onValueChange={(v) => set('projectType', v as ProjectType)}
+            >
+              <SelectTrigger className='mt-1 h-8 text-sm'>
+                <SelectValue placeholder='Select' />
+              </SelectTrigger>
+              <SelectContent>
+                {PROJECT_TYPES.map((s) => (
+                  <SelectItem key={s} value={s} className='text-sm'>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldError msg={errors.status} />
+          </div>
+
+
         </div>
 
         {/* Dates */}
@@ -227,13 +247,13 @@ export default function CreateProjectForm({
             Team Members <span className='text-red-500'>*</span>
           </Label>
           <div className='mt-1 border border-zinc-200 rounded-md overflow-hidden divide-y divide-zinc-100 max-h-40 overflow-y-auto'>
-            {users.map((user: { id: string; full_name: string }) => {
+            {users.map((user: { id: string; name: string }) => {
               const selected = form.assignees.some((u) => u.id === user.id)
               return (
                 <div
                   key={user.id}
                   onClick={() =>
-                    toggleAssignee({ id: user.id, full_name: user.full_name })
+                    toggleAssignee({ id: user.id, full_name: user.name })
                   }
                   className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors
         ${selected ? 'bg-zinc-50' : 'hover:bg-zinc-50'}`}
@@ -259,11 +279,11 @@ export default function CreateProjectForm({
                     )}
                   </div>
                   <div className='w-6 h-6 rounded-full bg-zinc-200 text-zinc-600 flex items-center justify-center text-xs font-semibold shrink-0'>
-                    {user.full_name[0]}
+                    {user.name[0]}
                   </div>
                   <div className='min-w-0'>
                     <p className='text-sm leading-none text-zinc-800'>
-                      {user.full_name}
+                      {user.name}
                     </p>
                   </div>
                 </div>

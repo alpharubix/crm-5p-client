@@ -163,10 +163,10 @@ function TaskCard({
 }) {
   return (
     <div
-      className={`bg-white border rounded-md p-3 transition-shadow
-      ${isDragging ? 'shadow-lg border-zinc-300 opacity-90 rotate-1' : 'border-zinc-200 hover:shadow-sm cursor-grab'}`}
+      className={` border rounded-md p-3 transition-shadow
+      ${isDragging ? 'shadow-lg  opacity-90 rotate-1' : 'hover:shadow-sm cursor-grab'}`}
     >
-      <p className='text-sm font-medium text-zinc-800 leading-snug mb-2'>
+      <p className='text-sm font-medium leading-snug mb-2'>
         {task.title}
       </p>
       <div className='flex items-center gap-1.5 flex-wrap'>
@@ -368,33 +368,33 @@ export default function Task() {
   }
 
   return (
-    <div className='min-h-screen bg-zinc-50'>
+    <div className='min-h-screen'>
       {/* Header */}
-      <div className='border-b border-zinc-200 bg-white px-6 py-4'>
+      <div className='border-b  px-6 py-4'>
         <button
           onClick={() => navigate('/projects')}
-          className='flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-600 transition-colors mb-3'
+          className='flex items-center gap-1.5 text-xs  transition-colors mb-3'
         >
           <ArrowLeft size={13} /> Back to Projects
         </button>
         <div className='flex items-center justify-between'>
           <div>
-            <h1 className='text-base font-semibold text-zinc-900'>
+            <h1 className='text-base font-semibold '>
               {project?.name}
             </h1>
-            <p className='text-xs text-zinc-400 font-mono mt-0.5'>
+            <p className='text-xs font-mono mt-0.5'>
               {project?.id}
             </p>
           </div>
 
           <div className='flex items-center gap-2'>
-            <span className='text-xs px-2 py-0.5 rounded border font-medium bg-orange-50 text-orange-700 border-orange-200'>
+            <span className='text-xs px-2 py-0.5 rounded border font-medium '>
               {project?.priority}
             </span>
-            <span className='text-xs px-2 py-0.5 rounded border font-medium bg-emerald-50 text-emerald-700 border-emerald-200'>
+            <span className='text-xs px-2 py-0.5 rounded border font-medium '>
               {project?.status}
             </span>
-            <span className='text-xs text-zinc-400 ml-2'>
+            <span className='text-xs ml-2'>
               {project?.startDate} → {project?.endDate}
             </span>
             <Button size='sm' onClick={() => setTaskModalOpen(true)}>
@@ -464,24 +464,24 @@ export default function Task() {
             prev.map((t) =>
               t.id === updated.id
                 ? {
-                    ...updated,
-                    status:
-                      (
-                        {
-                          todo: 'To Do',
-                          in_progress: 'In Progress',
-                          review: 'Review',
-                          done: 'Done',
-                        } as any
-                      )[updated.status] ?? updated.status,
-                    priority:
-                      updated.priority.charAt(0).toUpperCase() +
-                      updated.priority.slice(1),
-                    type:
-                      updated.type.charAt(0).toUpperCase() +
-                      updated.type.slice(1),
-                    assignee: updated.assignee_name ?? '—',
-                  }
+                  ...updated,
+                  status:
+                    (
+                      {
+                        todo: 'To Do',
+                        in_progress: 'In Progress',
+                        review: 'Review',
+                        done: 'Done',
+                      } as any
+                    )[updated.status] ?? updated.status,
+                  priority:
+                    updated.priority.charAt(0).toUpperCase() +
+                    updated.priority.slice(1),
+                  type:
+                    updated.type.charAt(0).toUpperCase() +
+                    updated.type.slice(1),
+                  assignee: updated.assignee_name ?? '—',
+                }
                 : t,
             ),
           )

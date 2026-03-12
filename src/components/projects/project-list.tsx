@@ -27,12 +27,12 @@ export default function ProjectList() {
 
   return (
     <>
-      <div className='border border-zinc-200 rounded-md overflow-hidden'>
-        <div className='grid grid-cols-[2fr_1fr_1fr_1fr_1fr] bg-zinc-50 border-b border-zinc-200 px-4 py-2.5'>
-          {['Project Name', 'Status', 'Priority', 'Dates', 'Edit'].map((h) => (
+      <div className='border  rounded-md overflow-hidden'>
+        <div className='grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr]  px-4 py-2.5'>
+          {['Order', 'Project Name', 'Status', 'Priority', 'Dates', 'Edit'].map((h) => (
             <p
               key={h}
-              className='text-xs font-medium text-zinc-500 uppercase tracking-wide'
+              className='text-xs font-medium  uppercase tracking-wide'
             >
               {h}
             </p>
@@ -42,13 +42,17 @@ export default function ProjectList() {
           <div
             key={p.id}
             onClick={() => navigate(`/projects/${p.id}`)}
-            className={`grid grid-cols-[2fr_1fr_1fr_1fr_1fr] px-4 py-3 cursor-pointer hover:bg-zinc-50 transition-colors items-center ${i !== projects.length - 1 ? 'border-b border-zinc-100' : ''}`}
+            className={`grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1fr] px-4 py-3 cursor-pointer  transition-colors items-center ${i !== projects.length - 1 ? 'border-b ' : ''}`}
           >
+            <div>
+              <p className='text-xs font-medium  uppercase tracking-wide'>
+                {p.id}
+              </p>
+            </div>
             <div className=''>
-              <p className='text-sm font-medium text-zinc-800 leading-none'>
+              <p className='text-sm font-medium  leading-none'>
                 {p.name}
               </p>
-              <p className='text-xs text-zinc-400 mt-0.5 font-mono'>{p.id}</p>
             </div>
             <div>
               {p.status && (
@@ -70,8 +74,8 @@ export default function ProjectList() {
               )}
             </div>
             <div>
-              <p className='text-xs text-zinc-500'>{p.startDate}</p>
-              <p className='text-xs text-zinc-400'>→ {p.endDate}</p>
+              <p className='text-xs '>{p.startDate}</p>
+              <p className='text-xs '>→ {p.endDate}</p>
             </div>
             <div className='flex -space-x-1.5'>
               <button
@@ -79,7 +83,7 @@ export default function ProjectList() {
                   e.stopPropagation()
                   setEditProject(p)
                 }}
-                className='text-xs text-zinc-400 hover:text-zinc-600 transition-colors'
+                className='text-xs transition-colors'
               >
                 Edit
               </button>
