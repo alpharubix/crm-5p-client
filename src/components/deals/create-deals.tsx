@@ -792,13 +792,7 @@ export default function CreateDeal() {
               <Input
                 {...register('mmCharges')}
                 placeholder="MM Charges"
-                type="number"Account Name
-Lender Name
-Case Status
-Ticket Login
-Type of Loan
-Type of case login
-Deal Owner
+                type="number"
                 step="0.01"
                 className="h-8"
               />
