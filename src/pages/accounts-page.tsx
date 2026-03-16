@@ -35,6 +35,8 @@ import { Spinner } from '@/components/ui/spinner'
 import { formatExactDate } from '@/utils/date-formatter'
 import UploadCsv from '@/components/accounts/csv-upload'
 
+import users from '@/utils/users.json'
+
 export default function AccountsPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -435,7 +437,7 @@ export default function AccountsPage() {
                             />
                           </TableCell>
                           <TableCell className='text-primary'>
-                            {acc.owner?.full_name || '—'}
+                            {(users as Record<string, string>)[acc.account_owner_id] || '—'}
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.account_status || '—'}
