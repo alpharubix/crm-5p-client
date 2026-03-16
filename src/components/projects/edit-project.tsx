@@ -30,6 +30,15 @@ import type {
 } from '@/types/project-types'
 import { FieldError } from '../ui/field'
 
+const USERS_MAP: Record<string, string> = {
+  '3899927000000615348': 'Ashok M',
+  '3899927000000964875': 'Suraj Gupta',
+  '3899927000000882594': 'Myisa Beiucy',
+  '3899927000000723465': 'Kaveri Metri',
+  '3899927000000201013': 'Anslem Prathap',
+  '3899927000005965002': 'Subhasini TS',
+}
+
 interface EditProjectModalProps {
   open: boolean
   onClose: () => void
@@ -53,7 +62,7 @@ export default function EditProjectModal({
     assignees: [] as ProjectUser[],
     startDate: '',
     endDate: '',
-    projectType: ''
+    projectType: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -64,11 +73,11 @@ export default function EditProjectModal({
         description: project.description ?? '',
         priority: project.priority
           ? ((project.priority.charAt(0).toUpperCase() +
-            project.priority.slice(1)) as Priority)
+              project.priority.slice(1)) as Priority)
           : '',
         status: project.status
           ? ((project.status.charAt(0).toUpperCase() +
-            project.status.replace('_', ' ').slice(1)) as Status)
+              project.status.replace('_', ' ').slice(1)) as Status)
           : '',
         assignees: ((project as any).actioner_ids ?? []).map((id: number) => ({
           id: String(id),
@@ -76,23 +85,18 @@ export default function EditProjectModal({
         })),
         startDate: (project as any).start_date ?? '',
         endDate: (project as any).end_date ?? '',
-        projectType: (project as any).project_type ?? '',
+        projectType: (project as any).project_type
+          ? (project as any).project_type.charAt(0).toUpperCase() +
+            (project as any).project_type.slice(1)
+          : '',
       })
     }
   }, [project])
 
-  const { data: usersData } = useQuery({
-    queryKey: ['users'],
-    queryFn: async () => {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/user/filter`, {
-        credentials: 'include',
-      })
-      if (!res.ok) throw new Error('Failed')
-      return res.json()
-    },
-  })
-
-  const users = usersData?.data ?? []
+  const users = Object.entries(USERS_MAP).map(([id, full_name]) => ({
+    id,
+    full_name,
+  }))
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }))

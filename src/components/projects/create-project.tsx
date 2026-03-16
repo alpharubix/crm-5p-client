@@ -30,7 +30,7 @@ import { emptyForm, validate } from '@/utils/project-utils'
 import { ENV, PRIORITIES, PROJECT_TYPES, STATUSES, USERS } from '@/conf'
 import { X } from 'lucide-react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import tech_team_users from "@/utils/tech_team_users.json"
+import tech_team_users from '@/utils/tech_team_users.json'
 
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null
@@ -54,7 +54,6 @@ export default function CreateProjectForm({
     setForm((f) => ({ ...f, [key]: value }))
     setErrors((e) => ({ ...e, [key]: undefined }))
   }
-
 
   const users = tech_team_users
   function toggleAssignee(user: any) {
@@ -82,7 +81,6 @@ export default function CreateProjectForm({
           name: body.name,
           description: body.description,
           priority: body.priority.toLowerCase(),
-          status: body.status.toLowerCase().replace(' ', '_'),
           start_date: body.startDate,
           end_date: body.endDate,
           actioner_ids: body.assignees.map((u) => u.id),
@@ -166,7 +164,7 @@ export default function CreateProjectForm({
             <FieldError msg={errors.priority} />
           </div>
 
-          <div>
+          {/* <div>
             <Label className='text-xs font-medium'>
               Status <span className='text-red-500'>*</span>
             </Label>
@@ -186,7 +184,7 @@ export default function CreateProjectForm({
               </SelectContent>
             </Select>
             <FieldError msg={errors.status} />
-          </div>
+          </div> */}
 
           <div>
             <Label className='text-xs font-medium'>
@@ -207,10 +205,8 @@ export default function CreateProjectForm({
                 ))}
               </SelectContent>
             </Select>
-            <FieldError msg={errors.status} />
+            <FieldError msg={errors.projectType} />
           </div>
-
-
         </div>
 
         {/* Dates */}

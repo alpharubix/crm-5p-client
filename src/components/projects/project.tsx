@@ -49,7 +49,7 @@ export default function Project() {
             </p>
           </div>
           <div className='flex items-center gap-3'>
-            <div className="flex bg-muted p-1 rounded-md border">
+            {/* <div className="flex bg-muted p-1 rounded-md border">
               <button
                 onClick={() => setViewMode('list')}
                 className={`flex items-center justify-center px-2 py-1.5 rounded-sm transition-colors ${viewMode === 'list' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
@@ -64,7 +64,7 @@ export default function Project() {
               >
                 <LayoutList className="w-4 h-4" />
               </button>
-            </div>
+            </div> */}
             <Button size='sm' onClick={openCreate}>
               + New Project
             </Button>
