@@ -21,6 +21,7 @@ export interface ProjectFormData {
   priority: Priority | ''
   status: Status | ''
   projectType: ProjectType | ''
+  approver_id: string
   assignees: ProjectUser[]
   startDate: string
   endDate: string

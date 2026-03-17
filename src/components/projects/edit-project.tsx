@@ -29,6 +29,7 @@ import type {
   Status,
 } from '@/types/project-types'
 import { FieldError } from '../ui/field'
+import { useAuth } from '@/context/auth-context'
 
 const USERS_MAP: Record<string, string> = {
   '3899927000000615348': 'Ashok M',
@@ -53,6 +54,19 @@ export default function EditProjectModal({
   onUpdated,
 }: EditProjectModalProps) {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+
+  // Derive role for the current user on this project
+  const isOwner =
+    user &&
+    project &&
+    String(user.user_id) === String((project as any).created_by)
+  const isApprover =
+    user &&
+    project &&
+    String(user.user_id) === String((project as any).approver_id)
+  // An Approver can change Status + Team. Only Owner can change everything else.
+  const ownerOnly = !isOwner
 
   const [form, setForm] = useState({
     name: '',
@@ -144,6 +158,7 @@ export default function EditProjectModal({
             start_date: body.startDate,
             end_date: body.endDate,
             actioner_ids: body.assignees.map((u) => u.id),
+            // approver_id: body.approverId,
             // project_type: body.projectType.toLowerCase(),
           }),
         },
@@ -191,6 +206,7 @@ export default function EditProjectModal({
               className='mt-1 h-8 text-sm'
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
+              disabled={ownerOnly}
             />
             {errors.name && (
               <p className='text-xs text-red-500 mt-1'>{errors.name}</p>
@@ -205,6 +221,7 @@ export default function EditProjectModal({
               rows={2}
               value={form.description}
               onChange={(e) => set('description', e.target.value)}
+              disabled={ownerOnly}
             />
           </div>
 
@@ -217,6 +234,7 @@ export default function EditProjectModal({
               <Select
                 value={form.priority}
                 onValueChange={(v) => set('priority', v as Priority)}
+                disabled={ownerOnly}
               >
                 <SelectTrigger className='mt-1 h-8 text-sm'>
                   <SelectValue placeholder='Select' />
@@ -240,6 +258,7 @@ export default function EditProjectModal({
               <Select
                 value={form.status}
                 onValueChange={(v) => set('status', v as Status)}
+                disabled={!isOwner && !isApprover}
               >
                 <SelectTrigger className='mt-1 h-8 text-sm'>
                   <SelectValue placeholder='Select' />

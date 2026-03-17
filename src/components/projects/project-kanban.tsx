@@ -18,6 +18,7 @@ import {
   useDraggable,
 } from '@dnd-kit/core'
 import { useAuth } from '@/context/auth-context'
+import { isWindow } from '@dnd-kit/utilities'
 
 // ── Hardcoded Users ────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ const STATUS_MAP: Record<string, string> = {
   Cancelled: 'cancelled',
   'Pending Approve': 'pending_for_approve',
   'Pending Review': 'pending_for_review',
+  Rejected: 'rejected',
 }
 
 const COLUMN_STYLES: Record<string, { header: string; dot: string }> = {
@@ -59,6 +61,10 @@ const COLUMN_STYLES: Record<string, { header: string; dot: string }> = {
   'Pending Review': {
     header: 'text-pink-600 border-pink-300',
     dot: 'bg-pink-500',
+  },
+  Rejected: {
+    header: 'text-red-700 border-red-300',
+    dot: 'bg-red-500',
   },
 }
 
@@ -84,6 +90,7 @@ const COLUMNS = [
   'On Hold',
   'Cancelled',
   'Pending Review',
+  'Rejected',
 ]
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -113,8 +120,22 @@ function DraggableProjectCard({
     id: String(project.id),
   })
   const { user } = useAuth()
+
+  // Derive role for the current user on this project
+  const isOwner =
+    user &&
+    project &&
+    String(user.user_id) === String((project as any).created_by)
+  const isApprover =
+    user &&
+    project &&
+    String(user.user_id) === String((project as any).approver_id)
+  const isAssigneeOnly = !isWindow && !isApprover
+
+  // An Approver can change Status + Team. Only Owner can change everything else.
   const overdue = checkOverdue(project.end_date, project.status)
-  const isInitiator = user && String(user.user_id) === String(project.created_by)
+  const isInitiator =
+    user && String(user.user_id) === String(project.created_by)
 
   const handleAction = async (e: React.MouseEvent, toStatus: string) => {
     e.stopPropagation()
@@ -129,12 +150,14 @@ function DraggableProjectCard({
   return (
     <div
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
+      {...(!isAssigneeOnly ? listeners : {})}
+      {...(!isAssigneeOnly ? attributes : {})}
       className={isDragging ? 'opacity-50' : ''}
     >
       <Card
-        className={`cursor-grab transition-colors shadow-sm py-0 gap-0 overflow-hidden border-l-4 ${
+        className={`transition-colors shadow-sm py-0 gap-0 overflow-hidden border-l-4 ${
+          isAssigneeOnly ? 'cursor-default' : 'cursor-grab'
+        } ${
           overdue
             ? 'border-l-red-400 border hover:bg-red-50/60'
             : 'border-l-blue-300 border hover:bg-muted/30'
@@ -150,16 +173,19 @@ function DraggableProjectCard({
             >
               {project.name}
             </p>
-            <button
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation()
-                onEdit(project)
-              }}
-              className='text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0'
-            >
-              <Pencil className='w-3 h-3 cursor-pointer' />
-            </button>
+            {isOwner ? (
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit(project)
+                }}
+                className='text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0'
+                disabled={!isOwner}
+              >
+                <Pencil className='w-3 h-3 cursor-pointer' />
+              </button>
+            ) : null}
           </div>
 
           <div className='grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 mt-1 items-start text-xs'>
@@ -226,7 +252,7 @@ function DraggableProjectCard({
                 Overdue
               </span>
             )}
-            {project.status === 'pending_for_approve' && isInitiator && (
+            {project.status === 'pending_for_approve' && isApprover && (
               <div className='flex gap-2 mt-2 pt-2 border-t border-border'>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
@@ -237,7 +263,7 @@ function DraggableProjectCard({
                 </button>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => handleAction(e, 'cancelled')}
+                  onClick={(e) => handleAction(e, 'rejected')}
                   className='flex-1 text-[11px] font-medium py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors'
                 >
                   Reject
@@ -245,7 +271,7 @@ function DraggableProjectCard({
               </div>
             )}
 
-            {project.status === 'pending_for_review' && isInitiator && (
+            {project.status === 'pending_for_review' && isApprover && (
               <div className='flex gap-2 mt-2 pt-2 border-t border-border'>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
@@ -256,7 +282,7 @@ function DraggableProjectCard({
                 </button>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => handleAction(e, 'on_hold')}
+                  onClick={(e) => handleAction(e, 'rejected')}
                   className='flex-1 text-[11px] font-medium py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors'
                 >
                   Reject

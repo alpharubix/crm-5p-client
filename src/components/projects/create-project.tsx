@@ -44,7 +44,10 @@ export default function CreateProjectForm({
   onCreated: (p: Project) => void
   onCancel: () => void
 }) {
-  const [form, setForm] = useState<ProjectFormData>(emptyForm())
+  const [form, setForm] = useState<ProjectFormData>({
+    ...emptyForm(),
+    approver_id: '', // Add this
+  })
   const [errors, setErrors] = useState<FormErrors>({})
 
   function set<K extends keyof ProjectFormData>(
@@ -85,6 +88,7 @@ export default function CreateProjectForm({
           end_date: body.endDate,
           actioner_ids: body.assignees.map((u) => u.id),
           project_type: body.projectType.toLowerCase(),
+          approver_id: body.approver_id, // NEW
         }),
       })
       if (!res.ok) throw new Error('Failed to create project')
@@ -206,6 +210,27 @@ export default function CreateProjectForm({
               </SelectContent>
             </Select>
             <FieldError msg={errors.projectType} />
+          </div>
+          <div>
+            <Label className='text-xs font-medium'>
+              Approver <span className='text-red-500'>*</span>
+            </Label>
+            <Select
+              value={form.approver_id}
+              onValueChange={(v) => set('approver_id', v as ProjectType)}
+            >
+              <SelectTrigger className='mt-1 h-8 text-sm'>
+                <SelectValue placeholder='Select' />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((s) => (
+                  <SelectItem key={s.id} value={s.id} className='text-sm'>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FieldError msg={errors.approver_id} />
           </div>
         </div>
 

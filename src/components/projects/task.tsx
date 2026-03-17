@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query'
 import CreateTaskModal from './create-task'
 import { Button } from '../ui/button'
 import EditTaskModal from './edit-task'
+import { useAuth } from '@/context/auth-context'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ interface Task {
   priority: string
   status: TaskStatus
   assignee: string
+  assignee_id?: string
   projectId: string
 }
 
@@ -79,9 +81,7 @@ function TaskCard({
       className={` border rounded-md p-3 transition-shadow
       ${isDragging ? 'shadow-lg  opacity-90 rotate-1' : 'hover:shadow-sm cursor-grab'}`}
     >
-      <p className='text-sm font-medium leading-snug mb-2'>
-        {task.title}
-      </p>
+      <p className='text-sm font-medium leading-snug mb-2'>{task.title}</p>
       <div className='flex items-center gap-1.5 flex-wrap'>
         <span
           className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${TYPE_STYLES[task.type] ?? 'bg-zinc-100 text-zinc-500'}`}
@@ -115,9 +115,11 @@ function TaskCard({
 function DraggableCard({
   task,
   onEdit,
+  canDrag = true,
 }: {
   task: Task
   onEdit: (t: Task) => void
+  canDrag?: boolean
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: task.id,
@@ -125,8 +127,8 @@ function DraggableCard({
   return (
     <div
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
+      {...(canDrag ? listeners : {})}
+      {...(canDrag ? attributes : {})}
       className={isDragging ? 'opacity-70' : ''}
     >
       <TaskCard
@@ -144,10 +146,12 @@ function DroppableColumn({
   status,
   tasks,
   onEdit,
+  getUserCanDragTask,
 }: {
   status: TaskStatus
   tasks: Task[]
   onEdit: (t: Task) => void
+  getUserCanDragTask: (task: Task) => boolean
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
   const style = COLUMN_STYLES[status]
@@ -168,7 +172,12 @@ function DroppableColumn({
           ${isOver ? 'bg-zinc-100' : ''}`}
       >
         {tasks.map((task) => (
-          <DraggableCard key={task.id} task={task} onEdit={onEdit} />
+          <DraggableCard
+            key={task.id}
+            task={task}
+            onEdit={onEdit}
+            canDrag={getUserCanDragTask(task)}
+          />
         ))}
         {tasks.length === 0 && (
           <div
@@ -190,6 +199,7 @@ export default function Task() {
   const navigate = useNavigate()
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [editTask, setEditTask] = useState<Task | null>(null)
+  const { user } = useAuth()
 
   const [tasks, setTasks] = useState<Task[]>([])
 
@@ -244,6 +254,23 @@ export default function Task() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
 
+  // Role checks ── owner or approver have full access; anyone else is assignee-only
+  const isOwner =
+    user &&
+    project?.data &&
+    String(user.user_id) === String(project.data.created_by)
+  const isApprover =
+    user &&
+    project?.data &&
+    String(user.user_id) === String(project.data.approver_id)
+  const isAssigneeOnly = !isOwner && !isApprover
+
+  // Assignees can only drag tasks where they are the assignee
+  const getUserCanDragTask = (task: Task): boolean => {
+    if (!isAssigneeOnly) return true
+    return user ? String(task.assignee_id) === String(user.user_id) : false
+  }
+
   function onDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id)
     if (task) setActiveTask(task)
@@ -292,12 +319,8 @@ export default function Task() {
         </button>
         <div className='flex items-center justify-between'>
           <div>
-            <h1 className='text-base font-semibold '>
-              {project?.name}
-            </h1>
-            <p className='text-xs font-mono mt-0.5'>
-              {project?.id}
-            </p>
+            <h1 className='text-base font-semibold '>{project?.name}</h1>
+            <p className='text-xs font-mono mt-0.5'>{project?.id}</p>
           </div>
 
           <div className='flex items-center gap-2'>
@@ -310,9 +333,12 @@ export default function Task() {
             <span className='text-xs ml-2'>
               {project?.startDate} → {project?.endDate}
             </span>
-            <Button size='sm' onClick={() => setTaskModalOpen(true)}>
-              + Add Task
-            </Button>
+            {/* Assignee-only restriction: hide + Add Task for pure assignees */}
+            {!isAssigneeOnly && (
+              <Button size='sm' onClick={() => setTaskModalOpen(true)}>
+                + Add Task
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -331,6 +357,7 @@ export default function Task() {
                 status={col}
                 tasks={tasks.filter((t) => t.status === col)}
                 onEdit={(t) => setEditTask(t)}
+                getUserCanDragTask={getUserCanDragTask}
               />
             ))}
           </div>
@@ -377,24 +404,24 @@ export default function Task() {
             prev.map((t) =>
               t.id === updated.id
                 ? {
-                  ...updated,
-                  status:
-                    (
-                      {
-                        todo: 'To Do',
-                        in_progress: 'In Progress',
-                        review: 'Review',
-                        done: 'Done',
-                      } as any
-                    )[updated.status] ?? updated.status,
-                  priority:
-                    updated.priority.charAt(0).toUpperCase() +
-                    updated.priority.slice(1),
-                  type:
-                    updated.type.charAt(0).toUpperCase() +
-                    updated.type.slice(1),
-                  assignee: updated.assignee_name ?? '—',
-                }
+                    ...updated,
+                    status:
+                      (
+                        {
+                          todo: 'To Do',
+                          in_progress: 'In Progress',
+                          review: 'Review',
+                          done: 'Done',
+                        } as any
+                      )[updated.status] ?? updated.status,
+                    priority:
+                      updated.priority.charAt(0).toUpperCase() +
+                      updated.priority.slice(1),
+                    type:
+                      updated.type.charAt(0).toUpperCase() +
+                      updated.type.slice(1),
+                    assignee: updated.assignee_name ?? '—',
+                  }
                 : t,
             ),
           )
