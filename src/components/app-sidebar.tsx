@@ -8,7 +8,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { BookOpen, GalleryVerticalEnd } from 'lucide-react'
+import { BookOpen, FolderOpenDot, GalleryVerticalEnd, Logs } from 'lucide-react'
 
 const data = {
   user: {
@@ -61,12 +61,27 @@ const data = {
     {
       title: 'Logs',
       url: '#',
-      icon: BookOpen,
+      icon: Logs,
       items: [
         {
           title: 'Audit Log',
           url: '/audit-logs',
         },
+      ],
+    },
+    { 
+      title: 'Projects',
+      url: '#',
+      icon: FolderOpenDot,
+      items: [
+        {
+          title: 'All Projects',
+          url: '/projects',
+        },
+        // {
+        //   title: 'All Tasks',
+        //   url: '/tasks',
+        // },
       ],
     },
   ],
