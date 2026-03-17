@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-export const updateDealSchema = z.object({
-  accountId: z.union([z.string(), z.number()]).optional(),
+export const createDealSchema = z.object({
+  accountId: z.union([z.string().min(1, "Account is required"), z.number()]),
   accountName: z.string().optional(),
   ticketId: z.union([z.string(), z.number()]).optional(),
   ticketNumber: z.union([z.string(), z.number()]).optional(),
@@ -13,15 +13,15 @@ export const updateDealSchema = z.object({
   caseStage: z.string().optional(),
   caseStatus: z.string().optional(),
   
-  disbursedAmount: z.union([z.string(), z.number()]).optional(),
-  sanctionAmount: z.union([z.string(), z.number()]).optional(),
-  approvedAmount: z.union([z.string(), z.number()]).optional(),
-  amountRequired: z.union([z.string(), z.number()]).optional(),
-  processingFees: z.union([z.string(), z.number()]).optional(),
-  mmCharges: z.union([z.string(), z.number()]).optional(),
-  insuranceAmount: z.union([z.string(), z.number()]).optional(),
-  pfPercentage: z.union([z.string(), z.number()]).optional(),
-  rateOfInterest: z.union([z.string(), z.number()]).optional(),
+  disbursedAmount: z.string().optional(),
+  sanctionAmount: z.string().optional(),
+  approvedAmount: z.string().optional(),
+  amountRequired: z.string().optional(),
+  processingFees: z.string().optional(),
+  mmCharges: z.string().optional(),
+  insuranceAmount: z.string().optional(),
+  pfPercentage: z.string().optional(),
+  rateOfInterest: z.string().optional(),
   interestType: z.string().optional(),
 
   dealCallBackDatetime: z.string().optional(),
@@ -41,10 +41,7 @@ export const updateDealSchema = z.object({
 
   paymentReceipt: z.string().optional(),
   potential: z.string().optional(),
-  product: z.string().optional(),
-
-  createdBy: z.string().optional(),
-  modifiedBy: z.string().optional(),
+  product: z.string().optional()
 })
 
-export type UpdateDealFormValues = z.infer<typeof updateDealSchema>
+export type CreateDealFormValues = z.infer<typeof createDealSchema>

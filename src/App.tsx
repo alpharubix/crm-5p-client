@@ -16,8 +16,12 @@ import AuditLogs from './components/log/audit-log'
 import HoliEffect from './components/holi-effect'
 import DealsPage from './pages/deals-page'
 import UpdateDeals from './components/deals/update-deals'
+<<<<<<< HEAD
 import Project from './components/projects/project'
 import Task from './components/projects/task'
+=======
+import CreateDeal from './components/deals/create-deals'
+>>>>>>> origin/dev
 
 export default function App() {
   return (
@@ -44,6 +48,7 @@ export default function App() {
             <Route path='/contacts/:id' element={<UpdateContacts />} />
             <Route path='/contacts-create' element={<CreateContact />} />
             <Route path='/deals' element={<DealsPage />} />
+            <Route path='/deals-create' element={<CreateDeal />} />
             {/* /deals/:id */}
             <Route path='/deals/:id' element={<UpdateDeals />} />
 
