@@ -20,6 +20,15 @@ import {
 } from '../ui/select'
 import { ENV } from '@/conf'
 
+const USERS_MAP: Record<string, string> = {
+  '3899927000000615348': 'Ashok M',
+  '3899927000000964875': 'Suraj Gupta',
+  '3899927000000882594': 'Myisa Beiucy',
+  '3899927000000723465': 'Kaveri Metri',
+  '3899927000000201013': 'Anslem Prathap',
+  '3899927000005965002': 'Subhasini TS',
+}
+
 interface Task {
   id: string
   title: string
@@ -87,18 +96,24 @@ export default function EditTaskModal({
     }
   }, [task])
 
-  const { data: usersData } = useQuery({
-    queryKey: ['users'],
+  const { data: projectData } = useQuery({
+    queryKey: ['project', projectId],
     queryFn: async () => {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/user/filter`, {
-        credentials: 'include',
-      })
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/projects/${projectId}`,
+        {
+          credentials: 'include',
+        },
+      )
       if (!res.ok) throw new Error('Failed')
       return res.json()
     },
   })
 
-  const users = usersData?.data ?? []
+  const users = (projectData?.actioner_ids ?? []).map((id: string) => ({
+    id: String(id),
+    name: USERS_MAP[String(id)] ?? id,
+  }))
 
   function set(key: string, value: string) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -243,13 +258,13 @@ export default function EditTaskModal({
                 <SelectValue placeholder='Select user' />
               </SelectTrigger>
               <SelectContent>
-                {users.map((u: { id: string; full_name: string }) => (
+                {users.map((u: { id: string; name: string }) => (
                   <SelectItem
                     key={u.id}
                     value={String(u.id)}
                     className='text-sm'
                   >
-                    {u.full_name}
+                    {u.name}
                   </SelectItem>
                 ))}
               </SelectContent>

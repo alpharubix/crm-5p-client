@@ -18,7 +18,6 @@ import {
   useDraggable,
 } from '@dnd-kit/core'
 import { useAuth } from '@/context/auth-context'
-import { isWindow } from '@dnd-kit/utilities'
 
 // ── Hardcoded Users ────────────────────────────────────────────────────────
 
@@ -130,7 +129,7 @@ function DraggableProjectCard({
     user &&
     project &&
     String(user.user_id) === String((project as any).approver_id)
-  const isAssigneeOnly = !isWindow && !isApprover
+  const isAssigneeOnly = !isOwner && !isApprover
 
   // An Approver can change Status + Team. Only Owner can change everything else.
   const overdue = checkOverdue(project.end_date, project.status)

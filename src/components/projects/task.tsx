@@ -255,14 +255,16 @@ export default function Task() {
   )
 
   // Role checks ── owner or approver have full access; anyone else is assignee-only
-  const isOwner =
+  const isOwner = !!(
     user &&
-    project?.data &&
-    String(user.user_id) === String(project.data.created_by)
-  const isApprover =
+    project &&
+    String(user.user_id) === String(project.created_by)
+  )
+  const isApprover = !!(
     user &&
-    project?.data &&
-    String(user.user_id) === String(project.data.approver_id)
+    project &&
+    String(user.user_id) === String(project.approver_id)
+  )
   const isAssigneeOnly = !isOwner && !isApprover
 
   // Assignees can only drag tasks where they are the assignee
@@ -334,7 +336,7 @@ export default function Task() {
               {project?.startDate} → {project?.endDate}
             </span>
             {/* Assignee-only restriction: hide + Add Task for pure assignees */}
-            {!isAssigneeOnly && (
+            {(isOwner || isApprover) && (
               <Button size='sm' onClick={() => setTaskModalOpen(true)}>
                 + Add Task
               </Button>

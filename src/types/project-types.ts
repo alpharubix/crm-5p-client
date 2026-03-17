@@ -6,6 +6,9 @@ export type Status =
   | 'On Hold'
   | 'Completed'
   | 'Cancelled'
+  | 'Pending Approve'
+  | 'Pending Review'
+  | 'Rejected'
 
 export type ProjectType = 'New' | 'Upgradation' | 'Modification'
 

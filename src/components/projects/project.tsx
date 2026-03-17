@@ -6,11 +6,11 @@ import CreateProjectForm from './create-project'
 import type { Project } from '@/types/project-types'
 import ProjectList from './project-list'
 import ProjectKanban from './project-kanban'
-import { DUMMY_PROJECTS } from '@/conf'
+// import { DUMMY_PROJECTS } from '@/conf'
 import { LayoutList, KanbanSquare } from 'lucide-react'
 
 export default function Project() {
-  const [projects, setProjects] = useState<Project[]>(DUMMY_PROJECTS)
+  const [projects, setProjects] = useState<Project[]>([])
   const [modalState, setModalState] = useState<'closed' | 'create' | 'detail'>(
     'closed',
   )
@@ -44,9 +44,7 @@ export default function Project() {
         <div className='flex items-center justify-between mb-6 shrink-0'>
           <div>
             <h1 className='text-lg font-semibold'>Projects</h1>
-            <p className='text-xs mt-0.5'>
-              {/* {projects.length} projects */}
-            </p>
+            <p className='text-xs mt-0.5'>{/* {projects.length} projects */}</p>
           </div>
           <div className='flex items-center gap-3'>
             {/* <div className="flex bg-muted p-1 rounded-md border">
