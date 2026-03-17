@@ -16,12 +16,9 @@ import AuditLogs from './components/log/audit-log'
 import HoliEffect from './components/holi-effect'
 import DealsPage from './pages/deals-page'
 import UpdateDeals from './components/deals/update-deals'
-<<<<<<< HEAD
 import Project from './components/projects/project'
 import Task from './components/projects/task'
-=======
 import CreateDeal from './components/deals/create-deals'
->>>>>>> origin/dev
 
 export default function App() {
   return (
