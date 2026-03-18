@@ -107,9 +107,9 @@ export default function EditProjectModal({
     }
   }, [project])
 
-  const users = Object.entries(USERS_MAP).map(([id, full_name]) => ({
+  const users = Object.entries(USERS_MAP).map(([id, name]) => ({
     id,
-    full_name,
+    name,
   }))
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -118,7 +118,7 @@ export default function EditProjectModal({
   }
 
   function toggleAssignee(user: any) {
-    const mapped: any = { id: user.id, name: user.full_name }
+    const mapped: any = { id: user.id, name: user.name }
     setForm((f) => {
       const exists = f.assignees.some((u) => u.id === mapped.id)
       return {
@@ -334,7 +334,7 @@ export default function EditProjectModal({
           <div>
             <Label className='text-xs font-medium'>Team Members</Label>
             <div className='mt-1 border border-zinc-200 rounded-md overflow-hidden divide-y divide-zinc-100 max-h-40 overflow-y-auto'>
-              {users.map((user: { id: string; full_name: string }) => {
+              {users.map((user: { id: string; name: string }) => {
                 const selected = form.assignees.some((u) => u.id === user.id)
                 return (
                   <div
@@ -364,11 +364,11 @@ export default function EditProjectModal({
                       )}
                     </div>
                     <div className='w-6 h-6 rounded-full bg-zinc-200 text-zinc-600 flex items-center justify-center text-xs font-semibold shrink-0'>
-                      {user.full_name[0]}
+                      {user.name[0]}
                     </div>
                     <div className='min-w-0'>
                       <p className='text-sm leading-none text-zinc-800'>
-                        {user.full_name}
+                        {user.name}
                       </p>
                     </div>
                   </div>
@@ -386,7 +386,7 @@ export default function EditProjectModal({
                     {u.name}
                     <button
                       onClick={() =>
-                        toggleAssignee({ id: u.id, full_name: u.name })
+                        toggleAssignee({ id: u.id, name: u.name })
                       }
                       className='hover:text-red-500 transition-colors ml-0.5'
                     >

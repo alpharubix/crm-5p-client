@@ -130,6 +130,9 @@ function DraggableProjectCard({
     project &&
     String(user.user_id) === String((project as any).approver_id)
   const isAssigneeOnly = !isOwner && !isApprover
+  const isPending =
+    project.status === 'pending_for_approve' ||
+    project.status === 'pending_for_review'
 
   // An Approver can change Status + Team. Only Owner can change everything else.
   const overdue = checkOverdue(project.end_date, project.status)
@@ -149,8 +152,8 @@ function DraggableProjectCard({
   return (
     <div
       ref={setNodeRef}
-      {...(!isAssigneeOnly ? listeners : {})}
-      {...(!isAssigneeOnly ? attributes : {})}
+      {...(!isAssigneeOnly && !isPending ? listeners : {})}
+      {...(!isAssigneeOnly && !isPending ? attributes : {})}
       className={isDragging ? 'opacity-50' : ''}
     >
       <Card
@@ -161,7 +164,9 @@ function DraggableProjectCard({
             ? 'border-l-red-400 border hover:bg-red-50/60'
             : 'border-l-blue-300 border hover:bg-muted/30'
         }`}
-        onClick={() => navigate(`/projects/${project.id}`)}
+        onClick={() => {
+          if (isOwner || isApprover) navigate(`/projects/${project.id}`)
+        }}
       >
         <CardContent className='p-3 text-sm grid gap-1'>
           <div className='flex justify-between items-start gap-2'>

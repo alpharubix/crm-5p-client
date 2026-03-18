@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '../ui/select'
 import { ENV } from '@/conf'
+import { useAuth } from '@/context/auth-context'
 
 const USERS_MAP: Record<string, string> = {
   '3899927000000615348': 'Ashok M',
@@ -80,8 +81,42 @@ export default function EditTaskModal({
     status: '',
     assignee_id: '',
   })
-
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const [comment, setComment] = useState('')
+
+  const { data: commentsData, refetch: refetchComments } = useQuery({
+    queryKey: ['comments', task?.id],
+    queryFn: async () => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/projects/${projectId}/tasks/${task?.id}/comments`,
+        { credentials: 'include' },
+      )
+      if (!res.ok) throw new Error('Failed')
+      return res.json()
+    },
+    enabled: !!task?.id,
+  })
+
+  const commentMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/projects/${projectId}/tasks/${task?.id}/comments`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+        },
+      )
+      if (!res.ok) throw new Error('Failed to post comment')
+      return res.json()
+    },
+    onSuccess: () => {
+      setComment('')
+      refetchComments()
+    },
+  })
 
   useEffect(() => {
     if (task) {
@@ -93,6 +128,7 @@ export default function EditTaskModal({
         status: REVERSE_STATUS[task.status] ?? task.status.toLowerCase(),
         assignee_id: task.assignee_id ?? '',
       })
+      setComment('')
     }
   }, [task])
 
@@ -154,7 +190,7 @@ export default function EditTaskModal({
         if (!o) onClose()
       }}
     >
-      <DialogContent className='max-w-md'>
+      <DialogContent className='max-w-lg'>
         <DialogHeader>
           <DialogTitle className='text-base font-semibold'>
             Edit Task
@@ -269,6 +305,55 @@ export default function EditTaskModal({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          {/* Comments */}
+          <div>
+            <Label className='text-xs font-medium'>Comments</Label>
+
+            <div className='mt-2 space-y-2 max-h-48 overflow-y-auto pr-1'>
+              {(commentsData?.data ?? []).length === 0 && (
+                <p className='text-xs text-zinc-400'>No comments yet.</p>
+              )}
+              {Array.isArray(commentsData?.data) &&
+                commentsData.data.map((c: any) => (
+                  <div key={c.id} className='flex gap-2 text-xs'>
+                    <div className='w-6 h-6 rounded-full bg-zinc-200 text-zinc-600 flex items-center justify-center shrink-0 font-medium uppercase text-[10px]'>
+                      {c.user_name?.charAt(0) ?? '?'}
+                    </div>
+                    <div className='flex-1'>
+                      <div className='flex items-baseline gap-1.5'>
+                        <span className='font-medium text-zinc-700'>
+                          {c.user_name}
+                        </span>
+                        <span className='text-zinc-400 text-[10px]'>
+                          {c.created_at}
+                        </span>
+                      </div>
+                      <p className='text-zinc-600 mt-0.5 leading-snug'>
+                        {c.content}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            <div className='mt-2 flex gap-2'>
+              <Textarea
+                className='text-sm resize-none flex-1'
+                rows={2}
+                placeholder='Add a comment...'
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <Button
+                size='sm'
+                className='self-end'
+                disabled={!comment.trim() || commentMutation.isPending}
+                onClick={() => commentMutation.mutate(comment.trim())}
+              >
+                {commentMutation.isPending ? 'Posting...' : 'Post'}
+              </Button>
+            </div>
           </div>
         </div>
 

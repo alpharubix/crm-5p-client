@@ -274,7 +274,7 @@ export default function CreateProjectForm({
                 <div
                   key={user.id}
                   onClick={() =>
-                    toggleAssignee({ id: user.id, full_name: user.name })
+                    toggleAssignee({ id: user.id, name: user.name })
                   }
                   className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors
         ${selected ? 'bg-zinc-50' : 'hover:bg-zinc-50'}`}
