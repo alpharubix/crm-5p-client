@@ -22,6 +22,14 @@ import {
   type UpdateContactFormValues,
 } from '@/validators/updateContact.schema'
 import { ENV } from '@/conf'
+import { formatExactDate } from '@/utils/date-formatter'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 function mapContactToForm(apiData: any): UpdateContactFormValues {
   return {
@@ -81,6 +89,7 @@ export default function UpdateContacts() {
   const { id } = useParams()
   const queryClient = useQueryClient()
   const [isEdit, setIsEdit] = useState(false)
+  const [openAllNotes, setOpenAllNotes] = useState(false)
   const navigate = useNavigate()
 
   const {
@@ -121,6 +130,14 @@ export default function UpdateContacts() {
   const userName = contactData?.contact_owner?.full_name
   const accountId = contactData?.parent_account?.id
   // console.log(accountId)
+
+  const notes = contactData?.notes || []
+
+  const sortedNotes = [...notes].sort((a: any, b: any) => {
+    return (
+      new Date(b.Created_Time).getTime() - new Date(a.Created_Time).getTime()
+    )
+  })
 
   useEffect(() => {
     if (contactData) {
@@ -171,6 +188,30 @@ export default function UpdateContacts() {
     updateMutation.mutate(values)
   }
 
+  const handleAddNote = async (note: { description: string }) => {
+    try {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: id,
+          note: note.description,
+          module: 'Contacts',
+        }),
+      })
+
+      if (res.ok) {
+        toast.success('Note added successfully')
+        queryClient.invalidateQueries({ queryKey: ['contact', id] })
+      } else {
+        toast.error('Failed to add note')
+      }
+    } catch (err) {
+      toast.error('Network error')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className='flex items-center justify-center p-8'>
@@ -183,14 +224,26 @@ export default function UpdateContacts() {
     return <div className='p-4'>Contact not found</div>
   }
 
+  const MAX_NOTES_VISIBLE = 3
+  const showViewMore = sortedNotes.length > MAX_NOTES_VISIBLE
+  const visibleNotes = showViewMore
+    ? sortedNotes.slice(0, MAX_NOTES_VISIBLE)
+    : sortedNotes
+
   return (
     <div className='space-y-6 bg-background min-h-screen'>
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
-        <h1 className='text-lg font-semibold'>
-          Contact Owner:{' '}
-          <span className='text-primary font-bold'>{userName}</span>
-        </h1>
+        <div>
+          <h1 className='text-lg font-semibold'>
+            Account Name:{' '}
+            <span className='text-primary font-bold'>{data.accountName}</span>
+          </h1>
+          <h1 className='text-lg font-semibold'>
+            Contact Owner:{' '}
+            <span className='text-primary font-bold'>{userName}</span>
+          </h1>
+        </div>
         <div className='flex items-center gap-2'>
           {!isEdit ? (
             <Button
@@ -271,7 +324,7 @@ export default function UpdateContacts() {
                   'Swastik',
                   'Unicharm',
                   'Vibhava Marketing',
-                  'R1X Website'
+                  'R1X Website',
                 ]}
                 onChange={(v) =>
                   setValue('leadSource', v, { shouldDirty: true })
@@ -389,6 +442,92 @@ export default function UpdateContacts() {
               )}
             </FieldRow>
           </div>
+        </CardContent>
+
+        {/* ================= Notes ================= */}
+        <SectionHeader title='Notes' />
+
+        <CardContent className='p-4 space-y-3'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground'>
+              Total Notes:{' '}
+              <span className='font-semibold'>{sortedNotes.length}</span>
+            </p>
+
+            {showViewMore && (
+              <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
+                <DialogTrigger asChild>
+                  <Button
+                    size='sm'
+                    className='cursor-pointer'
+                    variant='outline'
+                  >
+                    View More
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent className='min-w-4xl'>
+                  <DialogHeader>
+                    <DialogTitle>All Notes ({sortedNotes.length})</DialogTitle>
+                  </DialogHeader>
+
+                  <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
+                    {sortedNotes.map((note: any, i: number) => (
+                      <div
+                        key={note.parent_id || i}
+                        className='bg-muted/30 p-3 rounded-lg border'
+                      >
+                        <p className='text-sm'>{note.Note_Content}</p>
+
+                        <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                          <span>
+                            Created By: {note.Created_By?.name || '—'}
+                          </span>
+                          <span>
+                            Created Date:{' '}
+                            {formatExactDate(
+                              note.Created_Time,
+                              'dd MMM yyyy, hh:mm a',
+                            ) || '—'}
+                          </span>
+                          <div className='font-bold'>
+                            Module : {note.module}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
+          {notes.length === 0 ? (
+            <p className='text-sm text-muted-foreground'>No notes available</p>
+          ) : (
+            visibleNotes.map((note: any, i: number) => (
+              <div
+                key={note.parent_id || i}
+                className='bg-muted/30 p-3 rounded-lg border'
+              >
+                <p className='text-sm'>{note.Note_Content}</p>
+
+                <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                  <span>Created By: {note.Created_By?.name || '—'}</span>
+                  <span>
+                    Created Date:{' '}
+                    {formatExactDate(
+                      note.Created_Time,
+                      'dd MMM yyyy, hh:mm a',
+                    ) || '—'}
+                  </span>
+                  <div className='font-bold'>Module : {note.module}</div>
+                </div>
+              </div>
+            ))
+          )}
+
+          <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
       </Card>
     </div>
