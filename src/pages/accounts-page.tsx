@@ -258,22 +258,23 @@ export default function AccountsPage() {
                 <SelectValue placeholder='Account Status' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='Awareness'>Awareness</SelectItem>
-                <SelectItem value='Attention'>Attention</SelectItem>
-                <SelectItem value='Assessment'>Assessment</SelectItem>
-                <SelectItem value='Not Interested'>Not Interested</SelectItem>
-                <SelectItem value='Location Unserviceable'>
-                  Location Unserviceable
-                </SelectItem>
-                <SelectItem value='Lender Review'>Lender Review</SelectItem>
                 <SelectItem value='Yet to be dialed'>
                   Yet to be dialed
                 </SelectItem>
+                <SelectItem value='Wrong Number'>Wrong Number</SelectItem>
                 <SelectItem value='Contact Established'>
                   Contact Established
                 </SelectItem>
                 <SelectItem value='Contact Not Established'>
                   Contact Not Established
+                </SelectItem>
+                <SelectItem value='Awareness'>Awareness</SelectItem>
+                <SelectItem value='Attention'>Attention</SelectItem>
+                <SelectItem value='Assessment'>Assessment</SelectItem>
+                <SelectItem value='Lender Review'>Lender Review</SelectItem>
+                <SelectItem value='Not Interested'>Not Interested</SelectItem>
+                <SelectItem value='Location Unserviceable'>
+                  Location Unserviceable
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -437,7 +438,9 @@ export default function AccountsPage() {
                             />
                           </TableCell>
                           <TableCell className='text-primary'>
-                            {(users as Record<string, string>)[acc.account_owner_id] || '—'}
+                            {(users as Record<string, string>)[
+                              acc.account_owner_id
+                            ] || '—'}
                           </TableCell>
                           <TableCell className='text-primary'>
                             {acc.account_status || '—'}

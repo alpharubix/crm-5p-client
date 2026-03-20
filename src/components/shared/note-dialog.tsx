@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { PlusCircle } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
@@ -77,10 +77,13 @@ export default function NoteDialog({ onAddNote }: NoteDialogProps) {
     // Replace all "@name" with "crm[user#id]crm"
     mentionedUsers.forEach((user) => {
       // Use regex to replace exact name safely
-      const regex = new RegExp(`@${user.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g')
+      const regex = new RegExp(
+        `@${user.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`,
+        'g',
+      )
       finalDescription = finalDescription.replace(
         regex,
-        `crm[user#${user.id}]crm`
+        `crm[user#${user.id}]crm`,
       )
     })
 
@@ -126,20 +129,24 @@ export default function NoteDialog({ onAddNote }: NoteDialogProps) {
   const filteredUsers =
     mentionQuery !== null
       ? usersList.filter((u) =>
-          u.name.toLowerCase().includes(mentionQuery.toLowerCase())
+          u.name.toLowerCase().includes(mentionQuery.toLowerCase()),
         )
       : []
 
-  const { ref: formRef, onChange: formOnChange, ...restRegister } = register(
-    'description'
-  )
+  const {
+    ref: formRef,
+    onChange: formOnChange,
+    ...restRegister
+  } = register('description')
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant='ghost' size='sm' className='w-full cursor-pointer'>
-          <PlusCircle className='w-4 h-4 mr-2' /> Add Note
-        </Button>
+        <div className='flex justify-center items-center'>
+          <Button variant='outline' size='sm' className='cursor-pointer'>
+            <Plus className='w-4 h-4 mr-2' /> Add Note
+          </Button>
+        </div>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[425px] overflow-visible'>
         <DialogHeader>
@@ -166,7 +173,9 @@ export default function NoteDialog({ onAddNote }: NoteDialogProps) {
                   const textBeforeCursor = val.substring(0, cursor)
 
                   // Match '@' preceded by space or start of string
-                  const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9 ]{0,30})$/)
+                  const match = textBeforeCursor.match(
+                    /(?:^|\s)@([a-zA-Z0-9 ]{0,30})$/,
+                  )
                   if (match) {
                     setMentionQuery(match[1])
                     setMentionStart(cursor - match[1].length - 1)
@@ -176,9 +185,7 @@ export default function NoteDialog({ onAddNote }: NoteDialogProps) {
                 }}
               />
               {mentionQuery !== null && filteredUsers.length > 0 && (
-                <div
-                  className='absolute z-50 w-full max-h-[160px] overflow-y-auto bg-popover border rounded-md shadow-md mt-1 bottom-full mb-1'
-                >
+                <div className='absolute z-50 w-full max-h-40 overflow-y-auto bg-popover border rounded-md shadow-md mt-1 bottom-full mb-1'>
                   {filteredUsers.map((user) => (
                     <div
                       key={user.id}

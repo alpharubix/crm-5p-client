@@ -264,7 +264,7 @@ const DealsPage = () => {
 
           {/* Account Name */}
           <div className="space-y-2">
-            <Label>Account Name</Label>
+            <Label>Deal Name</Label>
             <Input
               placeholder="Account Name"
               value={filters.accountName}
