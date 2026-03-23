@@ -169,7 +169,7 @@ function DroppableColumn({
       <div
         ref={setNodeRef}
         className={`flex flex-col gap-2 min-h-[120px] rounded-md transition-colors p-1
-          ${isOver ? 'bg-zinc-100' : ''}`}
+          ${isOver ? 'bg-accent' : ''}`}
       >
         {tasks.map((task) => (
           <DraggableCard
@@ -335,12 +335,9 @@ export default function Task() {
             <span className='text-xs ml-2'>
               {project?.startDate} → {project?.endDate}
             </span>
-            {/* Assignee-only restriction: hide + Add Task for pure assignees */}
-            {(isOwner || isApprover) && (
-              <Button size='sm' onClick={() => setTaskModalOpen(true)}>
-                + Add Task
-              </Button>
-            )}
+            <Button size='sm' onClick={() => setTaskModalOpen(true)}>
+              + Add Task
+            </Button>
           </div>
         </div>
       </div>

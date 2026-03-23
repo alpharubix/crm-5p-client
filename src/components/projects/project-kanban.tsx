@@ -134,6 +134,8 @@ function DraggableProjectCard({
     project.status === 'pending_for_approve' ||
     project.status === 'pending_for_review'
 
+  const canDrag = !isPending || !!isApprover
+
   // An Approver can change Status + Team. Only Owner can change everything else.
   const overdue = checkOverdue(project.end_date, project.status)
   const isInitiator =
@@ -152,13 +154,13 @@ function DraggableProjectCard({
   return (
     <div
       ref={setNodeRef}
-      {...(!isAssigneeOnly && !isPending ? listeners : {})}
-      {...(!isAssigneeOnly && !isPending ? attributes : {})}
+      {...(canDrag ? listeners : {})}
+      {...(canDrag ? attributes : {})}
       className={isDragging ? 'opacity-50' : ''}
     >
       <Card
         className={`transition-colors shadow-sm py-0 gap-0 overflow-hidden border-l-4 ${
-          isAssigneeOnly ? 'cursor-default' : 'cursor-grab'
+          canDrag ? 'cursor-grab' : 'cursor-default'
         } ${
           overdue
             ? 'border-l-red-400 border hover:bg-red-50/60'
