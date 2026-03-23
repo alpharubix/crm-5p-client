@@ -321,7 +321,8 @@ export default function UpdateAccounts() {
         credentials: 'include',
         body: JSON.stringify({
           id: id,
-          note: note.description, // Using description as the note content
+          note: note.description,
+          module: 'Accounts',
         }),
       })
 
@@ -412,9 +413,8 @@ export default function UpdateAccounts() {
           <div className='md:border-r'>
             <FieldRow label='Assignment Date'>
               <span>
-                {data.assignmentDate
-                  ? new Date(data.assignmentDate).toLocaleDateString()
-                  : '—'}
+                {formatExactDate(data.assignmentDate, 'dd MMM yyyy, hh:mm a') ||
+                  '—'}
               </span>
             </FieldRow>
 
@@ -497,19 +497,16 @@ export default function UpdateAccounts() {
                 value={data.accountStatus}
                 isEdit={isEdit}
                 options={[
+                  'Yet to be dialed',
+                  'Wrong Number',
+                  'Contact Established',
+                  'Contact Not Established',
                   'Awareness',
                   'Attention',
                   'Assessment',
+                  'Lender Review',
                   'Not Interested',
                   'Location Unserviceable',
-                  'Lender Review',
-                  'Yet to be dialed',
-                  'Contact Established',
-                  'Contact Not Established',
-                  'Wrong Number',
-                  'Yet to be dialed',
-                  'Contact Established',
-                  'Contact Not Established',
                 ]}
                 onChange={(v) =>
                   setValue('accountStatus', v, { shouldDirty: true })
@@ -1069,12 +1066,32 @@ export default function UpdateAccounts() {
                       </TableCell>
                       <TableCell>{deal.deal_type || '—'}</TableCell>
                       <TableCell>{deal.case_stage || '—'}</TableCell>
-                      <TableCell>{formatAmount(deal.disbursement_amount) || '—'}</TableCell>
+                      <TableCell>
+                        {formatAmount(deal.disbursement_amount) || '—'}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          <div className='flex justify-center'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() =>
+                navigate(`/deals-create`, {
+                  state: {
+                    accountId: id,
+                    accountName: accountData?.account_name,
+                  },
+                })
+              }
+            >
+              <Plus className='h-4 w-4 mr-2' />
+              Add Deal
+            </Button>
           </div>
         </div>
 
