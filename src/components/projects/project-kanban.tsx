@@ -322,7 +322,7 @@ function DroppableProjectColumn({
     <div
       ref={setNodeRef}
       className={`min-w-[280px] w-full flex flex-col gap-3 h-full p-2 rounded-lg border transition-colors ${
-        isOver ? 'bg-zinc-100 border-zinc-300' : 'bg-zinc-50/50 border-border'
+        isOver ? 'border-zinc-300' : 'border-border'
       }`}
     >
       <div
@@ -440,7 +440,7 @@ export default function ProjectKanban() {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div className='flex gap-4 pb-4 overflow-x-auto items-start h-[calc(100vh-200px)]'>
+        <div className='flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0'>
           {COLUMNS.map((col) => {
             const colProjects = projectList.filter(
               (p) => p.status === STATUS_MAP[col],

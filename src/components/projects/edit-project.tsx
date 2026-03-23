@@ -333,7 +333,7 @@ export default function EditProjectModal({
           {/* Team */}
           <div>
             <Label className='text-xs font-medium'>Team Members</Label>
-            <div className='mt-1 border border-zinc-200 rounded-md overflow-hidden divide-y divide-zinc-100 max-h-40 overflow-y-auto'>
+            <div className='mt-1 border rounded-md overflow-hidden divide-y max-h-40 overflow-y-auto'>
               {users.map((user: { id: string; name: string }) => {
                 const selected = form.assignees.some((u) => u.id === user.id)
                 return (
@@ -341,15 +341,15 @@ export default function EditProjectModal({
                     key={user.id}
                     onClick={() => toggleAssignee(user)}
                     className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors
-                      ${selected ? 'bg-zinc-50' : 'hover:bg-zinc-50'}`}
+                      ${selected ? 'bg-accent' : 'hover:bg-accent'}`}
                   >
                     <div
                       className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors
-                      ${selected ? 'bg-zinc-900 border-zinc-900' : 'border-zinc-300'}`}
+                      ${selected ? 'bg-zinc-900' : 'border-zinc-300'}`}
                     >
                       {selected && (
                         <svg
-                          className='w-2.5 h-2.5 text-white'
+                          className='w-2.5 h-2.5'
                           fill='none'
                           viewBox='0 0 10 10'
                         >
@@ -367,9 +367,7 @@ export default function EditProjectModal({
                       {user.name[0]}
                     </div>
                     <div className='min-w-0'>
-                      <p className='text-sm leading-none text-zinc-800'>
-                        {user.name}
-                      </p>
+                      <p className='text-sm leading-none '>{user.name}</p>
                     </div>
                   </div>
                 )
@@ -383,11 +381,9 @@ export default function EditProjectModal({
                     variant='secondary'
                     className='text-xs gap-1 pl-2 pr-1'
                   >
-                    {u.name}
+                    {USERS_MAP[u.id]}
                     <button
-                      onClick={() =>
-                        toggleAssignee({ id: u.id, name: u.name })
-                      }
+                      onClick={() => toggleAssignee({ id: u.id, name: u.name })}
                       className='hover:text-red-500 transition-colors ml-0.5'
                     >
                       <X size={10} />

@@ -25,7 +25,7 @@ const signInSchema = z.object({
 
 type SignInFormValues = z.infer<typeof signInSchema>
 
-export function SignInPage({
+export default function SignInPage({
   className,
   ...props
 }: React.ComponentProps<'div'>) {
@@ -64,7 +64,7 @@ export function SignInPage({
     <div
       className={cn(
         'flex flex-col max-w-[400px] p-4 mx-auto gap-6 h-screen justify-center',
-        className
+        className,
       )}
       {...props}
     >
