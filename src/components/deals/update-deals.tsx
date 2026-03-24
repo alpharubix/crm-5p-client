@@ -12,8 +12,16 @@ import SectionHeader from '@/components/shared/section-header'
 import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
 import DateField from '@/components/shared/date-field'
+import NoteDialog from '@/components/shared/note-dialog'
 import { Spinner } from '@/components/ui/spinner'
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { ENV } from '@/conf'
 import type { Deal } from '@/types'
 import users from '@/utils/users.json'
@@ -211,6 +219,7 @@ export default function UpdateDeals() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [isEdit, setIsEdit] = useState(false)
+  const [openAllNotes, setOpenAllNotes] = useState(false)
 
   const {
     register,
@@ -258,6 +267,14 @@ export default function UpdateDeals() {
 
   const dealData: Deal = dealResponse?.data?.[0] || dealResponse?.data
 
+  const notes = (dealData as any)?.notes || []
+
+  const sortedNotes = [...notes].sort((a: any, b: any) => {
+    return (
+      new Date(b.Created_Time).getTime() - new Date(a.Created_Time).getTime()
+    )
+  })
+
   useEffect(() => {
     if (dealData) {
       reset(mapDealToForm(dealData))
@@ -296,6 +313,30 @@ export default function UpdateDeals() {
     updateMutation.mutate(values)
   }
 
+  const handleAddNote = async (note: { description: string }) => {
+    try {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: id,
+          note: note.description,
+          module: 'Deals',
+        }),
+      })
+
+      if (res.ok) {
+        toast.success('Note added successfully')
+        queryClient.invalidateQueries({ queryKey: ['deal', id] })
+      } else {
+        toast.error('Failed to add note')
+      }
+    } catch (err) {
+      toast.error('Network error')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className='flex items-center justify-center min-h-screen'>
@@ -312,13 +353,19 @@ export default function UpdateDeals() {
     )
   }
 
+  const MAX_NOTES_VISIBLE = 3
+  const showViewMore = sortedNotes.length > MAX_NOTES_VISIBLE
+  const visibleNotes = showViewMore
+    ? sortedNotes.slice(0, MAX_NOTES_VISIBLE)
+    : sortedNotes
+
   return (
     <div className='space-y-6 bg-background min-h-screen mb-10'>
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
           <h1 className='text-lg font-semibold'>
-            Deal:{' '}
+            Deal Name:{' '}
             <span className='text-primary font-bold '>
               {dealData.account_name || `#${dealData.id}`}
             </span>{' '}
@@ -1077,6 +1124,92 @@ export default function UpdateDeals() {
               )}
             </FieldRow>
           </div>
+        </CardContent>
+
+        {/* ================= Notes ================= */}
+        <SectionHeader title='Notes' />
+
+        <CardContent className='p-4 space-y-3'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground'>
+              Total Notes:{' '}
+              <span className='font-semibold'>{sortedNotes.length}</span>
+            </p>
+
+            {showViewMore && (
+              <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
+                <DialogTrigger asChild>
+                  <Button
+                    size='sm'
+                    className='cursor-pointer'
+                    variant='outline'
+                  >
+                    View More
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent className='min-w-4xl'>
+                  <DialogHeader>
+                    <DialogTitle>All Notes ({sortedNotes.length})</DialogTitle>
+                  </DialogHeader>
+
+                  <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
+                    {sortedNotes.map((note: any, i: number) => (
+                      <div
+                        key={note.parent_id || i}
+                        className='bg-muted/30 p-3 rounded-lg border'
+                      >
+                        <p className='text-sm'>{note.Note_Content}</p>
+
+                        <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                          <span>
+                            Created By: {note.Created_By?.name || '—'}
+                          </span>
+                          <span>
+                            Created Date:{' '}
+                            {formatExactDate(
+                              note.Created_Time,
+                              'dd MMM yyyy, hh:mm a',
+                            ) || '—'}
+                          </span>
+                          <div className='font-bold'>
+                            Module : {note.module}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
+          {notes.length === 0 ? (
+            <p className='text-sm text-muted-foreground'>No notes available</p>
+          ) : (
+            visibleNotes.map((note: any, i: number) => (
+              <div
+                key={note.parent_id || i}
+                className='bg-muted/30 p-3 rounded-lg border'
+              >
+                <p className='text-sm'>{note.Note_Content}</p>
+
+                <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                  <span>Created By: {note.Created_By?.name || '—'}</span>
+                  <span>
+                    Created Date:{' '}
+                    {formatExactDate(
+                      note.Created_Time,
+                      'dd MMM yyyy, hh:mm a',
+                    ) || '—'}
+                  </span>
+                  <div className='font-bold'>Module : {note.module}</div>
+                </div>
+              </div>
+            ))
+          )}
+
+          <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
       </Card>
     </div>

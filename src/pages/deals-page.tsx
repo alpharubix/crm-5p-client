@@ -270,8 +270,8 @@ const DealsPage = () => {
           <h3 className='font-semibold text-sm'>Filter Deals by</h3>
 
           {/* Account Name */}
-          <div className='space-y-2'>
-            <Label>Account Name</Label>
+          <div className="space-y-2">
+            <Label>Deal Name</Label>
             <Input
               placeholder='Account Name'
               value={filters.accountName}
