@@ -29,8 +29,16 @@ const USERS_MAP: Record<string, string> = {
   '3899927000000201013': 'Anslem Prathap',
   '3899927000005965002': 'Subhasini TS',
 }
-
-const STATUS_MAP: Record<string, string> = {
+// 1. Add this interface at the top
+export interface ProjectFilters {
+  search: string
+  assignee_id: string
+  start_date: string
+  end_date: string
+  project_type: string
+  status: string
+}
+export const STATUS_MAP: Record<string, string> = {
   Planning: 'planning',
   Active: 'active',
   'On Hold': 'on_hold',
@@ -90,6 +98,7 @@ const COLUMNS = [
   'Cancelled',
   'Pending Review',
   'Rejected',
+  'Completed',
 ]
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -134,7 +143,10 @@ function DraggableProjectCard({
     project.status === 'pending_for_approve' ||
     project.status === 'pending_for_review'
 
-  const canDrag = !isPending || !!isApprover
+  const isCompleted = project.status === 'completed'
+  const isRejected = project.status === 'rejected'
+
+  const canDrag = !isCompleted && !isRejected && (!isPending || !!isApprover)
 
   // An Approver can change Status + Team. Only Owner can change everything else.
   const overdue = checkOverdue(project.end_date, project.status)
@@ -361,7 +373,11 @@ function DroppableProjectColumn({
   )
 }
 
-export default function ProjectKanban() {
+export default function ProjectKanban({
+  filters,
+}: {
+  filters: ProjectFilters
+}) {
   const [editProject, setEditProject] = useState<Project | null>(null)
   const [activeProject, setActiveProject] = useState<any>(null)
   const queryClient = useQueryClient()
@@ -372,11 +388,26 @@ export default function ProjectKanban() {
   )
 
   const { data: projects } = useQuery({
-    queryKey: ['projects'],
+    // Include filters in the queryKey so it refetches when filters change
+    queryKey: ['projects', filters],
     queryFn: async () => {
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/projects`, {
-        credentials: 'include',
-      })
+      // Build the query string
+      const params = new URLSearchParams()
+      if (filters.search) params.append('search', filters.search)
+      if (filters.assignee_id !== 'all')
+        params.append('assignee_id', filters.assignee_id)
+      if (filters.start_date) params.append('start_date', filters.start_date)
+      if (filters.end_date) params.append('end_date', filters.end_date)
+      if (filters.project_type !== 'all')
+        params.append('project_type', filters.project_type)
+      if (filters.status !== 'all') params.append('status', filters.status)
+
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/projects?${params.toString()}`,
+        {
+          credentials: 'include',
+        },
+      )
       if (res.status === 403) return { forbidden: true }
       if (!res.ok) throw new Error('Failed')
       return res.json()
@@ -400,7 +431,7 @@ export default function ProjectKanban() {
     const { active, over } = event
     setActiveProject(null)
     if (!over) return
-
+    if (over.id === 'Completed') return
     const newStatus = STATUS_MAP[String(over.id)]
 
     // optimistic update

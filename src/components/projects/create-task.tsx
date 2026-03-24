@@ -26,7 +26,7 @@ interface CreateTaskModalProps {
   projectId: string
   onCreated: (task: any) => void
 }
-const USERS_MAP: Record<string, string> = {
+export const USERS_MAP: Record<string, string> = {
   '3899927000000615348': 'Ashok M',
   '3899927000000964875': 'Suraj Gupta',
   '3899927000000882594': 'Myisa Beiucy',
