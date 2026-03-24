@@ -29,6 +29,17 @@ export const STATUSES: Status[] = [
   'Rejected',
 ]
 
+export const API_TO_STATUS: Record<string, Status> = {
+  planning: 'Planning',
+  active: 'Active',
+  on_hold: 'On Hold',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  pending_for_approve: 'Pending Approve',
+  pending_for_review: 'Pending Review',
+  rejected: 'Rejected',
+}
+
 export const PROJECT_TYPES: string[] = ['New', 'Upgradation', 'Modification']
 
 export const PRIORITY_STYLES: Record<Priority, string> = {

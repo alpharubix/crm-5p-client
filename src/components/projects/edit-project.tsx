@@ -20,7 +20,7 @@ import {
 } from '../ui/select'
 import { Badge } from '../ui/badge'
 import { X } from 'lucide-react'
-import { ENV, PRIORITIES, PROJECT_TYPES, STATUSES } from '@/conf'
+import { API_TO_STATUS, ENV, PRIORITIES, PROJECT_TYPES, STATUSES } from '@/conf'
 import type {
   Priority,
   Project,
@@ -29,6 +29,7 @@ import type {
   Status,
 } from '@/types/project-types'
 import { useAuth } from '@/context/auth-context'
+import { STATUS_MAP } from './project-kanban'
 
 const USERS_MAP: Record<string, string> = {
   '3899927000000615348': 'Ashok M',
@@ -77,6 +78,7 @@ export default function EditProjectModal({
     startDate: '',
     endDate: '',
     projectType: '',
+    approverId: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -126,10 +128,7 @@ export default function EditProjectModal({
           ? ((project.priority.charAt(0).toUpperCase() +
               project.priority.slice(1)) as Priority)
           : '',
-        status: project.status
-          ? ((project.status.charAt(0).toUpperCase() +
-              project.status.replace('_', ' ').slice(1)) as Status)
-          : '',
+        status: API_TO_STATUS[project.status ?? ''] ?? '',
         assignees: ((project as any).actioner_ids ?? []).map((id: number) => ({
           id: String(id),
           name: String(id),
@@ -140,6 +139,7 @@ export default function EditProjectModal({
           ? (project as any).project_type.charAt(0).toUpperCase() +
             (project as any).project_type.slice(1)
           : '',
+        approverId: String((project as any).approver_id ?? ''),
       })
       setActiveTab('details')
       setErrors({})
@@ -190,10 +190,11 @@ export default function EditProjectModal({
             name: body.name,
             description: body.description,
             priority: body.priority.toLowerCase(),
-            status: body.status.toLowerCase().replace(' ', '_'),
+            status: STATUS_MAP[body.status] ?? body.status.toLowerCase(),
             start_date: body.startDate,
             end_date: body.endDate,
             actioner_ids: body.assignees.map((u) => u.id),
+            approver_id: body.approverId,
           }),
         },
       )
@@ -443,6 +444,25 @@ export default function EditProjectModal({
                       {PROJECT_TYPES.map((s) => (
                         <SelectItem key={s} value={s} className='text-sm'>
                           {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className='text-xs font-medium'>Approver</Label>
+                  <Select
+                    value={form.approverId}
+                    onValueChange={(v) => set('approverId', v)}
+                    disabled={ownerOnly}
+                  >
+                    <SelectTrigger className='mt-1 h-8 text-sm'>
+                      <SelectValue placeholder='Select' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users.map((u) => (
+                        <SelectItem key={u.id} value={u.id} className='text-sm'>
+                          {u.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
