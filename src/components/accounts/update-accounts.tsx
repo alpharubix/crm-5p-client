@@ -413,9 +413,8 @@ export default function UpdateAccounts() {
           <div className='md:border-r'>
             <FieldRow label='Assignment Date'>
               <span>
-                {data.assignmentDate
-                  ? new Date(data.assignmentDate).toLocaleDateString()
-                  : '—'}
+                {formatExactDate(data.assignmentDate, 'dd MMM yyyy, hh:mm a') ||
+                  '—'}
               </span>
             </FieldRow>
 

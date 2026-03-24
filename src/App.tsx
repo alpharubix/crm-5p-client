@@ -1,64 +1,76 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/auth-context'
 import ProtectedRoute, { ProtectedLogRoute } from './components/protected-route'
 import PublicRoute from './components/public-routes'
-
 import SidebarComponent from './components/sidebar-component'
-import AccountPage from './pages/accounts-page'
-import ContactPage from './pages/contact-page'
-import UpdateAccounts from './components/accounts/update-accounts'
-import UpdateContacts from './components/contacts/update-contacts'
-import NotFoundPage from './pages/not-found-page'
-import { SignInPage } from './pages/signin-page'
 import { GlobalProgressBar } from './components/global-progress-bar'
-import CreateContact from './components/contacts/create-contact'
-import AuditLogs from './components/log/audit-log'
-import HoliEffect from './components/holi-effect'
-import DealsPage from './pages/deals-page'
-import UpdateDeals from './components/deals/update-deals'
-import Project from './components/projects/project'
-import Task from './components/projects/task'
-import CreateDeal from './components/deals/create-deals'
+import { Spinner } from './components/ui/spinner'
+
+// Lazy loaded pages and heavy route components
+const AccountPage = lazy(() => import('./pages/accounts-page'))
+const ContactPage = lazy(() => import('./pages/contact-page'))
+const UpdateAccounts = lazy(
+  () => import('./components/accounts/update-accounts'),
+)
+const UpdateContacts = lazy(
+  () => import('./components/contacts/update-contacts'),
+)
+const NotFoundPage = lazy(() => import('./pages/not-found-page'))
+const CreateContact = lazy(() => import('./components/contacts/create-contact'))
+const AuditLogs = lazy(() => import('./components/log/audit-log'))
+const DealsPage = lazy(() => import('./pages/deals-page'))
+const UpdateDeals = lazy(() => import('./components/deals/update-deals'))
+const Project = lazy(() => import('./components/projects/project'))
+const Task = lazy(() => import('./components/projects/task'))
+const CreateDeal = lazy(() => import('./components/deals/create-deals'))
+const SignInPage = lazy(() => import('./pages/signin-page'))
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        {/* <HoliEffect /> */}
         <GlobalProgressBar />
-        <Routes>
-          <Route element={<PublicRoute />}>
-            <Route path='/' element={<Navigate to='/login' replace />} />
-            <Route path='/login' element={<SignInPage />} />
-          </Route>
-
-          <Route
-            element={
-              <ProtectedRoute>
-                <SidebarComponent />
-              </ProtectedRoute>
-            }
-          >
-            <Route path='/accounts' element={<AccountPage />} />
-            <Route path='/accounts/:id' element={<UpdateAccounts />} />
-            <Route path='/contacts' element={<ContactPage />} />
-            <Route path='/contacts/:id' element={<UpdateContacts />} />
-            <Route path='/contacts-create' element={<CreateContact />} />
-            <Route path='/deals' element={<DealsPage />} />
-            <Route path='/deals-create' element={<CreateDeal />} />
-            {/* /deals/:id */}
-            <Route path='/deals/:id' element={<UpdateDeals />} />
-
-            <Route element={<ProtectedLogRoute />}>
-              <Route path='/audit-logs' element={<AuditLogs />} />
+        <Suspense
+          fallback={
+            <div className='flex justify-center items-center h-screen'>
+              <Spinner className='h-10 w-10' />
+            </div>
+          }
+        >
+          <Routes>
+            <Route element={<PublicRoute />}>
+              <Route path='/' element={<Navigate to='/login' replace />} />
+              <Route path='/login' element={<SignInPage />} />
             </Route>
-            {/* <Route element={<ProtectedLogRoute />}> */}
-            <Route path='/projects' element={<Project />} />
-            <Route path='/projects/:id' element={<Task />} />
-            {/* </Route> */}
-            <Route path='*' element={<NotFoundPage />} />
-          </Route>
-        </Routes>
+
+            <Route
+              element={
+                <ProtectedRoute>
+                  <SidebarComponent />
+                </ProtectedRoute>
+              }
+            >
+              <Route path='/accounts' element={<AccountPage />} />
+              <Route path='/accounts/:id' element={<UpdateAccounts />} />
+              <Route path='/contacts' element={<ContactPage />} />
+              <Route path='/contacts/:id' element={<UpdateContacts />} />
+              <Route path='/contacts-create' element={<CreateContact />} />
+              <Route path='/deals' element={<DealsPage />} />
+              <Route path='/deals-create' element={<CreateDeal />} />
+              {/* /deals/:id */}
+              <Route path='/deals/:id' element={<UpdateDeals />} />
+
+              <Route element={<ProtectedLogRoute />}>
+                <Route path='/audit-logs' element={<AuditLogs />} />
+              </Route>
+
+              <Route path='/projects' element={<Project />} />
+              <Route path='/projects/:id' element={<Task />} />
+              <Route path='*' element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   )

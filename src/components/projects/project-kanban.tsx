@@ -134,6 +134,8 @@ function DraggableProjectCard({
     project.status === 'pending_for_approve' ||
     project.status === 'pending_for_review'
 
+  const canDrag = !isPending || !!isApprover
+
   // An Approver can change Status + Team. Only Owner can change everything else.
   const overdue = checkOverdue(project.end_date, project.status)
   const isInitiator =
@@ -152,28 +154,27 @@ function DraggableProjectCard({
   return (
     <div
       ref={setNodeRef}
-      {...(!isAssigneeOnly && !isPending ? listeners : {})}
-      {...(!isAssigneeOnly && !isPending ? attributes : {})}
+      {...(canDrag ? listeners : {})}
+      {...(canDrag ? attributes : {})}
       className={isDragging ? 'opacity-50' : ''}
     >
       <Card
-        className={`transition-colors shadow-sm py-0 gap-0 overflow-hidden border-l-4 ${
-          isAssigneeOnly ? 'cursor-default' : 'cursor-grab'
-        } ${
-          overdue
-            ? 'border-l-red-400 border hover:bg-red-50/60'
-            : 'border-l-blue-300 border hover:bg-muted/30'
-        }`}
+        className={`transition-colors  py-0 gap-0 overflow-hidden ${
+          canDrag ? 'cursor-grab' : 'cursor-default'
+        } ${overdue ? 'hover:bg-red-50/60' : 'hover:bg-muted/30'}`}
         onClick={() => {
-          if (isOwner || isApprover) navigate(`/projects/${project.id}`)
+          if (isOwner || isApprover || isAssigneeOnly)
+            navigate(`/projects/${project.id}`)
         }}
       >
         <CardContent className='p-3 text-sm grid gap-1'>
-          <div className='flex justify-between items-start gap-2'>
+          <div
+            className='flex justify-between items-start gap-2'
+            onClick={() => navigate(`/projects/${project.id}`)}
+          >
             <p
               className='font-semibold text-base leading-tight cursor-pointer'
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={() => navigate(`/projects/${project.id}`)}
             >
               {project.name}
             </p>
@@ -187,7 +188,7 @@ function DraggableProjectCard({
                 className='text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0'
                 disabled={!isOwner}
               >
-                <Pencil className='w-3 h-3 cursor-pointer' />
+                <Pencil className='w-4 h-4 cursor-pointer' />
               </button>
             ) : null}
           </div>
@@ -321,14 +322,14 @@ function DroppableProjectColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`min-w-[280px] w-full flex flex-col gap-3 h-full p-2 rounded-lg border transition-colors ${
-        isOver ? 'bg-zinc-100 border-zinc-300' : 'bg-zinc-50/50 border-border'
+      className={`min-w-[280px] w-full flex flex-col gap-3 h-full p-2 rounded border transition-colors ${
+        isOver ? 'border-zinc-300' : 'border-border'
       }`}
     >
       <div
         className={`flex items-center gap-2 pb-2 border-b mb-1 ${style.header}`}
       >
-        <span className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
+        <span className={`w-2 h-2 rounded shrink-0 ${style.dot}`} />
         <span className='text-xs font-semibold uppercase tracking-wide'>
           {status}
         </span>
@@ -346,7 +347,7 @@ function DroppableProjectColumn({
         ))}
         {projects.length === 0 && (
           <div
-            className={`border border-dashed rounded-md p-4 text-center text-xs transition-colors ${
+            className={`border border-dashed rounded p-4 text-center text-xs transition-colors ${
               isOver
                 ? 'border-zinc-400 text-zinc-400'
                 : 'border-zinc-200 text-zinc-300'
@@ -440,7 +441,7 @@ export default function ProjectKanban() {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div className='flex gap-4 pb-4 overflow-x-auto items-start h-[calc(100vh-200px)]'>
+        <div className='flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0'>
           {COLUMNS.map((col) => {
             const colProjects = projectList.filter(
               (p) => p.status === STATUS_MAP[col],

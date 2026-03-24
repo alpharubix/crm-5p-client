@@ -490,7 +490,14 @@ export default function UpdateDeals() {
             <FieldRow label='Ticket Login' error={errors.ticketLogin?.message}>
               <SelectField
                 isEdit={isEdit}
-                options={['true', 'false']}
+                options={[
+                  'Approved',
+                  'Disapproved',
+                  'L1 Pendency',
+                  'L2 Pendency',
+                  'L3 Pendency',
+                  'Rejected',
+                ]}
                 value={formValues.ticketLogin as string}
                 onChange={(value) =>
                   setValue('ticketLogin', value, {

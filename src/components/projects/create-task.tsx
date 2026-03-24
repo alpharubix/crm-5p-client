@@ -137,6 +137,11 @@ export default function CreateTaskModal({
           <DialogTitle className='text-base font-semibold'>
             New Task
           </DialogTitle>
+          {projectData?.name && (
+            <p className='text-xs text-muted-foreground mt-0.5'>
+              {projectData.name}
+            </p>
+          )}
         </DialogHeader>
 
         <div className='space-y-4 py-1'>

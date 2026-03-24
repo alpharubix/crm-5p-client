@@ -79,7 +79,14 @@ const CASE_STATUSES = [
 
 const TYPE_OF_CASE_LOGIN = ['Fresh', 'Spillover']
 
-const TICKET_LOGIN = ['true', 'false']
+const TICKET_LOGIN = [
+  'Approved',
+  'Disapproved',
+  'L1 Pendency',
+  'L2 Pendency',
+  'L3 Pendency',
+  'Rejected',
+]
 
 const DealsPage = () => {
   const navigate = useNavigate()
@@ -144,7 +151,7 @@ const DealsPage = () => {
         `${ENV.VITE_BACKEND_BASE_URL}/deals?${params.toString()}`,
         {
           credentials: 'include',
-        }
+        },
       )
       if (!res.ok) throw new Error('Failed to fetch deals')
       return res.json()
@@ -156,7 +163,7 @@ const DealsPage = () => {
   const pageInfo = data?.page_info || { page: 1, total_pages: 1 }
 
   const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
+    setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
   const handleSearch = () => {
@@ -200,7 +207,7 @@ const DealsPage = () => {
         queryFn: async () => {
           const res = await fetch(
             `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${id}`,
-            { credentials: 'include' }
+            { credentials: 'include' },
           )
           if (!res.ok) throw new Error('Failed to fetch deal')
           return res.json()
@@ -213,75 +220,77 @@ const DealsPage = () => {
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className='p-4 space-y-4'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Deals Database</h1>
-          <p className="text-muted-foreground">
+          <h1 className='text-2xl font-bold tracking-tight'>Deals Database</h1>
+          <p className='text-muted-foreground'>
             Manage your potential deals here.
           </p>
         </div>
 
         {isLoading ? (
-          <Skeleton className="w-24 h-4" />
+          <Skeleton className='w-24 h-4' />
         ) : (
-          <div className="flex gap-2 items-center justify-start">
-            <h3 className="font-semibold text-muted-foreground">
+          <div className='flex gap-2 items-center justify-start'>
+            <h3 className='font-semibold text-muted-foreground'>
               Total Deals :
             </h3>
-            <p className="text-muted-foreground">{pageInfo.data_size || 0}</p>
+            <p className='text-muted-foreground'>{pageInfo.data_size || 0}</p>
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div className='flex gap-2'>
           <Button
-            variant="outline"
-            className="cursor-pointer"
+            variant='outline'
+            className='cursor-pointer'
             onClick={() => navigate('/deals-create')}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className='h-4 w-4' />
             Create Deal
           </Button>
           <Button
-            variant="outline"
-            size="icon"
-            className="cursor-pointer"
+            variant='outline'
+            size='icon'
+            className='cursor-pointer'
             onClick={() => refetch()}
           >
             {isLoading ? (
-              <Spinner className="h-4 w-4" />
+              <Spinner className='h-4 w-4' />
             ) : (
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className='h-4 w-4' />
             )}
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-[260px_1fr] gap-4">
+      <div className='grid grid-cols-[260px_1fr] gap-4'>
         {/* Filter sidebar */}
-        <div className="border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-200px)]">
-          <h3 className="font-semibold text-sm">Filter Deals by</h3>
+        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-200px)]'>
+          <h3 className='font-semibold text-sm'>Filter Deals by</h3>
 
           {/* Account Name */}
           <div className="space-y-2">
             <Label>Deal Name</Label>
             <Input
-              placeholder="Account Name"
+              placeholder='Account Name'
               value={filters.accountName}
-              onChange={e => handleFilterChange('accountName', e.target.value)}
+              onChange={(e) =>
+                handleFilterChange('accountName', e.target.value)
+              }
             />
           </div>
 
           {/* Deal Owner */}
           {showOwnerFilter && (
-            <div className="space-y-2">
+            <div className='space-y-2'>
               <Label>Deal Owner</Label>
               <Select
                 value={filters.dealOwnerId}
-                onValueChange={val => handleFilterChange('dealOwnerId', val)}
+                onValueChange={(val) => handleFilterChange('dealOwnerId', val)}
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Deal Owner" />
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Deal Owner' />
                 </SelectTrigger>
                 <SelectContent>
                   {owners.map((owner: any) => (
@@ -295,17 +304,17 @@ const DealsPage = () => {
           )}
 
           {/* Lender Name */}
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Lender Name</Label>
             <Select
               value={filters.lenderName}
-              onValueChange={val => handleFilterChange('lenderName', val)}
+              onValueChange={(val) => handleFilterChange('lenderName', val)}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Lender Name" />
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder='Lender Name' />
               </SelectTrigger>
               <SelectContent>
-                {LENDER_NAMES.map(name => (
+                {LENDER_NAMES.map((name) => (
                   <SelectItem key={name} value={name}>
                     {name}
                   </SelectItem>
@@ -315,17 +324,17 @@ const DealsPage = () => {
           </div>
 
           {/* Case Status */}
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Case Status</Label>
             <Select
               value={filters.caseStatus}
-              onValueChange={val => handleFilterChange('caseStatus', val)}
+              onValueChange={(val) => handleFilterChange('caseStatus', val)}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Case Status" />
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder='Case Status' />
               </SelectTrigger>
               <SelectContent>
-                {CASE_STATUSES.map(status => (
+                {CASE_STATUSES.map((status) => (
                   <SelectItem key={status} value={status}>
                     {status}
                   </SelectItem>
@@ -335,17 +344,17 @@ const DealsPage = () => {
           </div>
 
           {/* Ticket Login */}
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Ticket Login</Label>
             <Select
               value={filters.ticketLogin}
-              onValueChange={val => handleFilterChange('ticketLogin', val)}
+              onValueChange={(val) => handleFilterChange('ticketLogin', val)}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Ticket Login" />
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder='Ticket Login' />
               </SelectTrigger>
               <SelectContent>
-                {TICKET_LOGIN.map(val => (
+                {TICKET_LOGIN.map((val) => (
                   <SelectItem key={val} value={val}>
                     {val}
                   </SelectItem>
@@ -355,17 +364,17 @@ const DealsPage = () => {
           </div>
 
           {/* Loan Type */}
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Type of Loan</Label>
             <Select
               value={filters.loanType}
-              onValueChange={val => handleFilterChange('loanType', val)}
+              onValueChange={(val) => handleFilterChange('loanType', val)}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Type of Loan" />
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder='Type of Loan' />
               </SelectTrigger>
               <SelectContent>
-                {LOAN_TYPES.map(type => (
+                {LOAN_TYPES.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
                   </SelectItem>
@@ -375,17 +384,19 @@ const DealsPage = () => {
           </div>
 
           {/* Type of Case Login */}
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Type of Case Login</Label>
             <Select
               value={filters.typeOfCaseLogin}
-              onValueChange={val => handleFilterChange('typeOfCaseLogin', val)}
+              onValueChange={(val) =>
+                handleFilterChange('typeOfCaseLogin', val)
+              }
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Type of Case Login" />
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder='Type of Case Login' />
               </SelectTrigger>
               <SelectContent>
-                {TYPE_OF_CASE_LOGIN.map(type => (
+                {TYPE_OF_CASE_LOGIN.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
                   </SelectItem>
@@ -394,13 +405,13 @@ const DealsPage = () => {
             </Select>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <Button className="flex-1 cursor-pointer" onClick={handleSearch}>
+          <div className='flex gap-2 pt-2'>
+            <Button className='flex-1 cursor-pointer' onClick={handleSearch}>
               Search
             </Button>
             <Button
-              variant="outline"
-              className="cursor-pointer"
+              variant='outline'
+              className='cursor-pointer'
               onClick={handleClear}
             >
               Clear
@@ -409,17 +420,17 @@ const DealsPage = () => {
         </div>
 
         {/* Table */}
-        <div className="flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]">
+        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]'>
           {isLoading ? (
-            <div className="flex items-center justify-center h-64 border rounded-md">
-              <Spinner className="h-8 w-8 text-muted-foreground" />
+            <div className='flex items-center justify-center h-64 border rounded-md'>
+              <Spinner className='h-8 w-8 text-muted-foreground' />
             </div>
           ) : (
             <>
-              <div className="border rounded-md flex-1 overflow-auto relative">
-                <table className="w-full caption-bottom text-sm">
+              <div className='border rounded-md flex-1 overflow-auto relative'>
+                <table className='w-full caption-bottom text-sm'>
                   <TableHeader>
-                    <TableRow className="sticky top-0 z-10 bg-background hover:bg-accent">
+                    <TableRow className='sticky top-0 z-10 bg-background hover:bg-accent'>
                       <TableHead>Deal Name</TableHead>
                       <TableHead>Deal Owner</TableHead>
                       <TableHead>Lender Name</TableHead>
@@ -434,18 +445,18 @@ const DealsPage = () => {
                   <TableBody>
                     {DealsData.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center h-24">
+                        <TableCell colSpan={6} className='text-center h-24'>
                           No deals found.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      DealsData.map(deal => (
+                      DealsData.map((deal) => (
                         <TableRow
                           key={deal.id}
-                          className="cursor-pointer hover:bg-accent"
+                          className='cursor-pointer hover:bg-accent'
                           onClick={() => handleRowClick(deal.id)}
                         >
-                          <TableCell className="font-medium">
+                          <TableCell className='font-medium'>
                             <HighlightedText
                               text={deal.account_name}
                               highlight={appliedFilters.accountName}
@@ -474,7 +485,7 @@ const DealsPage = () => {
                             {deal.deal_call_back_datetime
                               ? formatExactDate(
                                   deal.deal_call_back_datetime,
-                                  'dd MMM yyyy, hh:mm a'
+                                  'dd MMM yyyy, hh:mm a',
                                 )
                               : '—'}
                           </TableCell>

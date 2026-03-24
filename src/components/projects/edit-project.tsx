@@ -28,7 +28,6 @@ import type {
   ProjectUser,
   Status,
 } from '@/types/project-types'
-import { FieldError } from '../ui/field'
 import { useAuth } from '@/context/auth-context'
 
 const USERS_MAP: Record<string, string> = {
@@ -56,6 +55,8 @@ export default function EditProjectModal({
   const queryClient = useQueryClient()
   const { user } = useAuth()
 
+  const [activeTab, setActiveTab] = useState<'details' | 'history'>('details')
+
   // Derive role for the current user on this project
   const isOwner =
     user &&
@@ -65,7 +66,6 @@ export default function EditProjectModal({
     user &&
     project &&
     String(user.user_id) === String((project as any).approver_id)
-  // An Approver can change Status + Team. Only Owner can change everything else.
   const ownerOnly = !isOwner
 
   const [form, setForm] = useState({
@@ -80,8 +80,45 @@ export default function EditProjectModal({
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  // ─── FETCH LOGS & TASKS (For History Tab) ─────────────────────────────
+  const { data: logsData, isLoading: logsLoading } = useQuery({
+    queryKey: ['project-logs', project?.id],
+    queryFn: async () => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/projects/${project?.id}/logs`,
+        { credentials: 'include' },
+      )
+      if (!res.ok) throw new Error('Failed to fetch logs')
+      return res.json()
+    },
+    enabled: !!project?.id && open && activeTab === 'history',
+    staleTime: 0,
+    refetchOnMount: true,
+  })
+
+  const { data: tasksData } = useQuery({
+    queryKey: ['project-tasks', project?.id],
+    queryFn: async () => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/projects/${project?.id}/tasks`,
+        {
+          credentials: 'include',
+        },
+      )
+      if (!res.ok) throw new Error('Failed to fetch tasks')
+      return res.json()
+    },
+    enabled: !!project?.id && open && activeTab === 'history',
+  })
+
+  const tasksMap = (tasksData?.data ?? []).reduce((acc: any, t: any) => {
+    acc[t.id] = t.title
+    return acc
+  }, {})
+  // ──────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
-    if (project) {
+    if (project && open) {
       setForm({
         name: project.name ?? '',
         description: project.description ?? '',
@@ -104,13 +141,11 @@ export default function EditProjectModal({
             (project as any).project_type.slice(1)
           : '',
       })
+      setActiveTab('details')
+      setErrors({})
     }
-  }, [project])
-
-  const users = Object.entries(USERS_MAP).map(([id, name]) => ({
-    id,
-    name,
-  }))
+  }, [project?.id, open])
+  const users = Object.entries(USERS_MAP).map(([id, name]) => ({ id, name }))
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -118,6 +153,7 @@ export default function EditProjectModal({
   }
 
   function toggleAssignee(user: any) {
+    if (ownerOnly) return
     const mapped: any = { id: user.id, name: user.name }
     setForm((f) => {
       const exists = f.assignees.some((u) => u.id === mapped.id)
@@ -158,8 +194,6 @@ export default function EditProjectModal({
             start_date: body.startDate,
             end_date: body.endDate,
             actioner_ids: body.assignees.map((u) => u.id),
-            // approver_id: body.approverId,
-            // project_type: body.projectType.toLowerCase(),
           }),
         },
       )
@@ -182,6 +216,101 @@ export default function EditProjectModal({
     mutation.mutate(form)
   }
 
+  // Helper to format values elegantly
+  const formatVal = (val: any) => {
+    if (typeof val === 'string') {
+      return val.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    }
+    return val
+  }
+
+  // ── LOG RENDERING HELPER ──
+  const renderLogDetails = (log: any) => {
+    const changes = log.changes || {}
+    const keys = Object.keys(changes)
+    const taskName = log.task_id
+      ? tasksMap[log.task_id] || `Task #${log.task_id.slice(-4)}`
+      : ''
+
+    if (log.action === 'CREATED') {
+      if (log.entity_type === 'PROJECT')
+        return <span className='text-zinc-600'>Created the project</span>
+      return (
+        <div className='text-zinc-600'>
+          <span>
+            Created task{' '}
+            <span className='font-medium text-zinc-800'>
+              {changes.title || taskName}
+            </span>
+          </span>
+        </div>
+      )
+    }
+
+    if (log.action === 'COMMENTED') {
+      return (
+        <span className='text-zinc-600'>
+          Commented on{' '}
+          <span className='font-medium text-zinc-800'>{taskName}</span>:{' '}
+          <span className='italic text-zinc-800'>"{changes.content}"</span>
+        </span>
+      )
+    }
+
+    if (log.action === 'UPDATED') {
+      if (keys.length === 0)
+        return (
+          <span className='text-zinc-600'>
+            Updated {log.entity_type.toLowerCase()} details
+          </span>
+        )
+
+      return (
+        <div className='text-zinc-600'>
+          <span>
+            Updated{' '}
+            {log.entity_type === 'TASK' ? (
+              <span className='font-medium text-zinc-800'>{taskName}</span>
+            ) : (
+              'project'
+            )}{' '}
+            details:
+          </span>
+          <div className='mt-1 pl-1 border-l-2 border-zinc-200 ml-1 space-y-0.5'>
+            {keys.map((key) => {
+              let val = changes[key]
+              let formattedKey = key.replace('_', ' ')
+
+              if (val === null || val === undefined || key === 'modified_by')
+                return null
+
+              if (key === 'assignee_id' || key === 'approver_id') {
+                val = USERS_MAP[String(val)] || 'Unassigned'
+                formattedKey = key === 'assignee_id' ? 'assignee' : 'approver'
+              } else if (key === 'actioner_ids') {
+                val = Array.isArray(val) ? `${val.length} user(s)` : val
+              } else {
+                val = formatVal(val)
+              }
+
+              return (
+                <div key={key} className='text-[11px] text-zinc-500'>
+                  <span className='text-zinc-400'>↳</span> Changed{' '}
+                  <span className='font-medium text-zinc-700 capitalize'>
+                    {formattedKey}
+                  </span>{' '}
+                  to <span className='font-medium text-zinc-700'>{val}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+
+    return <span className='text-zinc-600'>Performed an action</span>
+  }
+
   return (
     <Dialog
       open={open}
@@ -192,224 +321,293 @@ export default function EditProjectModal({
       <DialogContent className='max-w-md'>
         <DialogHeader>
           <DialogTitle className='text-base font-semibold'>
-            Edit Project
+            {project?.name || 'Edit Project'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className='space-y-4 py-1 max-h-[65vh] overflow-y-auto pr-1'>
-          {/* Name */}
-          <div>
-            <Label className='text-xs font-medium'>
-              Project Name <span className='text-red-500'>*</span>
-            </Label>
-            <Input
-              className='mt-1 h-8 text-sm'
-              value={form.name}
-              onChange={(e) => set('name', e.target.value)}
-              disabled={ownerOnly}
-            />
-            {errors.name && (
-              <p className='text-xs text-red-500 mt-1'>{errors.name}</p>
-            )}
-          </div>
-
-          {/* Description */}
-          <div>
-            <Label className='text-xs font-medium'>Description</Label>
-            <Textarea
-              className='mt-1 text-sm resize-none'
-              rows={2}
-              value={form.description}
-              onChange={(e) => set('description', e.target.value)}
-              disabled={ownerOnly}
-            />
-          </div>
-
-          {/* Priority + Status */}
-          <div className='grid grid-cols-3 gap-3'>
-            <div>
-              <Label className='text-xs font-medium'>
-                Priority <span className='text-red-500'>*</span>
-              </Label>
-              <Select
-                value={form.priority}
-                onValueChange={(v) => set('priority', v as Priority)}
-                disabled={ownerOnly}
-              >
-                <SelectTrigger className='mt-1 h-8 text-sm'>
-                  <SelectValue placeholder='Select' />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p} className='text-sm'>
-                      {p}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.priority && (
-                <p className='text-xs text-red-500 mt-1'>{errors.priority}</p>
-              )}
-            </div>
-            <div>
-              <Label className='text-xs font-medium'>
-                Status <span className='text-red-500'>*</span>
-              </Label>
-              <Select
-                value={form.status}
-                onValueChange={(v) => set('status', v as Status)}
-                disabled={!isOwner && !isApprover}
-              >
-                <SelectTrigger className='mt-1 h-8 text-sm'>
-                  <SelectValue placeholder='Select' />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map((s) => (
-                    <SelectItem key={s} value={s} className='text-sm'>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.status && (
-                <p className='text-xs text-red-500 mt-1'>{errors.status}</p>
-              )}
-            </div>
-
-            <div>
-              <Label className='text-xs font-medium'>
-                Project Type <span className='text-red-500'>*</span>
-              </Label>
-              <Select
-                value={form.projectType}
-                onValueChange={(v) => set('projectType', v as ProjectType)}
-              >
-                <SelectTrigger className='mt-1 h-8 text-sm'>
-                  <SelectValue placeholder='Select' />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROJECT_TYPES.map((s) => (
-                    <SelectItem key={s} value={s} className='text-sm'>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Dates */}
-          <div className='grid grid-cols-2 gap-3'>
-            <div>
-              <Label className='text-xs font-medium'>
-                Start Date <span className='text-red-500'>*</span>
-              </Label>
-              <Input
-                type='date'
-                className='mt-1 h-8 text-sm'
-                value={form.startDate}
-                onChange={(e) => set('startDate', e.target.value)}
-              />
-              {errors.startDate && (
-                <p className='text-xs text-red-500 mt-1'>{errors.startDate}</p>
-              )}
-            </div>
-            <div>
-              <Label className='text-xs font-medium'>
-                End Date <span className='text-red-500'>*</span>
-              </Label>
-              <Input
-                type='date'
-                className='mt-1 h-8 text-sm'
-                value={form.endDate}
-                onChange={(e) => set('endDate', e.target.value)}
-              />
-              {errors.endDate && (
-                <p className='text-xs text-red-500 mt-1'>{errors.endDate}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Team */}
-          <div>
-            <Label className='text-xs font-medium'>Team Members</Label>
-            <div className='mt-1 border border-zinc-200 rounded-md overflow-hidden divide-y divide-zinc-100 max-h-40 overflow-y-auto'>
-              {users.map((user: { id: string; name: string }) => {
-                const selected = form.assignees.some((u) => u.id === user.id)
-                return (
-                  <div
-                    key={user.id}
-                    onClick={() => toggleAssignee(user)}
-                    className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors
-                      ${selected ? 'bg-zinc-50' : 'hover:bg-zinc-50'}`}
-                  >
-                    <div
-                      className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors
-                      ${selected ? 'bg-zinc-900 border-zinc-900' : 'border-zinc-300'}`}
-                    >
-                      {selected && (
-                        <svg
-                          className='w-2.5 h-2.5 text-white'
-                          fill='none'
-                          viewBox='0 0 10 10'
-                        >
-                          <path
-                            d='M1.5 5l2.5 2.5 4.5-4.5'
-                            stroke='currentColor'
-                            strokeWidth='1.5'
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                          />
-                        </svg>
-                      )}
-                    </div>
-                    <div className='w-6 h-6 rounded-full bg-zinc-200 text-zinc-600 flex items-center justify-center text-xs font-semibold shrink-0'>
-                      {user.name[0]}
-                    </div>
-                    <div className='min-w-0'>
-                      <p className='text-sm leading-none text-zinc-800'>
-                        {user.name}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            {form.assignees.length > 0 && (
-              <div className='flex flex-wrap gap-1 mt-2'>
-                {form.assignees.map((u) => (
-                  <Badge
-                    key={u.id}
-                    variant='secondary'
-                    className='text-xs gap-1 pl-2 pr-1'
-                  >
-                    {u.name}
-                    <button
-                      onClick={() =>
-                        toggleAssignee({ id: u.id, name: u.name })
-                      }
-                      className='hover:text-red-500 transition-colors ml-0.5'
-                    >
-                      <X size={10} />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* TABS */}
+        <div className='flex items-center gap-4 border-b mt-2'>
+          <button
+            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-zinc-500'}`}
+            onClick={() => setActiveTab('details')}
+          >
+            Project Details
+          </button>
+          <button
+            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-zinc-500'}`}
+            onClick={() => setActiveTab('history')}
+          >
+            Activity History
+          </button>
         </div>
 
-        <DialogFooter className='gap-2 mt-2'>
+        {/* TAB CONTENTS */}
+        <div className='max-h-[60vh] overflow-y-auto pr-1 py-2'>
+          {/* --- DETAILS TAB --- */}
+          {activeTab === 'details' && (
+            <div className='space-y-4'>
+              {/* Name */}
+              <div>
+                <Label className='text-xs font-medium'>
+                  Project Name <span className='text-red-500'>*</span>
+                </Label>
+                <Input
+                  className='mt-1 h-8 text-sm'
+                  value={form.name}
+                  onChange={(e) => set('name', e.target.value)}
+                  disabled={ownerOnly}
+                />
+                {errors.name && (
+                  <p className='text-xs text-red-500 mt-1'>{errors.name}</p>
+                )}
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label className='text-xs font-medium'>Description</Label>
+                <Textarea
+                  className='mt-1 text-sm resize-none'
+                  rows={2}
+                  value={form.description}
+                  onChange={(e) => set('description', e.target.value)}
+                  disabled={ownerOnly}
+                />
+              </div>
+
+              {/* Priority + Status + Type */}
+              <div className='grid grid-cols-3 gap-3'>
+                <div>
+                  <Label className='text-xs font-medium'>
+                    Priority <span className='text-red-500'>*</span>
+                  </Label>
+                  <Select
+                    value={form.priority}
+                    onValueChange={(v) => set('priority', v as Priority)}
+                    disabled={ownerOnly}
+                  >
+                    <SelectTrigger className='mt-1 h-8 text-sm'>
+                      <SelectValue placeholder='Select' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRIORITIES.map((p) => (
+                        <SelectItem key={p} value={p} className='text-sm'>
+                          {p}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.priority && (
+                    <p className='text-xs text-red-500 mt-1'>
+                      {errors.priority}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label className='text-xs font-medium'>
+                    Status <span className='text-red-500'>*</span>
+                  </Label>
+                  <Select
+                    value={form.status}
+                    onValueChange={(v) => set('status', v as Status)}
+                    disabled={!isOwner && !isApprover}
+                  >
+                    <SelectTrigger className='mt-1 h-8 text-sm'>
+                      <SelectValue placeholder='Select' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUSES.map((s) => (
+                        <SelectItem key={s} value={s} className='text-sm'>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.status && (
+                    <p className='text-xs text-red-500 mt-1'>{errors.status}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className='text-xs font-medium'>
+                    Project Type <span className='text-red-500'>*</span>
+                  </Label>
+                  <Select
+                    value={form.projectType}
+                    onValueChange={(v) => set('projectType', v as ProjectType)}
+                    disabled={ownerOnly}
+                  >
+                    <SelectTrigger className='mt-1 h-8 text-sm'>
+                      <SelectValue placeholder='Select' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROJECT_TYPES.map((s) => (
+                        <SelectItem key={s} value={s} className='text-sm'>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className='grid grid-cols-2 gap-3'>
+                <div>
+                  <Label className='text-xs font-medium'>
+                    Start Date <span className='text-red-500'>*</span>
+                  </Label>
+                  <Input
+                    type='date'
+                    className='mt-1 h-8 text-sm'
+                    value={form.startDate}
+                    onChange={(e) => set('startDate', e.target.value)}
+                    disabled={ownerOnly}
+                  />
+                  {errors.startDate && (
+                    <p className='text-xs text-red-500 mt-1'>
+                      {errors.startDate}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label className='text-xs font-medium'>
+                    End Date <span className='text-red-500'>*</span>
+                  </Label>
+                  <Input
+                    type='date'
+                    className='mt-1 h-8 text-sm'
+                    value={form.endDate}
+                    onChange={(e) => set('endDate', e.target.value)}
+                    disabled={ownerOnly}
+                  />
+                  {errors.endDate && (
+                    <p className='text-xs text-red-500 mt-1'>
+                      {errors.endDate}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Team */}
+              <div>
+                <Label className='text-xs font-medium'>Team Members</Label>
+                <div
+                  className={`mt-1 border rounded-md overflow-hidden divide-y max-h-40 overflow-y-auto ${ownerOnly ? 'opacity-70 pointer-events-none' : ''}`}
+                >
+                  {users.map((user: { id: string; name: string }) => {
+                    const selected = form.assignees.some(
+                      (u) => u.id === user.id,
+                    )
+                    return (
+                      <div
+                        key={user.id}
+                        onClick={() => toggleAssignee(user)}
+                        className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors ${selected ? 'bg-accent' : 'hover:bg-accent'}`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${selected ? 'bg-zinc-900' : 'border-zinc-300'}`}
+                        >
+                          {selected && (
+                            <svg
+                              className='w-2.5 h-2.5'
+                              fill='none'
+                              viewBox='0 0 10 10'
+                            >
+                              <path
+                                d='M1.5 5l2.5 2.5 4.5-4.5'
+                                stroke='currentColor'
+                                strokeWidth='1.5'
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <div className='w-6 h-6 rounded-full bg-zinc-200 text-zinc-600 flex items-center justify-center text-xs font-semibold shrink-0'>
+                          {user.name[0]}
+                        </div>
+                        <div className='min-w-0'>
+                          <p className='text-sm leading-none '>{user.name}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                {form.assignees.length > 0 && (
+                  <div className='flex flex-wrap gap-1 mt-2'>
+                    {form.assignees.map((u) => (
+                      <Badge
+                        key={u.id}
+                        variant='secondary'
+                        className='text-xs gap-1 pl-2 pr-1'
+                      >
+                        {USERS_MAP[u.id]}
+                        {!ownerOnly && (
+                          <button
+                            onClick={() =>
+                              toggleAssignee({ id: u.id, name: u.name })
+                            }
+                            className='hover:text-red-500 transition-colors ml-0.5'
+                          >
+                            <X size={10} />
+                          </button>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* --- HISTORY TAB --- */}
+          {activeTab === 'history' && (
+            <div className='space-y-4'>
+              {logsLoading && (
+                <p className='text-xs text-zinc-500'>Loading history...</p>
+              )}
+
+              {!logsLoading && (logsData?.data ?? []).length === 0 && (
+                <p className='text-xs text-zinc-400'>
+                  No activity recorded yet.
+                </p>
+              )}
+
+              {!logsLoading &&
+                Array.isArray(logsData?.data) &&
+                logsData.data.map((log: any) => (
+                  <div key={log.id} className='flex gap-3 text-xs'>
+                    <div className='w-2 h-2 rounded-full bg-zinc-300 mt-1 shrink-0'></div>
+                    <div className='flex-1 pb-3 border-b border-zinc-100 last:border-0'>
+                      <div className='mb-0.5'>
+                        <span className='font-medium text-zinc-800'>
+                          {USERS_MAP[String(log.user_id)] || 'Unknown User'}
+                        </span>{' '}
+                      </div>
+                      {renderLogDetails(log)}
+                      <div className='text-[10px] text-zinc-400 mt-1.5'>
+                        {new Date(log.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className='gap-2 mt-2 pt-2 border-t'>
           <Button variant='outline' size='sm' onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            size='sm'
-            onClick={handleSubmit}
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending ? 'Saving...' : 'Save Changes'}
-          </Button>
+          {activeTab === 'details' && (
+            <Button
+              size='sm'
+              onClick={handleSubmit}
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

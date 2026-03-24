@@ -39,7 +39,7 @@ export default function Project() {
   }
 
   return (
-    <div className='h-screen p-4 flex flex-col'>
+    <div className='w-full h-full p-4 flex flex-col max-w-[1240px] mx-auto'>
       <div className='flex flex-col flex-1 min-h-0'>
         <div className='flex items-center justify-between mb-6 shrink-0'>
           <div>
