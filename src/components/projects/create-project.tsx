@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select'
-import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import type {
   FormErrors,
@@ -23,13 +22,11 @@ import type {
   Project,
   ProjectFormData,
   ProjectType,
-  ProjectUser,
-  Status,
 } from '@/types/project-types'
 import { emptyForm, validate } from '@/utils/project-utils'
-import { ENV, PRIORITIES, PROJECT_TYPES, STATUSES, USERS } from '@/conf'
-import { X } from 'lucide-react'
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import { ENV, PRIORITIES, PROJECT_TYPES } from '@/conf'
+import { X, Link as LinkIcon } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import tech_team_users from '@/utils/tech_team_users.json'
 
 function FieldError({ msg }: { msg?: string }) {
@@ -44,21 +41,23 @@ export default function CreateProjectForm({
   onCreated: (p: Project) => void
   onCancel: () => void
 }) {
-  const [form, setForm] = useState<ProjectFormData>({
+  const [form, setForm] = useState<
+    ProjectFormData & { attachment_links: string[] }
+  >({
     ...emptyForm(),
-    approver_id: '', // Add this
+    approver_id: '',
+    attachment_links: [], // Added
   })
   const [errors, setErrors] = useState<FormErrors>({})
+  const [currentLink, setCurrentLink] = useState('') // Local state for link input
 
-  function set<K extends keyof ProjectFormData>(
-    key: K,
-    value: ProjectFormData[K],
-  ) {
+  function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }))
     setErrors((e) => ({ ...e, [key]: undefined }))
   }
 
   const users = tech_team_users
+
   function toggleAssignee(user: any) {
     setForm((f) => {
       const exists = f.assignees.some((u) => u.id === user.id)
@@ -72,10 +71,28 @@ export default function CreateProjectForm({
     setErrors((e) => ({ ...e, assignees: undefined }))
   }
 
+  // Add Link Handler
+  function handleAddLink() {
+    if (!currentLink.trim()) return
+    setForm((f) => ({
+      ...f,
+      attachment_links: [...f.attachment_links, currentLink.trim()],
+    }))
+    setCurrentLink('')
+  }
+
+  // Remove Link Handler
+  function handleRemoveLink(index: number) {
+    setForm((f) => ({
+      ...f,
+      attachment_links: f.attachment_links.filter((_, i) => i !== index),
+    }))
+  }
+
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: async (body: ProjectFormData) => {
+    mutationFn: async (body: typeof form) => {
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/projects`, {
         method: 'POST',
         credentials: 'include',
@@ -88,7 +105,8 @@ export default function CreateProjectForm({
           end_date: body.endDate,
           actioner_ids: body.assignees.map((u) => u.id),
           project_type: body.projectType.toLowerCase(),
-          approver_id: body.approver_id, // NEW
+          approver_id: body.approver_id,
+          attachment_links: body.attachment_links, // Passed to backend
         }),
       })
       if (!res.ok) throw new Error('Failed to create project')
@@ -144,7 +162,61 @@ export default function CreateProjectForm({
           />
         </div>
 
-        {/* Priority + Status + Project Type */}
+        {/* Attachment Links (NEW) */}
+        <div>
+          <Label className='text-xs font-medium'>Attachment Links</Label>
+          <div className='flex gap-2 mt-1'>
+            <Input
+              className='h-8 text-sm flex-1'
+              placeholder='https://...'
+              value={currentLink}
+              onChange={(e) => setCurrentLink(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleAddLink()
+                }
+              }}
+            />
+            <Button
+              type='button'
+              size='sm'
+              variant='secondary'
+              onClick={handleAddLink}
+              className='h-8 px-3'
+            >
+              Add
+            </Button>
+          </div>
+          {form.attachment_links.length > 0 && (
+            <div className='flex flex-col gap-1.5 mt-2'>
+              {form.attachment_links.map((link, idx) => (
+                <div
+                  key={idx}
+                  className='flex items-center justify-between bg-zinc-50 border rounded px-2 py-1.5'
+                >
+                  <div className='flex items-center gap-2 overflow-hidden'>
+                    <LinkIcon size={12} className='text-zinc-400 shrink-0' />
+                    <span className='text-xs truncate max-w-[300px] text-blue-600 hover:underline'>
+                      <a href={link} target='_blank' rel='noreferrer'>
+                        {link}
+                      </a>
+                    </span>
+                  </div>
+                  <button
+                    type='button'
+                    onClick={() => handleRemoveLink(idx)}
+                    className='text-zinc-400 hover:text-red-500 shrink-0 ml-2'
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Priority + Project Type + Approver */}
         <div className='grid grid-cols-3 gap-3'>
           <div>
             <Label className='text-xs font-medium'>
@@ -167,28 +239,6 @@ export default function CreateProjectForm({
             </Select>
             <FieldError msg={errors.priority} />
           </div>
-
-          {/* <div>
-            <Label className='text-xs font-medium'>
-              Status <span className='text-red-500'>*</span>
-            </Label>
-            <Select
-              value={form.status}
-              onValueChange={(v) => set('status', v as Status)}
-            >
-              <SelectTrigger className='mt-1 h-8 text-sm'>
-                <SelectValue placeholder='Select' />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUSES.map((s) => (
-                  <SelectItem key={s} value={s} className='text-sm'>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FieldError msg={errors.status} />
-          </div> */}
 
           <div>
             <Label className='text-xs font-medium'>
@@ -217,17 +267,23 @@ export default function CreateProjectForm({
             </Label>
             <Select
               value={form.approver_id}
-              onValueChange={(v) => set('approver_id', v as ProjectType)}
+              onValueChange={(v) => set('approver_id', v)}
             >
               <SelectTrigger className='mt-1 h-8 text-sm'>
                 <SelectValue placeholder='Select' />
               </SelectTrigger>
               <SelectContent>
-                {users.map((s) => (
-                  <SelectItem key={s.id} value={s.id} className='text-sm'>
-                    {s.name}
-                  </SelectItem>
-                ))}
+                {users
+                  .filter(
+                    (u) =>
+                      String(u.id) === '3899927000000201013' ||
+                      u.name === 'Anslem Prathap',
+                  )
+                  .map((s) => (
+                    <SelectItem key={s.id} value={s.id} className='text-sm'>
+                      {s.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             <FieldError msg={errors.approver_id} />
@@ -267,7 +323,7 @@ export default function CreateProjectForm({
           <Label className='text-xs font-medium'>
             Team Members <span className='text-red-500'>*</span>
           </Label>
-          <div className='mt-1 border  rounded-md overflow-hidden divide-y  max-h-40 overflow-y-auto'>
+          <div className='mt-1 border rounded-md overflow-hidden divide-y max-h-40 overflow-y-auto'>
             {users.map((user: { id: string; name: string }) => {
               const selected = form.assignees.some((u) => u.id === user.id)
               return (
@@ -276,12 +332,14 @@ export default function CreateProjectForm({
                   onClick={() =>
                     toggleAssignee({ id: user.id, name: user.name })
                   }
-                  className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors
-        ${selected ? 'bg-accent' : 'hover:bg-accent'}`}
+                  className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors ${
+                    selected ? 'bg-accent' : 'hover:bg-accent'
+                  }`}
                 >
                   <div
-                    className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors
-        ${selected ? 'border-zinc-300' : 'border-primary'}`}
+                    className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                      selected ? 'border-zinc-300' : 'border-primary'
+                    }`}
                   >
                     {selected && (
                       <svg
@@ -309,27 +367,6 @@ export default function CreateProjectForm({
               )
             })}
           </div>
-
-          {/* Selected badges */}
-          {/* {form.assignees.length > 0 && (
-            <div className='flex flex-wrap gap-1 mt-2'>
-              {form.assignees.map((u) => (
-                <Badge
-                  key={u.id}
-                  variant='secondary'
-                  className='text-xs gap-1 pl-2 pr-1'
-                >
-                  {u.name}
-                  <button
-                    onClick={() => toggleAssignee(u)}
-                    className='hover:text-red-500 transition-colors ml-0.5'
-                  >
-                    <X size={10} />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )} */}
           <FieldError msg={errors.assignees} />
         </div>
       </div>

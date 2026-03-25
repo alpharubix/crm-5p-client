@@ -333,7 +333,7 @@ export default function Task() {
               {project?.status}
             </span>
             <span className='text-xs ml-2'>
-              {project?.startDate} → {project?.endDate}
+              {project?.start_date} → {project?.end_date}
             </span>
             <Button size='sm' onClick={() => setTaskModalOpen(true)}>
               + Add Task
