@@ -117,7 +117,7 @@ export default function Project() {
           </div>
         </div>
         {/* FILTER BAR */}
-        <div className='flex flex-wrap items-center gap-3 mb-4 p-3 bg-white border rounded-md shadow-sm shrink-0'>
+        <div className='flex flex-wrap items-center gap-3 mb-4 p-3  border rounded-md shadow-sm shrink-0'>
           <Input
             placeholder='Search name...'
             className='h-8 text-xs w-[180px]'
