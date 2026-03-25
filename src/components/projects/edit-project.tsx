@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '../ui/select'
 import { Badge } from '../ui/badge'
-import { X } from 'lucide-react'
+import { X, Link as LinkIcon } from 'lucide-react'
 import { API_TO_STATUS, ENV, PRIORITIES, PROJECT_TYPES, STATUSES } from '@/conf'
 import type {
   Priority,
@@ -79,8 +79,10 @@ export default function EditProjectModal({
     endDate: '',
     projectType: '',
     approverId: '',
+    attachment_links: [] as string[], // ADDED THIS
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [currentLink, setCurrentLink] = useState('') // Local state for link input
 
   // ─── FETCH LOGS & TASKS (For History Tab) ─────────────────────────────
   const { data: logsData, isLoading: logsLoading } = useQuery({
@@ -140,11 +142,14 @@ export default function EditProjectModal({
             (project as any).project_type.slice(1)
           : '',
         approverId: String((project as any).approver_id ?? ''),
+        attachment_links: (project as any).attachment_links || [], // FETCH EXISTING LINKS
       })
       setActiveTab('details')
       setErrors({})
+      setCurrentLink('')
     }
   }, [project?.id, open])
+
   const users = Object.entries(USERS_MAP).map(([id, name]) => ({ id, name }))
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -164,6 +169,24 @@ export default function EditProjectModal({
           : [...f.assignees, mapped],
       }
     })
+  }
+
+  // LINK HANDLERS
+  function handleAddLink() {
+    if (!currentLink.trim()) return
+    setForm((f) => ({
+      ...f,
+      attachment_links: [...f.attachment_links, currentLink.trim()],
+    }))
+    setCurrentLink('')
+  }
+
+  function handleRemoveLink(index: number) {
+    if (ownerOnly) return
+    setForm((f) => ({
+      ...f,
+      attachment_links: f.attachment_links.filter((_, i) => i !== index),
+    }))
   }
 
   function validate() {
@@ -195,6 +218,7 @@ export default function EditProjectModal({
             end_date: body.endDate,
             actioner_ids: body.assignees.map((u) => u.id),
             approver_id: body.approverId,
+            attachment_links: body.attachment_links, // PASSED TO BACKEND
           }),
         },
       )
@@ -288,8 +312,8 @@ export default function EditProjectModal({
               if (key === 'assignee_id' || key === 'approver_id') {
                 val = USERS_MAP[String(val)] || 'Unassigned'
                 formattedKey = key === 'assignee_id' ? 'assignee' : 'approver'
-              } else if (key === 'actioner_ids') {
-                val = Array.isArray(val) ? `${val.length} user(s)` : val
+              } else if (key === 'actioner_ids' || key === 'attachment_links') {
+                val = Array.isArray(val) ? `${val.length} item(s)` : val
               } else {
                 val = formatVal(val)
               }
@@ -373,6 +397,76 @@ export default function EditProjectModal({
                   onChange={(e) => set('description', e.target.value)}
                   disabled={ownerOnly}
                 />
+              </div>
+
+              {/* Attachment Links (NEW) */}
+              <div>
+                <Label className='text-xs font-medium'>Attachment Links</Label>
+                {!ownerOnly && (
+                  <div className='flex gap-2 mt-1'>
+                    <Input
+                      className='h-8 text-sm flex-1'
+                      placeholder='https://...'
+                      value={currentLink}
+                      onChange={(e) => setCurrentLink(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleAddLink()
+                        }
+                      }}
+                    />
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='secondary'
+                      onClick={handleAddLink}
+                      className='h-8 px-3'
+                    >
+                      Add
+                    </Button>
+                  </div>
+                )}
+
+                {form.attachment_links.length > 0 ? (
+                  <div
+                    className={`flex flex-col gap-1.5 ${ownerOnly ? 'mt-1' : 'mt-2'}`}
+                  >
+                    {form.attachment_links.map((link, idx) => (
+                      <div
+                        key={idx}
+                        className='flex items-center justify-between bg-zinc-50 border rounded px-2 py-1.5'
+                      >
+                        <div className='flex items-center gap-2 overflow-hidden'>
+                          <LinkIcon
+                            size={12}
+                            className='text-zinc-400 shrink-0'
+                          />
+                          <span className='text-xs truncate max-w-[300px] text-blue-600 hover:underline'>
+                            <a href={link} target='_blank' rel='noreferrer'>
+                              {link}
+                            </a>
+                          </span>
+                        </div>
+                        {!ownerOnly && (
+                          <button
+                            type='button'
+                            onClick={() => handleRemoveLink(idx)}
+                            className='text-zinc-400 hover:text-red-500 shrink-0 ml-2'
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  ownerOnly && (
+                    <p className='text-xs text-zinc-400 mt-1'>
+                      No attachments provided.
+                    </p>
+                  )
+                )}
               </div>
 
               {/* Priority + Status + Type */}

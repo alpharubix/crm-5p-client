@@ -216,6 +216,10 @@ function DraggableProjectCard({
                 : '-'}
             </span>
 
+            <span className='text-muted-foreground font-medium'>Approver</span>
+            <span className='font-medium'>
+              {USERS_MAP[project.approver_id] || '-'}
+            </span>
             <span className='text-muted-foreground font-medium'>Initiator</span>
             <span className='font-medium'>
               {USERS_MAP[project.created_by] || '-'}
@@ -239,49 +243,51 @@ function DraggableProjectCard({
           </div>
 
           {/* Footer: type badge + priority + overdue tag */}
-          <div className='flex items-center gap-1.5 flex-wrap mt-2 pt-2 border-t border-border'>
-            <span
-              className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                TYPE_STYLES[
-                  project.project_type
-                    ? project.project_type.charAt(0).toUpperCase() +
-                      project.project_type.slice(1)
-                    : ''
-                ] ?? 'bg-zinc-100 text-zinc-500'
-              }`}
-            >
-              {project.project_type ?? '-'}
-            </span>
-            <span
-              className={`text-[10px] font-medium ${
-                PRIORITY_STYLES[
-                  project.priority
-                    ? project.priority.charAt(0).toUpperCase() +
-                      project.priority.slice(1)
-                    : ''
-                ] ?? 'text-zinc-400'
-              }`}
-            >
-              {project.priority ?? '-'}
-            </span>
+          <div className='flex items-center gap-1.5 flex-wrap border-t border-border justify-between'>
+            <div>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                  TYPE_STYLES[
+                    project.project_type
+                      ? project.project_type.charAt(0).toUpperCase() +
+                        project.project_type.slice(1)
+                      : ''
+                  ] ?? 'bg-zinc-100 text-zinc-500'
+                }`}
+              >
+                {project.project_type ?? '-'}
+              </span>
+              <span
+                className={`text-[10px] font-medium ml-1 ${
+                  PRIORITY_STYLES[
+                    project.priority
+                      ? project.priority.charAt(0).toUpperCase() +
+                        project.priority.slice(1)
+                      : ''
+                  ] ?? 'text-zinc-400'
+                }`}
+              >
+                {project.priority ?? '-'}
+              </span>
+            </div>
             {overdue && (
               <span className='ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700'>
                 Overdue
               </span>
             )}
             {project.status === 'pending_for_approve' && isApprover && (
-              <div className='flex gap-2 mt-2 pt-2 border-t border-border'>
+              <div className='flex gap-2 mt-2 pt-2'>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => handleAction(e, 'planning')}
-                  className='flex-1 text-[11px] font-medium py-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors'
+                  className='flex-1 text-[11px] font-bold py-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors cursor-pointer p-2'
                 >
                   Approve
                 </button>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => handleAction(e, 'rejected')}
-                  className='flex-1 text-[11px] font-medium py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors'
+                  className='flex-1 text-[11px] font-bold py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors p-2 cursor-pointer'
                 >
                   Reject
                 </button>

@@ -17,6 +17,8 @@ import { useForm } from 'react-hook-form'
 import { useAuth } from '@/context/auth-context'
 import { toast } from 'sonner'
 import { ENV } from '@/conf'
+import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 
 const signInSchema = z.object({
   email: z.string().email(),
@@ -31,7 +33,7 @@ export default function SignInPage({
 }: React.ComponentProps<'div'>) {
   const { checkAuth } = useAuth()
   const navigate = useNavigate()
-
+  const [showPassword, setShowPassword] = useState(false)
   const {
     register,
     handleSubmit,
@@ -86,15 +88,31 @@ export default function SignInPage({
 
               <Field>
                 <FieldLabel>Password</FieldLabel>
-                <Input type='password' {...register('password')} />
+                <div className='relative'>
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    {...register('password')}
+                    className='pr-10'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700'
+                  >
+                    {showPassword ? (
+                      <Eye className='h-4 w-4 cursor-pointer' />
+                    ) : (
+                      <EyeOff className='h-4 w-4 cursor-pointer' />
+                    )}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className='text-xs text-red-500'>
                     {errors.password.message}
                   </p>
                 )}
               </Field>
-
-              <Button type='submit' disabled={isSubmitting} className='w-full'>
+              <Button type='submit' disabled={isSubmitting} className='w-full cursor-pointer'>
                 {isSubmitting && <Spinner className='mr-2 h-4 w-4' />}
                 Sign In
               </Button>
