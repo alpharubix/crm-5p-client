@@ -984,7 +984,7 @@ export default function UpdateAccounts() {
                     View More
                   </Button>
                 </DialogTrigger>
-                <DialogContent className='min-w-4xl'>
+                <DialogContent className='min-w-4xl h-1/2'>
                   <DialogHeader>
                     <DialogTitle>All Deals ({Deals.length})</DialogTitle>
                   </DialogHeader>
@@ -1018,7 +1018,7 @@ export default function UpdateAccounts() {
                             <TableCell>{deal.deal_type || '—'}</TableCell>
                             <TableCell>{deal.case_stage || '—'}</TableCell>
                             <TableCell>
-                              {formatAmount(deal.disbursement_amount) || '—'}
+                              {formatAmount(deal.disbursed_amount) || '—'}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -1067,7 +1067,7 @@ export default function UpdateAccounts() {
                       <TableCell>{deal.deal_type || '—'}</TableCell>
                       <TableCell>{deal.case_stage || '—'}</TableCell>
                       <TableCell>
-                        {formatAmount(deal.disbursement_amount) || '—'}
+                        {formatAmount(deal.disbursed_amount) || '—'}
                       </TableCell>
                     </TableRow>
                   ))
