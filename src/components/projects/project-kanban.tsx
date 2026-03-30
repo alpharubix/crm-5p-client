@@ -128,7 +128,11 @@ function DraggableProjectCard({
     id: String(project.id),
   })
   const { user } = useAuth()
-
+  const actionerNames =
+    project.actioner_ids
+      ?.map((id: string) => USERS_MAP[id])
+      .filter(Boolean)
+      .join(', ') || '-'
   // Derive role for the current user on this project
   const isOwner =
     user &&
@@ -179,18 +183,18 @@ function DraggableProjectCard({
             navigate(`/projects/${project.id}`)
         }}
       >
-        <CardContent className='p-3 text-sm grid gap-1'>
+        <CardContent className='p-3 grid gap-1'>
           <div
             className='flex justify-between items-start gap-2'
             onClick={() => navigate(`/projects/${project.id}`)}
           >
             <p
-              className='font-semibold text-base leading-tight cursor-pointer'
+              className='font-medium text-base leading-tight cursor-pointer'
               onPointerDown={(e) => e.stopPropagation()}
             >
               {project.name}
             </p>
-            {isOwner ? (
+            {isOwner || isApprover ? (
               <button
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
@@ -198,7 +202,7 @@ function DraggableProjectCard({
                   onEdit(project)
                 }}
                 className='text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0'
-                disabled={!isOwner}
+                // disabled={!isOwner || !isApprover}
               >
                 <Pencil className='w-4 h-4 cursor-pointer' />
               </button>
@@ -206,7 +210,7 @@ function DraggableProjectCard({
           </div>
 
           <div className='grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 mt-1 items-start text-xs'>
-            <span className='text-muted-foreground font-medium'>
+            {/* <span className='text-muted-foreground font-medium'>
               Project Type
             </span>
             <span className='font-medium'>
@@ -214,32 +218,37 @@ function DraggableProjectCard({
                 ? project.project_type.charAt(0).toUpperCase() +
                   project.project_type.slice(1)
                 : '-'}
-            </span>
+            </span> */}
 
-            <span className='text-muted-foreground font-medium'>Approver</span>
+            {/* <span className='text-muted-foreground font-medium'>Approver</span>
             <span className='font-medium'>
               {USERS_MAP[project.approver_id] || '-'}
-            </span>
-            <span className='text-muted-foreground font-medium'>Initiator</span>
+            </span> */}
+            {/* <span className='text-muted-foreground font-medium'>Initiator</span>
             <span className='font-medium'>
               {USERS_MAP[project.created_by] || '-'}
-            </span>
+            </span> */}
 
             <span className='text-muted-foreground font-medium'>Actioner</span>
-            <span className='font-medium truncate max-w-[130px]'>
-              {project.actioner_ids
-                ?.map((id: string) => USERS_MAP[id])
-                .filter(Boolean)
-                .join(', ') || '-'}
+            <span
+              className='font-medium truncate max-w-[130px] cursor-help block'
+              title={actionerNames}
+            >
+              {actionerNames}
             </span>
-
-            <span className='text-muted-foreground font-medium'>
-              Start Date
-            </span>
-            <span className='font-medium'>{project.start_date || '-'}</span>
-
-            <span className='text-muted-foreground font-medium'>End Date</span>
-            <span className='font-medium'>{project.end_date || '-'}</span>
+            <div className='flex items-center min-w-44 gap-1'>
+              {/* <span className='text-muted-foreground font-medium'>
+                Start Date
+              </span> */}
+              <span className='font-medium w-fit'>
+                {project.start_date || '-'}
+              </span>{' '}
+              {' → '}
+              {/* <span className='text-muted-foreground font-medium'>
+                End Date
+              </span> */}
+              <span className='font-medium'>{project.end_date || '-'}</span>
+            </div>
           </div>
 
           {/* Footer: type badge + priority + overdue tag */}
