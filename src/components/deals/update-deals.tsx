@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import ExportCsvButton from '@/components/shared/export-csv-button'
 import SectionHeader from '@/components/shared/section-header'
 import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
@@ -1136,17 +1137,24 @@ export default function UpdateDeals() {
               <span className='font-semibold'>{sortedNotes.length}</span>
             </p>
 
-            {showViewMore && (
-              <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
-                <DialogTrigger asChild>
-                  <Button
-                    size='sm'
-                    className='cursor-pointer'
-                    variant='outline'
-                  >
-                    View More
-                  </Button>
-                </DialogTrigger>
+            <div className='flex gap-2 items-center'>
+              <ExportCsvButton
+                endpoint='/export/notes'
+                params={new URLSearchParams({ parent_id: id || '', module: 'Deals' })}
+                dataSize={sortedNotes.length}
+                filename={`deals-notes-${id}`}
+              />
+              {showViewMore && (
+                <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
+                  <DialogTrigger asChild>
+                    <Button
+                      size='sm'
+                      className='cursor-pointer'
+                      variant='outline'
+                    >
+                      View More
+                    </Button>
+                  </DialogTrigger>
 
                 <DialogContent className='min-w-4xl'>
                   <DialogHeader>
@@ -1181,7 +1189,8 @@ export default function UpdateDeals() {
                   </div>
                 </DialogContent>
               </Dialog>
-            )}
+              )}
+            </div>
           </div>
 
           {notes.length === 0 ? (

@@ -25,6 +25,7 @@ import Pagination from '@/components/shared/pagination'
 import type { Contact } from '@/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
+import ExportCsvButton from '@/components/shared/export-csv-button'
 
 export default function ContactsPage() {
   const navigate = useNavigate()
@@ -98,6 +99,13 @@ export default function ContactsPage() {
     setCurrentPage(1)
   }
 
+  const exportParams = new URLSearchParams()
+  if (appliedFilters.full_name) exportParams.set('full_name', appliedFilters.full_name)
+  if (appliedFilters.email) exportParams.set('email', appliedFilters.email)
+  if (appliedFilters.city) exportParams.set('city', appliedFilters.city)
+  if (appliedFilters.mobile) exportParams.set('mobile', appliedFilters.mobile)
+  if (appliedFilters.phone) exportParams.set('phone', appliedFilters.phone)
+
   const handleClear = () => {
     const emptyFilters = {
       full_name: '',
@@ -158,6 +166,13 @@ export default function ContactsPage() {
         )}
 
         <div className='flex gap-2'>
+          <ExportCsvButton
+            endpoint='/export/contacts'
+            params={exportParams}
+            dataSize={pageInfo.data_size || 0}
+            filename='contacts'
+            isLoading={isLoading}
+          />
           <Button
             variant='outline'
             className='cursor-pointer'
