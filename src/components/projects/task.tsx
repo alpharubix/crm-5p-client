@@ -315,14 +315,15 @@ export default function Task() {
       <div className='border-b  px-6 py-4'>
         <button
           onClick={() => navigate('/projects')}
-          className='flex items-center gap-1.5 text-xs  transition-colors mb-3'
+          className='flex items-center gap-1.5 text-xs  transition-colors mb-3 cursor-pointer'
         >
           <ArrowLeft size={13} /> Back to Projects
         </button>
         <div className='flex items-center justify-between'>
           <div>
+            <p className='text-xs font-mono mt-0.5'>#{project?.id}</p>
             <h1 className='text-base font-semibold '>{project?.name}</h1>
-            <p className='text-xs font-mono mt-0.5'>{project?.id}</p>
+            <span className='text-sm'>{project?.description}</span>
           </div>
 
           <div className='flex items-center gap-2'>

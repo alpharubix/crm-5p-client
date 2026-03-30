@@ -67,7 +67,6 @@ export default function EditProjectModal({
     user &&
     project &&
     String(user.user_id) === String((project as any).approver_id)
-  const ownerOnly = !isOwner
 
   const [form, setForm] = useState({
     name: '',
@@ -158,7 +157,7 @@ export default function EditProjectModal({
   }
 
   function toggleAssignee(user: any) {
-    if (ownerOnly) return
+    if (!isOwner && !isApprover) return
     const mapped: any = { id: user.id, name: user.name }
     setForm((f) => {
       const exists = f.assignees.some((u) => u.id === mapped.id)
@@ -182,7 +181,7 @@ export default function EditProjectModal({
   }
 
   function handleRemoveLink(index: number) {
-    if (ownerOnly) return
+    if (!isOwner && !isApprover) return
     setForm((f) => ({
       ...f,
       attachment_links: f.attachment_links.filter((_, i) => i !== index),
@@ -380,7 +379,7 @@ export default function EditProjectModal({
                   className='mt-1 h-8 text-sm'
                   value={form.name}
                   onChange={(e) => set('name', e.target.value)}
-                  disabled={ownerOnly}
+                  disabled={!isOwner && !isApprover}
                 />
                 {errors.name && (
                   <p className='text-xs text-red-500 mt-1'>{errors.name}</p>
@@ -395,14 +394,14 @@ export default function EditProjectModal({
                   rows={2}
                   value={form.description}
                   onChange={(e) => set('description', e.target.value)}
-                  disabled={ownerOnly}
+                  disabled={!isOwner && !isApprover}
                 />
               </div>
 
               {/* Attachment Links (NEW) */}
               <div>
                 <Label className='text-xs font-medium'>Attachment Links</Label>
-                {!ownerOnly && (
+                {(isOwner || isApprover) && (
                   <div className='flex gap-2 mt-1'>
                     <Input
                       className='h-8 text-sm flex-1'
@@ -430,7 +429,7 @@ export default function EditProjectModal({
 
                 {form.attachment_links.length > 0 ? (
                   <div
-                    className={`flex flex-col gap-1.5 ${ownerOnly ? 'mt-1' : 'mt-2'}`}
+                    className={`flex flex-col gap-1.5 ${!isOwner && !isApprover ? 'mt-1' : 'mt-2'}`}
                   >
                     {form.attachment_links.map((link, idx) => (
                       <div
@@ -448,20 +447,21 @@ export default function EditProjectModal({
                             </a>
                           </span>
                         </div>
-                        {!ownerOnly && (
+                        {(!isOwner || !isApprover) && (
                           <button
                             type='button'
                             onClick={() => handleRemoveLink(idx)}
                             className='text-zinc-400 hover:text-red-500 shrink-0 ml-2'
                           >
-                            <X size={12} />
+                            <X size={18} className='cursor-pointer' />
                           </button>
                         )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  ownerOnly && (
+                  !isOwner &&
+                  !isApprover && (
                     <p className='text-xs text-zinc-400 mt-1'>
                       No attachments provided.
                     </p>
@@ -470,7 +470,8 @@ export default function EditProjectModal({
               </div>
 
               {/* Priority + Status + Type */}
-              <div className='grid grid-cols-3 gap-3'>
+              {/* grid grid-cols-3 gap-3 */}
+              <div className='flex items-center gap-4 flex-wrap'>
                 <div>
                   <Label className='text-xs font-medium'>
                     Priority <span className='text-red-500'>*</span>
@@ -478,7 +479,7 @@ export default function EditProjectModal({
                   <Select
                     value={form.priority}
                     onValueChange={(v) => set('priority', v as Priority)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   >
                     <SelectTrigger className='mt-1 h-8 text-sm'>
                       <SelectValue placeholder='Select' />
@@ -529,7 +530,7 @@ export default function EditProjectModal({
                   <Select
                     value={form.projectType}
                     onValueChange={(v) => set('projectType', v as ProjectType)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   >
                     <SelectTrigger className='mt-1 h-8 text-sm'>
                       <SelectValue placeholder='Select' />
@@ -548,17 +549,27 @@ export default function EditProjectModal({
                   <Select
                     value={form.approverId}
                     onValueChange={(v) => set('approverId', v)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   >
                     <SelectTrigger className='mt-1 h-8 text-sm'>
                       <SelectValue placeholder='Select' />
                     </SelectTrigger>
                     <SelectContent>
-                      {users.map((u) => (
-                        <SelectItem key={u.id} value={u.id} className='text-sm'>
-                          {u.name}
-                        </SelectItem>
-                      ))}
+                      {users
+                        .filter(
+                          (u) =>
+                            String(u.id) === '3899927000000201013' ||
+                            u.name === 'Anslem Prathap',
+                        )
+                        .map((u) => (
+                          <SelectItem
+                            key={u.id}
+                            value={u.id}
+                            className='text-sm'
+                          >
+                            {u.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -575,7 +586,7 @@ export default function EditProjectModal({
                     className='mt-1 h-8 text-sm'
                     value={form.startDate}
                     onChange={(e) => set('startDate', e.target.value)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   />
                   {errors.startDate && (
                     <p className='text-xs text-red-500 mt-1'>
@@ -592,7 +603,7 @@ export default function EditProjectModal({
                     className='mt-1 h-8 text-sm'
                     value={form.endDate}
                     onChange={(e) => set('endDate', e.target.value)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   />
                   {errors.endDate && (
                     <p className='text-xs text-red-500 mt-1'>
@@ -606,7 +617,7 @@ export default function EditProjectModal({
               <div>
                 <Label className='text-xs font-medium'>Team Members</Label>
                 <div
-                  className={`mt-1 border rounded-md overflow-hidden divide-y max-h-40 overflow-y-auto ${ownerOnly ? 'opacity-70 pointer-events-none' : ''}`}
+                  className={`mt-1 border rounded-md overflow-hidden divide-y max-h-40 overflow-y-auto ${!isOwner && !isApprover ? 'opacity-70 pointer-events-none' : ''}`}
                 >
                   {users.map((user: { id: string; name: string }) => {
                     const selected = form.assignees.some(
@@ -656,7 +667,7 @@ export default function EditProjectModal({
                         className='text-xs gap-1 pl-2 pr-1'
                       >
                         {USERS_MAP[u.id]}
-                        {!ownerOnly && (
+                        {(isOwner || isApprover) && (
                           <button
                             onClick={() =>
                               toggleAssignee({ id: u.id, name: u.name })
