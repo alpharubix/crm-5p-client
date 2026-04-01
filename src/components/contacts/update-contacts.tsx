@@ -16,6 +16,7 @@ import SelectField from '@/components/shared/select-field'
 import NoteDialog from '@/components/shared/note-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { useNavigate } from 'react-router-dom'
+import ExportCsvButton from '@/components/shared/export-csv-button'
 
 import {
   updateContactSchema,
@@ -454,17 +455,24 @@ export default function UpdateContacts() {
               <span className='font-semibold'>{sortedNotes.length}</span>
             </p>
 
-            {showViewMore && (
-              <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
-                <DialogTrigger asChild>
-                  <Button
-                    size='sm'
-                    className='cursor-pointer'
-                    variant='outline'
-                  >
-                    View More
-                  </Button>
-                </DialogTrigger>
+            <div className='flex gap-2 items-center'>
+              <ExportCsvButton
+                endpoint='/export/notes'
+                params={new URLSearchParams({ parent_id: id || '', module: 'Contacts' })}
+                dataSize={sortedNotes.length}
+                filename={`contacts-notes-${id}`}
+              />
+              {showViewMore && (
+                <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
+                  <DialogTrigger asChild>
+                    <Button
+                      size='sm'
+                      className='cursor-pointer'
+                      variant='outline'
+                    >
+                      View More
+                    </Button>
+                  </DialogTrigger>
 
                 <DialogContent className='min-w-4xl'>
                   <DialogHeader>
@@ -499,7 +507,8 @@ export default function UpdateContacts() {
                   </div>
                 </DialogContent>
               </Dialog>
-            )}
+              )}
+            </div>
           </div>
 
           {notes.length === 0 ? (

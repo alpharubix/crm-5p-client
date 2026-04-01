@@ -34,6 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { formatExactDate } from '@/utils/date-formatter'
 import UploadCsv from '@/components/accounts/csv-upload'
+import ExportCsvButton from '@/components/shared/export-csv-button'
 
 import users from '@/utils/users.json'
 
@@ -140,6 +141,20 @@ export default function AccountsPage() {
     setCurrentPage(1)
   }
 
+  const exportParams = new URLSearchParams()
+  if (appliedFilters.accountName)
+    exportParams.set('account_name', appliedFilters.accountName)
+  if (appliedFilters.accountStatus)
+    exportParams.set('account_status', appliedFilters.accountStatus)
+  if (appliedFilters.source) exportParams.set('source', appliedFilters.source)
+  if (appliedFilters.industry)
+    exportParams.set('industry', appliedFilters.industry)
+  if (appliedFilters.phone) exportParams.set('phone', appliedFilters.phone)
+  if (appliedFilters.city) exportParams.set('city', appliedFilters.city)
+  if (appliedFilters.state) exportParams.set('state', appliedFilters.state)
+  if (appliedFilters.accountOwnerId)
+    exportParams.set('account_owner_id', appliedFilters.accountOwnerId)
+
   const handleClear = () => {
     const emptyFilters = {
       accountName: '',
@@ -207,7 +222,16 @@ export default function AccountsPage() {
           </div>
         )}
 
-        <UploadCsv isLoading={isLoading} refetch={refetch} />
+        <div className='flex gap-2 items-center'>
+          <ExportCsvButton
+            endpoint='/export/accounts'
+            params={exportParams}
+            dataSize={pageInfo.data_size || 0}
+            filename='accounts'
+            isLoading={isLoading}
+          />
+          <UploadCsv isLoading={isLoading} refetch={refetch} />
+        </div>
       </div>
 
       <div className='grid grid-cols-[260px_1fr] gap-4'>

@@ -35,6 +35,7 @@ import { useNavigate } from 'react-router-dom'
 import { formatExactDate } from '@/utils/date-formatter'
 import { formatAmount } from '@/utils/number-formatter'
 import HighlightedText from '@/components/shared/highlighted-text'
+import ExportCsvButton from '@/components/shared/export-csv-button'
 
 const LENDER_NAMES = [
   'Kotak Mahindra Bank Ltd',
@@ -177,6 +178,22 @@ const DealsPage = () => {
     setCurrentPage(1)
   }
 
+  const exportParams = new URLSearchParams()
+  if (appliedFilters.accountName)
+    exportParams.set('account_name', appliedFilters.accountName)
+  if (appliedFilters.lenderName)
+    exportParams.set('lender_name', appliedFilters.lenderName)
+  if (appliedFilters.caseStatus)
+    exportParams.set('case_status', appliedFilters.caseStatus)
+  if (appliedFilters.ticketLogin)
+    exportParams.set('ticket_login', appliedFilters.ticketLogin)
+  if (appliedFilters.loanType)
+    exportParams.set('loan_type', appliedFilters.loanType)
+  if (appliedFilters.typeOfCaseLogin)
+    exportParams.set('type_of_case_login', appliedFilters.typeOfCaseLogin)
+  if (appliedFilters.dealOwnerId)
+    exportParams.set('deal_owner_id', appliedFilters.dealOwnerId)
+
   const handleClear = () => {
     const emptyFilters = {
       accountName: '',
@@ -241,6 +258,13 @@ const DealsPage = () => {
         )}
 
         <div className='flex gap-2'>
+          <ExportCsvButton
+            endpoint='/export/deals'
+            params={exportParams}
+            dataSize={pageInfo.data_size || 0}
+            filename='deals'
+            isLoading={isLoading}
+          />
           <Button
             variant='outline'
             className='cursor-pointer'

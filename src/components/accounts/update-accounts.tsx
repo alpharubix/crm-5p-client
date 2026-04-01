@@ -32,6 +32,7 @@ import SelectField from '@/components/shared/select-field'
 import DateField from '@/components/shared/date-field'
 import NoteDialog from '@/components/shared/note-dialog'
 import { Spinner } from '@/components/ui/spinner'
+import ExportCsvButton from '@/components/shared/export-csv-button'
 import users from '@/utils/users.json'
 
 import {
@@ -413,8 +414,10 @@ export default function UpdateAccounts() {
           <div className='md:border-r'>
             <FieldRow label='Assignment Date'>
               <span>
-                {formatExactDate(data.assignmentDate, 'dd MMM yyyy, hh:mm a') ||
-                  '—'}
+                {formatExactDate(
+                  data.assignmentDate?.toISOString() || '',
+                  'dd MMM yyyy, hh:mm a'
+                ) || '—'}
               </span>
             </FieldRow>
 
@@ -893,17 +896,24 @@ export default function UpdateAccounts() {
               <span className='font-semibold'>{sortedNotes.length}</span>
             </p>
 
-            {showViewMore && (
-              <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
-                <DialogTrigger asChild>
-                  <Button
-                    size='sm'
-                    className='cursor-pointer'
-                    variant='outline'
-                  >
-                    View More
-                  </Button>
-                </DialogTrigger>
+            <div className='flex gap-2 items-center'>
+              <ExportCsvButton
+                endpoint='/export/notes'
+                params={new URLSearchParams({ parent_id: id || '', module: 'Accounts' })}
+                dataSize={sortedNotes.length}
+                filename={`accounts-notes-${id}`}
+              />
+              {showViewMore && (
+                <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
+                  <DialogTrigger asChild>
+                    <Button
+                      size='sm'
+                      className='cursor-pointer'
+                      variant='outline'
+                    >
+                      View More
+                    </Button>
+                  </DialogTrigger>
 
                 <DialogContent className='min-w-4xl'>
                   <DialogHeader>
@@ -938,7 +948,8 @@ export default function UpdateAccounts() {
                   </div>
                 </DialogContent>
               </Dialog>
-            )}
+              )}
+            </div>
           </div>
 
           {notes.length === 0 ? (
