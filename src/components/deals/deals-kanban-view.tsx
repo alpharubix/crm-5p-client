@@ -24,20 +24,20 @@ export interface DealData {
 
 const DUMMY_TICKETS: DealData[] = [
   {
-    id: '1',
-    dealName: 'Del-1001',
-    dealId: '1001',
-    dealOwner: 'sandeep',
-    lenderName: 'axis',
-    status: 'Deal Created',
+    id: '1771',
+    dealName: 'JASODA ENTERPRISES',
+    dealId: '1771',
+    dealOwner: 'Anslem Prathap',
+    lenderName: 'HDFC Bank',
+    status: 'Active',
   },
   {
-    id: '2',
-    dealName: 'Del-1002',
-    dealId: '1002',
-    dealOwner: 'arjun',
+    id: '71',
+    dealName: 'RUDRA ENTERPRISES',
+    dealId: '71',
+    dealOwner: 'Digamber Pandey',
     lenderName: 'Kotak Mahindra Bank Ltd',
-    status: 'Lender Review',
+    status: 'Disbursed',
   },
   {
     id: '3',
@@ -48,12 +48,12 @@ const DUMMY_TICKETS: DealData[] = [
     status: 'Achievement',
   },
   {
-    id: '4',
-    dealName: 'Del-1004',
-    dealId: '1004',
-    dealOwner: 'arjun',
-    lenderName: 'Rupifi Private Ltd',
-    status: 'Lender Rejected',
+    id: '87',
+    dealName: 'RIYA BANGLES',
+    dealId: '87',
+    dealOwner: 'Ayush Dingane',
+    lenderName: 'Kotak Mahindra Bank Ltd',
+    status: 'Commercials NI',
   },
 ]
 
@@ -103,7 +103,7 @@ function DraggableTicketCard({ deal }: { deal: DealData }) {
     >
       <Card
         className={`transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30`}
-        onClick={() => navigate(`/kanban-update-deals`)}
+        onClick={() => navigate(`/deals/${deal.id}`)}
       >
         <CardContent className='p-3 text-sm grid gap-1'>
           <div className='flex justify-between items-start gap-2'>

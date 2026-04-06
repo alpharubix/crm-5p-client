@@ -69,15 +69,9 @@ export default function App() {
               {/* /deals/:id */}
               <Route path='/deals/:id' element={<UpdateDeals />} />
               <Route path='/kanban-deals' element={<DealsKanban />} />
-              <Route
-                path='/kanban-update-deals'
-                element={<UpdateDealsKanban />}
-              />
+
               <Route path='/kanban-tickets' element={<TicketsKanban />} />
-              <Route
-                path='/kanban-update-tickets'
-                element={<UpdateTicketsKanban />}
-              />
+              <Route path='/tickets/:id' element={<UpdateTicketsKanban />} />
 
               <Route element={<ProtectedLogRoute />}>
                 <Route path='/audit-logs' element={<AuditLogs />} />

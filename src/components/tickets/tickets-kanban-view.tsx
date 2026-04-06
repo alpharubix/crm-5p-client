@@ -124,7 +124,7 @@ function DraggableTicketCard({ ticket }: { ticket: TicketData }) {
     >
       <Card
         className={`transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30`}
-        onClick={() => navigate(`/kanban-update-tickets`)}
+        onClick={() => navigate(`/tickets/${ticket.id}`)}
       >
         <CardContent className='p-3 text-sm grid gap-1'>
           <div className='flex justify-between items-start gap-2'>
