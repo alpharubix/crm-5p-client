@@ -28,6 +28,7 @@ export interface ProjectFormData {
   assignees: ProjectUser[]
   startDate: string
   endDate: string
+  created_by: string
 }
 
 export interface Project extends ProjectFormData {

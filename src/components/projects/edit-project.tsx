@@ -20,7 +20,14 @@ import {
 } from '../ui/select'
 import { Badge } from '../ui/badge'
 import { X, Link as LinkIcon } from 'lucide-react'
-import { API_TO_STATUS, ENV, PRIORITIES, PROJECT_TYPES, STATUSES } from '@/conf'
+import {
+  API_TO_STATUS,
+  ENV,
+  PRIORITIES,
+  PROJECT_TYPES,
+  STATUSES,
+  USERS_MAP,
+} from '@/conf'
 import type {
   Priority,
   Project,
@@ -30,15 +37,6 @@ import type {
 } from '@/types/project-types'
 import { useAuth } from '@/context/auth-context'
 import { STATUS_MAP } from './project-kanban'
-
-const USERS_MAP: Record<string, string> = {
-  '3899927000000615348': 'Ashok M',
-  '3899927000000964875': 'Suraj Gupta',
-  '3899927000000882594': 'Myisa Beiucy',
-  '3899927000000723465': 'Kaveri Metri',
-  '3899927000000201013': 'Anslem Prathap',
-  '3899927000005965002': 'Subhasini TS',
-}
 
 interface EditProjectModalProps {
   open: boolean
@@ -470,7 +468,6 @@ export default function EditProjectModal({
               </div>
 
               {/* Priority + Status + Type */}
-              {/* grid grid-cols-3 gap-3 */}
               <div className='flex items-center gap-4 flex-wrap'>
                 <div>
                   <Label className='text-xs font-medium'>
@@ -544,6 +541,7 @@ export default function EditProjectModal({
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
                   <Label className='text-xs font-medium'>Approver</Label>
                   <Select
@@ -572,6 +570,12 @@ export default function EditProjectModal({
                         ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className='text-sm mt-4'>
+                  <span className='font-medium block'>
+                    {USERS_MAP[project?.created_by || ''] || 'Unknown User'}{' '}
+                    (Initiator)
+                  </span>
                 </div>
               </div>
 

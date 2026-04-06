@@ -18,21 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select'
-import { ENV } from '@/conf'
+import { ENV, USERS_MAP } from '@/conf'
 
 interface CreateTaskModalProps {
   open: boolean
   onClose: () => void
   projectId: string
   onCreated: (task: any) => void
-}
-export const USERS_MAP: Record<string, string> = {
-  '3899927000000615348': 'Ashok M',
-  '3899927000000964875': 'Suraj Gupta',
-  '3899927000000882594': 'Myisa Beiucy',
-  '3899927000000723465': 'Kaveri Metri',
-  '3899927000000201013': 'Anslem Prathap',
-  '3899927000005965002': 'Subhasini TS',
 }
 
 const TYPES = ['feature', 'bug', 'enhancement', 'research']
@@ -262,6 +254,7 @@ export default function CreateTaskModal({
             size='sm'
             onClick={handleSubmit}
             disabled={mutation.isPending}
+            className='cursor-pointer'
           >
             {mutation.isPending ? 'Creating...' : 'Create Task'}
           </Button>
