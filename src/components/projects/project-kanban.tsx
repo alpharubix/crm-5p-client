@@ -1,4 +1,4 @@
-import { ENV } from '@/conf'
+import { ENV, USERS_MAP } from '@/conf'
 import type { Project } from '@/types/project-types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
@@ -19,16 +19,6 @@ import {
 } from '@dnd-kit/core'
 import { useAuth } from '@/context/auth-context'
 
-// ── Hardcoded Users ────────────────────────────────────────────────────────
-
-const USERS_MAP: Record<string, string> = {
-  '3899927000000615348': 'Ashok M',
-  '3899927000000964875': 'Suraj Gupta',
-  '3899927000000882594': 'Myisa Beiucy',
-  '3899927000000723465': 'Kaveri Metri',
-  '3899927000000201013': 'Anslem Prathap',
-  '3899927000005965002': 'Subhasini TS',
-}
 // 1. Add this interface at the top
 export interface ProjectFilters {
   search: string
@@ -175,153 +165,111 @@ function DraggableProjectCard({
       className={isDragging ? 'opacity-50' : ''}
     >
       <Card
-        className={`transition-colors  py-0 gap-0 overflow-hidden ${
+        className={`transition-colors py-0 gap-0 overflow-hidden border ${
           canDrag ? 'cursor-grab' : 'cursor-default'
-        } ${overdue ? 'hover:bg-red-50/60' : 'hover:bg-muted/30'}`}
+        } ${
+          overdue
+            ? 'border-red-200 hover:border-red-300 shadow-sm shadow-red-50'
+            : 'border-zinc-200 hover:border-zinc-300 hover:shadow-sm'
+        }`}
         onClick={() => {
           if (isOwner || isApprover || isAssigneeOnly)
             navigate(`/projects/${project.id}`)
         }}
       >
-        <CardContent className='p-3 grid gap-1'>
-          <div
-            className='flex justify-between items-start gap-2'
-            onClick={() => navigate(`/projects/${project.id}`)}
-          >
-            <p
-              className='font-medium text-base leading-tight cursor-pointer'
-              onPointerDown={(e) => e.stopPropagation()}
-            >
+        <CardContent className='p-3 flex flex-col gap-3'>
+          {/* Header */}
+          <div className='flex justify-between items-start gap-2'>
+            <h3 className='font-semibold text-sm leading-snug text-zinc-900 line-clamp-2'>
               {project.name}
-            </p>
-            {isOwner || isApprover ? (
+            </h3>
+            {(isOwner || isApprover) && (
               <button
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation()
                   onEdit(project)
                 }}
-                className='text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0'
-                // disabled={!isOwner || !isApprover}
+                className='text-zinc-400 hover:text-zinc-800 transition-colors shrink-0 p-0.5 rounded hover:bg-zinc-100'
               >
-                <Pencil className='w-4 h-4 cursor-pointer' />
+                <Pencil className='w-3.5 h-3.5' />
               </button>
-            ) : null}
+            )}
           </div>
 
-          <div className='grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 mt-1 items-start text-xs'>
-            {/* <span className='text-muted-foreground font-medium'>
-              Project Type
-            </span>
-            <span className='font-medium'>
-              {project.project_type
-                ? project.project_type.charAt(0).toUpperCase() +
-                  project.project_type.slice(1)
-                : '-'}
-            </span> */}
-
-            {/* <span className='text-muted-foreground font-medium'>Approver</span>
-            <span className='font-medium'>
-              {USERS_MAP[project.approver_id] || '-'}
-            </span> */}
-            {/* <span className='text-muted-foreground font-medium'>Initiator</span>
-            <span className='font-medium'>
-              {USERS_MAP[project.created_by] || '-'}
-            </span> */}
-
-            <span className='text-muted-foreground font-medium'>Actioner</span>
-            <span
-              className='font-medium truncate max-w-[130px] cursor-help block'
-              title={actionerNames}
-            >
-              {actionerNames}
-            </span>
-            <div className='flex items-center min-w-44 gap-1'>
-              {/* <span className='text-muted-foreground font-medium'>
-                Start Date
-              </span> */}
-              <span className='font-medium w-fit'>
-                {project.start_date || '-'}
-              </span>{' '}
-              {' → '}
-              {/* <span className='text-muted-foreground font-medium'>
-                End Date
-              </span> */}
-              <span className='font-medium'>{project.end_date || '-'}</span>
+          {/* Metadata */}
+          <div className='flex flex-col gap-1.5 text-xs'>
+            <div className='flex items-center justify-between'>
+              <span className='text-zinc-500 font-medium'>Initiator</span>
+              <span
+                className='font-medium text-zinc-800 truncate max-w-[140px]'
+                title={USERS_MAP[project.created_by] || project.created_by}
+              >
+                {USERS_MAP[project.created_by] || 'Unknown'}
+              </span>
+            </div>
+            <div className='flex items-center justify-between'>
+              <span className='text-zinc-500 font-medium'>Actioner</span>
+              <span
+                className='font-medium text-zinc-800 truncate max-w-[140px]'
+                title={actionerNames}
+              >
+                {actionerNames || '-'}
+              </span>
+            </div>
+            <div className='flex items-center justify-between'>
+              <span className='text-zinc-500 font-medium'>Timeline</span>
+              <span className='font-medium text-zinc-800'>
+                {project.start_date || '-'} → {project.end_date || '-'}
+              </span>
             </div>
           </div>
 
-          {/* Footer: type badge + priority + overdue tag */}
-          <div className='flex items-center gap-1.5 flex-wrap border-t border-border justify-between'>
-            <div>
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                  TYPE_STYLES[
-                    project.project_type
-                      ? project.project_type.charAt(0).toUpperCase() +
-                        project.project_type.slice(1)
-                      : ''
-                  ] ?? 'bg-zinc-100 text-zinc-500'
-                }`}
-              >
-                {project.project_type ?? '-'}
+          {/* Footer Badges */}
+          <div className='flex items-center justify-between pt-2.5 border-t border-zinc-100'>
+            <div className='flex items-center gap-1.5'>
+              <span className='text-[10px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600'>
+                {project.project_type || '-'}
               </span>
-              <span
-                className={`text-[10px] font-medium ml-1 ${
-                  PRIORITY_STYLES[
-                    project.priority
-                      ? project.priority.charAt(0).toUpperCase() +
-                        project.priority.slice(1)
-                      : ''
-                  ] ?? 'text-zinc-400'
-                }`}
-              >
-                {project.priority ?? '-'}
+              <span className='text-[10px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100'>
+                {project.priority || '-'}
               </span>
             </div>
             {overdue && (
-              <span className='ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700'>
-                Overdue
+              <span className='text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100'>
+                OVERDUE
               </span>
             )}
-            {project.status === 'pending_for_approve' && isApprover && (
-              <div className='flex gap-2 mt-2 pt-2'>
-                <button
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => handleAction(e, 'planning')}
-                  className='flex-1 text-[11px] font-bold py-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors cursor-pointer p-2'
-                >
-                  Approve
-                </button>
-                <button
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => handleAction(e, 'rejected')}
-                  className='flex-1 text-[11px] font-bold py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors p-2 cursor-pointer'
-                >
-                  Reject
-                </button>
-              </div>
-            )}
-
-            {project.status === 'pending_for_review' && isApprover && (
-              <div className='flex gap-2 mt-2 pt-2 border-t border-border'>
-                <button
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => handleAction(e, 'completed')}
-                  className='flex-1 text-[11px] font-medium py-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors'
-                >
-                  Approve
-                </button>
-                <button
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => handleAction(e, 'rejected')}
-                  className='flex-1 text-[11px] font-medium py-1 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors'
-                >
-                  Reject
-                </button>
-              </div>
-            )}
           </div>
+
+          {/* Action Buttons */}
+          {isApprover &&
+            (project.status === 'pending_for_approve' ||
+              project.status === 'pending_for_review') && (
+              <div className='flex gap-2 pt-2'>
+                <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) =>
+                    handleAction(
+                      e,
+                      project.status === 'pending_for_approve'
+                        ? 'planning'
+                        : 'completed',
+                    )
+                  }
+                  className='flex-1 text-[11px] font-bold py-1.5 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors'
+                >
+                  Approve
+                </button>
+                <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => handleAction(e, 'rejected')}
+                  className='flex-1 text-[11px] font-bold py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 transition-colors'
+                >
+                  Reject
+                </button>
+              </div>
+            )}
         </CardContent>
       </Card>
     </div>
@@ -349,18 +297,20 @@ function DroppableProjectColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`min-w-[280px] w-full flex flex-col gap-3 h-full p-2 rounded border transition-colors ${
-        isOver ? 'border-zinc-300' : 'border-border'
+      className={`min-w-[320px] w-[320px] flex flex-col gap-3 h-full p-3 rounded-lg border bg-zinc-50/50 transition-colors ${
+        isOver ? 'border-blue-300 bg-blue-50/50' : 'border-zinc-200'
       }`}
     >
       <div
-        className={`flex items-center gap-2 pb-2 border-b mb-1 ${style.header}`}
+        className={`flex items-center gap-2 pb-2 mb-1 border-b border-zinc-200 ${style.header}`}
       >
-        <span className={`w-2 h-2 rounded shrink-0 ${style.dot}`} />
-        <span className='text-xs font-semibold uppercase tracking-wide'>
+        <span className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
+        <span className='text-xs font-bold uppercase tracking-wider text-zinc-700'>
           {status}
         </span>
-        <span className='ml-auto text-xs font-mono'>{projects.length}</span>
+        <span className='ml-auto text-[11px] font-mono bg-zinc-200/50 text-zinc-600 px-1.5 py-0.5 rounded-md'>
+          {projects.length}
+        </span>
       </div>
       <div className='flex flex-col gap-3 flex-1 overflow-y-auto pr-1 pb-2'>
         {projects.map((p) => (
@@ -374,13 +324,13 @@ function DroppableProjectColumn({
         ))}
         {projects.length === 0 && (
           <div
-            className={`border border-dashed rounded p-4 text-center text-xs transition-colors ${
+            className={`border-2 border-dashed rounded-md p-6 flex items-center justify-center text-xs font-medium transition-colors h-24 ${
               isOver
-                ? 'border-zinc-400 text-zinc-400'
-                : 'border-zinc-200 text-zinc-300'
+                ? 'border-blue-300 text-blue-500 bg-blue-50/50'
+                : 'border-zinc-200 text-zinc-400'
             }`}
           >
-            Drop here
+            Drop project here
           </div>
         )}
       </div>
@@ -487,7 +437,7 @@ export default function ProjectKanban({
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div className='flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0'>
+        <div className='flex gap-5 pb-6 overflow-x-auto items-start h-[calc(100vh-140px)] min-h-0 px-1'>
           {COLUMNS.map((col) => {
             const colProjects = projectList.filter(
               (p) => p.status === STATUS_MAP[col],
@@ -511,9 +461,19 @@ export default function ProjectKanban({
 
         <DragOverlay>
           {activeProject && (
-            <Card className='cursor-grabbing shadow-lg opacity-90 border-l-4 border-l-primary/50 py-0'>
-              <CardContent className='p-3 text-sm'>
-                <p className='font-semibold'>{activeProject.name}</p>
+            <Card className='cursor-grabbing shadow-xl shadow-zinc-200/50 border border-blue-200 opacity-90 scale-105 rotate-2 py-0'>
+              <CardContent className='p-3 text-sm bg-white rounded-lg'>
+                <p className='font-semibold text-zinc-900 line-clamp-2'>
+                  {activeProject.name}
+                </p>
+                <div className='flex items-center gap-1.5 mt-2'>
+                  <span className='text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600'>
+                    {activeProject.project_type || 'N/A'}
+                  </span>
+                  <span className='text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100'>
+                    {activeProject.priority || 'N/A'}
+                  </span>
+                </div>
               </CardContent>
             </Card>
           )}

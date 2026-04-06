@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Pencil } from 'lucide-react'
+import { ArrowLeft, LinkIcon, Pencil } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -12,7 +12,7 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core'
-import { ENV } from '@/conf'
+import { ENV, USERS_MAP } from '@/conf'
 import { useQuery } from '@tanstack/react-query'
 import CreateTaskModal from './create-task'
 import { Button } from '../ui/button'
@@ -310,37 +310,116 @@ export default function Task() {
   }
 
   return (
-    <div className='min-h-screen'>
-      {/* Header */}
-      <div className='border-b  px-6 py-4'>
+    <div className='min-h-screen bg-zinc-50'>
+      {/* Header Section */}
+      <div className='bg-white border-b px-6 py-6 shadow-sm'>
         <button
           onClick={() => navigate('/projects')}
-          className='flex items-center gap-1.5 text-xs  transition-colors mb-3 cursor-pointer'
+          className='flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 transition-colors mb-4 cursor-pointer'
         >
           <ArrowLeft size={13} /> Back to Projects
         </button>
-        <div className='flex items-center justify-between'>
+
+        <div className='flex items-start justify-between mb-6'>
           <div>
-            <p className='text-xs font-mono mt-0.5'>#{project?.id}</p>
-            <h1 className='text-base font-semibold '>{project?.name}</h1>
-            <span className='text-sm'>{project?.description}</span>
+            <div className='flex items-center gap-3 mb-1'>
+              <h1 className='text-xl font-bold text-zinc-900'>
+                {project?.name}
+              </h1>
+              <span className='text-xs font-mono bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded'>
+                #{project?.id}
+              </span>
+              <span className='text-xs uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold'>
+                {project?.project_type}
+              </span>
+            </div>
+            <p className='text-sm text-zinc-600 max-w-3xl mt-2'>
+              {project?.description}
+            </p>
           </div>
 
-          <div className='flex items-center gap-2'>
-            <span className='text-xs px-2 py-0.5 rounded border font-medium '>
-              {project?.priority}
+          <Button
+            size='sm'
+            onClick={() => setTaskModalOpen(true)}
+            className='cursor-pointer shrink-0'
+          >
+            + Add Task
+          </Button>
+        </div>
+
+        {/* Metadata Grid */}
+        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-zinc-50 border rounded-lg p-4 mb-4'>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-zinc-500 uppercase'>
+              Status & Priority
             </span>
-            <span className='text-xs px-2 py-0.5 rounded border font-medium '>
-              {project?.status}
-            </span>
-            <span className='text-xs ml-2'>
+            <div className='flex items-center gap-2'>
+              <span className='text-xs capitalize px-2 py-0.5 rounded border border-zinc-200 bg-white font-medium'>
+                {project?.status}
+              </span>
+              <span className='text-xs capitalize px-2 py-0.5 rounded border border-zinc-200 bg-white font-medium'>
+                {project?.priority}
+              </span>
+            </div>
+          </div>
+
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-zinc-500 uppercase'>Timeline</span>
+            <span className='font-medium text-zinc-900'>
               {project?.start_date} → {project?.end_date}
             </span>
-            <Button size='sm' onClick={() => setTaskModalOpen(true)}>
-              + Add Task
-            </Button>
+          </div>
+
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-zinc-500 uppercase'>Created</span>
+            <span className='font-medium text-zinc-900'>
+              {USERS_MAP[project?.created_by]}
+            </span>
+            <span className='text-xs text-zinc-500'>{project?.created_at}</span>
+          </div>
+
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs text-zinc-500 uppercase'>Team</span>
+            <span className='text-xs text-zinc-700'>
+              <span className='font-medium'>Approver:</span>{' '}
+              {USERS_MAP[project?.approver_id]}
+            </span>
+            <span className='text-xs text-zinc-700 truncate'>
+              <span className='font-medium'>Actioners:</span>{' '}
+              {project?.actioner_ids
+                ?.map((id: string) => USERS_MAP[id])
+                .join(', ')}
+            </span>
           </div>
         </div>
+
+        {/* Attachments */}
+        {project?.attachment_links?.length > 0 && (
+          <div className='flex flex-col gap-2'>
+            <span className='text-xs text-zinc-500 font-medium uppercase'>
+              Attachments
+            </span>
+            <div className='flex flex-wrap gap-2'>
+              {project?.attachment_links.map((link: string, idx: number) => (
+                <a
+                  key={idx}
+                  href={link}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='flex items-center gap-2 bg-white border border-zinc-200 hover:border-blue-300 hover:bg-blue-50 rounded px-3 py-1.5 transition-colors group'
+                >
+                  <LinkIcon
+                    size={12}
+                    className='text-zinc-400 group-hover:text-blue-500 shrink-0'
+                  />
+                  <span className='text-xs truncate max-w-[250px] text-zinc-700 group-hover:text-blue-700'>
+                    {link}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Kanban */}
@@ -367,6 +446,8 @@ export default function Task() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      {/* Modals */}
       <CreateTaskModal
         open={taskModalOpen}
         onClose={() => setTaskModalOpen(false)}
