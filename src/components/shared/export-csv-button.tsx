@@ -4,6 +4,7 @@ import { Download } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
 import { ENV } from '@/conf'
+import { useAuth } from '@/context/auth-context'
 
 interface ExportCsvButtonProps {
   endpoint: string
@@ -21,6 +22,9 @@ export default function ExportCsvButton({
   isLoading = false,
 }: ExportCsvButtonProps) {
   const [isExporting, setIsExporting] = useState(false)
+  const { user } = useAuth()
+
+  if (user?.role !== 'super_admin') return null
 
   const handleExport = async () => {
     if (dataSize === 0) {
