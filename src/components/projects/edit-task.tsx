@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '../ui/select'
 import { ENV, USERS_MAP } from '@/conf'
-import { useAuth } from '@/context/auth-context'
+import { X, Link as LinkIcon } from 'lucide-react'
 
 interface Task {
   id: string
@@ -30,6 +30,10 @@ interface Task {
   status: string
   assignee_id?: string
   assignee_name?: string
+  created_by?: string // <-- Added
+  start_date?: string
+  end_date?: string
+  attachment_links?: string[]
   projectId: string
 }
 
@@ -71,13 +75,15 @@ export default function EditTaskModal({
     priority: '',
     status: '',
     assignee_id: '',
+    start_date: '',
+    end_date: '',
+    attachment_links: [] as string[],
   })
   const queryClient = useQueryClient()
-  const { user } = useAuth()
   const [comment, setComment] = useState('')
-  const [activeTab, setActiveTab] = useState<'comments' | 'history'>('comments') // UI Toggle
+  const [currentLink, setCurrentLink] = useState('')
+  const [activeTab, setActiveTab] = useState<'comments' | 'history'>('comments')
 
-  // Fetch Comments
   const { data: commentsData, refetch: refetchComments } = useQuery({
     queryKey: ['comments', task?.id],
     queryFn: async () => {
@@ -91,7 +97,6 @@ export default function EditTaskModal({
     enabled: !!task?.id,
   })
 
-  // Fetch Task Logs
   const { data: logsData, refetch: refetchLogs } = useQuery({
     queryKey: ['task-logs', task?.id],
     queryFn: async () => {
@@ -122,7 +127,7 @@ export default function EditTaskModal({
     onSuccess: () => {
       setComment('')
       refetchComments()
-      refetchLogs() // Refresh logs too since commenting is an action
+      refetchLogs()
     },
   })
 
@@ -135,8 +140,12 @@ export default function EditTaskModal({
         priority: task.priority.toLowerCase(),
         status: REVERSE_STATUS[task.status] ?? task.status.toLowerCase(),
         assignee_id: task.assignee_id ?? '',
+        start_date: task.start_date ?? '',
+        end_date: task.end_date ?? '',
+        attachment_links: task.attachment_links || [],
       })
       setComment('')
+      setCurrentLink('')
       setActiveTab('comments')
     }
   }, [task])
@@ -160,8 +169,41 @@ export default function EditTaskModal({
     name: USERS_MAP[String(id)] ?? id,
   }))
 
-  function set(key: string, value: string) {
+  function set(key: string, value: any) {
     setForm((f) => ({ ...f, [key]: value }))
+  }
+
+  // Safely handle arrays in case it's undefined
+  function handleAddLink() {
+    if (!currentLink.trim()) return
+    setForm((f) => ({
+      ...f,
+      attachment_links: [...(f.attachment_links || []), currentLink.trim()],
+    }))
+    setCurrentLink('')
+  }
+
+  function handleSubmit() {
+    const finalForm = { ...form }
+    if (currentLink.trim()) {
+      finalForm.attachment_links = [
+        ...(finalForm.attachment_links || []),
+        currentLink.trim(),
+      ]
+      setCurrentLink('')
+    }
+
+    mutation.mutate(finalForm) // This handles the actual submission
+  }
+
+  // Safely handle array filtering
+  function handleRemoveLink(index: number) {
+    setForm((f) => ({
+      ...f,
+      attachment_links: (f.attachment_links || []).filter(
+        (_, i) => i !== index,
+      ),
+    }))
   }
 
   const mutation = useMutation({
@@ -179,6 +221,13 @@ export default function EditTaskModal({
             priority: body.priority,
             status: body.status,
             assignee_id: body.assignee_id ? body.assignee_id : null,
+            start_date: body.start_date
+              ? new Date(body.start_date).toISOString()
+              : null,
+            end_date: body.end_date
+              ? new Date(body.end_date).toISOString()
+              : null,
+            attachment_links: body.attachment_links,
           }),
         },
       )
@@ -192,8 +241,7 @@ export default function EditTaskModal({
     },
   })
 
-  // Helper to format log messages
-  // Helper to format rich log messages
+  // ... (renderLogDetails remains exactly the same as your previous version)
   const renderLogDetails = (log: any) => {
     const changes = log.changes || {}
     const keys = Object.keys(changes)
@@ -210,8 +258,7 @@ export default function EditTaskModal({
               let val = changes[key]
               let formattedKey = key.replace('_', ' ')
 
-              // Skip empty values to keep the UI clean
-              if (!val) return null
+              if (!val || (Array.isArray(val) && val.length === 0)) return null
 
               if (key === 'status') {
                 val = STATUS_LABELS[val] || val
@@ -223,6 +270,8 @@ export default function EditTaskModal({
               } else if (key === 'assignee_id') {
                 val = USERS_MAP[String(val)] || 'Unassigned'
                 formattedKey = 'assignee'
+              } else if (key === 'attachment_links') {
+                val = `${val.length} links`
               }
 
               return (
@@ -273,6 +322,8 @@ export default function EditTaskModal({
               } else if (key === 'assignee_id') {
                 val = USERS_MAP[String(val)] || 'Unassigned'
                 formattedKey = 'assignee'
+              } else if (key === 'attachment_links') {
+                val = `${val.length} links`
               }
 
               return (
@@ -305,6 +356,12 @@ export default function EditTaskModal({
           <DialogTitle className='text-base font-semibold'>
             Edit Task
           </DialogTitle>
+          {task?.created_by && (
+            <p className='text-xs font-medium text-zinc-500 mt-0.5'>
+              Created by:{' '}
+              {USERS_MAP[String(task.created_by)] || task.created_by}
+            </p>
+          )}
         </DialogHeader>
 
         <div className='space-y-4 py-1'>
@@ -329,6 +386,61 @@ export default function EditTaskModal({
               value={form.description}
               onChange={(e) => set('description', e.target.value)}
             />
+          </div>
+
+          {/* Attachment Links */}
+          <div>
+            <Label className='text-xs font-medium'>Attachment Links</Label>
+            <div className='flex gap-2 mt-1'>
+              <Input
+                className='h-8 text-sm flex-1'
+                placeholder='https://...'
+                value={currentLink}
+                onChange={(e) => setCurrentLink(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddLink()
+                  }
+                }}
+              />
+              <Button
+                type='button'
+                size='sm'
+                variant='secondary'
+                onClick={handleAddLink}
+                className='h-8 px-3'
+              >
+                Add
+              </Button>
+            </div>
+            {/* Added optional chaining here just in case */}
+            {form.attachment_links?.length > 0 && (
+              <div className='flex flex-col gap-1.5 mt-2'>
+                {form.attachment_links.map((link, idx) => (
+                  <div
+                    key={idx}
+                    className='flex items-center justify-between bg-zinc-50 border rounded px-2 py-1.5'
+                  >
+                    <div className='flex items-center gap-2 overflow-hidden'>
+                      <LinkIcon size={12} className='text-zinc-400 shrink-0' />
+                      <span className='text-xs truncate max-w-[300px] text-blue-600 hover:underline'>
+                        <a href={link} target='_blank' rel='noreferrer'>
+                          {link}
+                        </a>
+                      </span>
+                    </div>
+                    <button
+                      type='button'
+                      onClick={() => handleRemoveLink(idx)}
+                      className='text-zinc-400 hover:text-red-500 shrink-0 ml-2'
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Type + Priority */}
@@ -420,6 +532,31 @@ export default function EditTaskModal({
             </div>
           </div>
 
+          {/* Start Date + End Date */}
+          <div className='grid grid-cols-2 gap-3'>
+            <div>
+              <Label className='text-xs font-medium'>Start Date</Label>
+              <Input
+                type='date'
+                className='mt-1 h-8 text-sm'
+                value={form.start_date}
+                onChange={(e) => set('start_date', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label className='text-xs font-medium'>
+                Projected Completion
+              </Label>
+              <Input
+                type='date'
+                className='mt-1 h-8 text-sm'
+                value={form.end_date}
+                onChange={(e) => set('end_date', e.target.value)}
+              />
+            </div>
+          </div>
+
           {/* --- Comments & History Section --- */}
           <div className='pt-2 border-t mt-4'>
             <div className='flex items-center gap-4 mb-3 border-b pb-2'>
@@ -505,9 +642,7 @@ export default function EditTaskModal({
                             {USERS_MAP[String(log.user_id)] || 'Unknown User'}
                           </span>{' '}
                         </div>
-                        {/* Render the rich text here */}
                         {renderLogDetails(log)}
-
                         <div className='text-[10px] text-zinc-400 mt-1'>
                           {new Date(log.created_at).toLocaleString()}
                         </div>
@@ -525,7 +660,7 @@ export default function EditTaskModal({
           </Button>
           <Button
             size='sm'
-            onClick={() => mutation.mutate(form)}
+            onClick={handleSubmit}
             disabled={mutation.isPending}
           >
             {mutation.isPending ? 'Saving...' : 'Save'}
