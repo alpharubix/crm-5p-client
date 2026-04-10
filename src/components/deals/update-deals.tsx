@@ -8,7 +8,6 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import ExportCsvButton from '@/components/shared/export-csv-button'
 import SectionHeader from '@/components/shared/section-header'
 import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
@@ -116,7 +115,7 @@ function mapDealToForm(apiData: any): UpdateDealFormValues {
 
 function mapFormToApi(
   formData: UpdateDealFormValues,
-  dirtyFields: Partial<Record<keyof UpdateDealFormValues, boolean>>,
+  dirtyFields: Partial<Record<keyof UpdateDealFormValues, boolean>>
 ): any {
   const allFields = {
     account_id: {
@@ -245,8 +244,8 @@ export default function UpdateDeals() {
           e.returnValue = ''
         }
       },
-      [isDirty],
-    ),
+      [isDirty]
+    )
   )
 
   const {
@@ -258,7 +257,7 @@ export default function UpdateDeals() {
     queryFn: async () => {
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${id}`,
-        { credentials: 'include' },
+        { credentials: 'include' }
       )
       if (!res.ok) throw new Error('Failed to fetch deal')
       return res.json()
@@ -472,7 +471,7 @@ export default function UpdateDeals() {
                       {
                         shouldValidate: true,
                         shouldDirty: true,
-                      },
+                      }
                     )
                   }}
                   disablePast={true}
@@ -482,7 +481,7 @@ export default function UpdateDeals() {
                   {formValues.dealCallBackDatetime
                     ? formatExactDate(
                         formValues.dealCallBackDatetime,
-                        'dd MMM yyyy, hh:mm a',
+                        'dd MMM yyyy, hh:mm a'
                       )
                     : '—'}
                 </span>
@@ -594,7 +593,7 @@ export default function UpdateDeals() {
                       {
                         shouldValidate: true,
                         shouldDirty: true,
-                      },
+                      }
                     )
                   }}
                 />
@@ -603,7 +602,7 @@ export default function UpdateDeals() {
                   {formValues.targetedDisbursementDate
                     ? formatExactDate(
                         formValues.targetedDisbursementDate,
-                        'dd MMM yyyy',
+                        'dd MMM yyyy'
                       )
                     : '—'}
                 </span>
@@ -628,7 +627,7 @@ export default function UpdateDeals() {
                       {
                         shouldValidate: true,
                         shouldDirty: true,
-                      },
+                      }
                     )
                   }}
                 />
@@ -637,7 +636,7 @@ export default function UpdateDeals() {
                   {formValues.disbursementDate
                     ? formatExactDate(
                         formValues.disbursementDate,
-                        'dd MMM yyyy',
+                        'dd MMM yyyy'
                       )
                     : '—'}
                 </span>
@@ -672,7 +671,7 @@ export default function UpdateDeals() {
                       {
                         shouldValidate: true,
                         shouldDirty: true,
-                      },
+                      }
                     )
                   }}
                 />
@@ -933,7 +932,7 @@ export default function UpdateDeals() {
                       {
                         shouldValidate: true,
                         shouldDirty: true,
-                      },
+                      }
                     )
                   }}
                 />
@@ -961,7 +960,7 @@ export default function UpdateDeals() {
                       {
                         shouldValidate: true,
                         shouldDirty: true,
-                      },
+                      }
                     )
                   }}
                 />
@@ -1138,12 +1137,6 @@ export default function UpdateDeals() {
             </p>
 
             <div className='flex gap-2 items-center'>
-              <ExportCsvButton
-                endpoint='/export/notes'
-                params={new URLSearchParams({ parent_id: id || '', module: 'Deals' })}
-                dataSize={sortedNotes.length}
-                filename={`deals-notes-${id}`}
-              />
               {showViewMore && (
                 <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
                   <DialogTrigger asChild>
@@ -1156,39 +1149,41 @@ export default function UpdateDeals() {
                     </Button>
                   </DialogTrigger>
 
-                <DialogContent className='min-w-4xl'>
-                  <DialogHeader>
-                    <DialogTitle>All Notes ({sortedNotes.length})</DialogTitle>
-                  </DialogHeader>
+                  <DialogContent className='min-w-4xl'>
+                    <DialogHeader>
+                      <DialogTitle>
+                        All Notes ({sortedNotes.length})
+                      </DialogTitle>
+                    </DialogHeader>
 
-                  <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
-                    {sortedNotes.map((note: any, i: number) => (
-                      <div
-                        key={note.parent_id || i}
-                        className='bg-muted/30 p-3 rounded-lg border'
-                      >
-                        <p className='text-sm'>{note.Note_Content}</p>
+                    <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
+                      {sortedNotes.map((note: any, i: number) => (
+                        <div
+                          key={note.parent_id || i}
+                          className='bg-muted/30 p-3 rounded-lg border'
+                        >
+                          <p className='text-sm'>{note.Note_Content}</p>
 
-                        <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
-                          <span>
-                            Created By: {note.Created_By?.name || '—'}
-                          </span>
-                          <span>
-                            Created Date:{' '}
-                            {formatExactDate(
-                              note.Created_Time,
-                              'dd MMM yyyy, hh:mm a',
-                            ) || '—'}
-                          </span>
-                          <div className='font-bold'>
-                            Module : {note.module}
+                          <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                            <span>
+                              Created By: {note.Created_By?.name || '—'}
+                            </span>
+                            <span>
+                              Created Date:{' '}
+                              {formatExactDate(
+                                note.Created_Time,
+                                'dd MMM yyyy, hh:mm a'
+                              ) || '—'}
+                            </span>
+                            <div className='font-bold'>
+                              Module : {note.module}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               )}
             </div>
           </div>
@@ -1209,7 +1204,7 @@ export default function UpdateDeals() {
                     Created Date:{' '}
                     {formatExactDate(
                       note.Created_Time,
-                      'dd MMM yyyy, hh:mm a',
+                      'dd MMM yyyy, hh:mm a'
                     ) || '—'}
                   </span>
                   <div className='font-bold'>Module : {note.module}</div>

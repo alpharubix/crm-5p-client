@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Label } from '@/components/ui/label'
-import DateField from '@/components/shared/date-field'
 import Pagination from '@/components/shared/pagination'
-import { RefreshCw } from 'lucide-react'
 import { ENV } from '@/conf'
 
 import { Button } from '@/components/ui/button'
@@ -34,7 +32,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { formatExactDate } from '@/utils/date-formatter'
 import UploadCsv from '@/components/accounts/csv-upload'
-import ExportCsvButton from '@/components/shared/export-csv-button'
 
 import users from '@/utils/users.json'
 
@@ -112,7 +109,7 @@ export default function AccountsPage() {
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`,
-        { credentials: 'include' },
+        { credentials: 'include' }
       )
 
       if (!res.ok) throw new Error('Failed to fetch')
@@ -190,7 +187,7 @@ export default function AccountsPage() {
         queryFn: async () => {
           const res = await fetch(
             `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
-            { credentials: 'include' },
+            { credentials: 'include' }
           )
           if (!res.ok) throw new Error('Failed to fetch account')
           return res.json()
@@ -223,19 +220,12 @@ export default function AccountsPage() {
         )}
 
         <div className='flex gap-2 items-center'>
-          <ExportCsvButton
-            endpoint='/export/accounts'
-            params={exportParams}
-            dataSize={pageInfo.data_size || 0}
-            filename='accounts'
-            isLoading={isLoading}
-          />
           <UploadCsv isLoading={isLoading} refetch={refetch} />
         </div>
       </div>
 
       <div className='grid grid-cols-[260px_1fr] gap-4'>
-        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-200px)]'>
+        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-140px)]'>
           <h3 className='font-semibold text-sm'>Filter Accounts by</h3>
 
           {showOwnerFilter && (
@@ -417,7 +407,7 @@ export default function AccountsPage() {
           </div>
         </div>
 
-        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]'>
+        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-140px)]'>
           {isLoading ? (
             <div className='flex items-center justify-center h-64 border rounded-md'>
               <Spinner className='h-8 w-8 text-muted-foreground' />
@@ -500,7 +490,7 @@ export default function AccountsPage() {
                             {acc.call_back_date_time
                               ? formatExactDate(
                                   acc.call_back_date_time,
-                                  'dd MMM yyyy, hh:mm a',
+                                  'dd MMM yyyy, hh:mm a'
                                 )
                               : '—'}
                           </TableCell>

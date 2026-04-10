@@ -253,7 +253,7 @@ export default function CreateTaskModal({
                 {form.attachment_links.map((link, idx) => (
                   <div
                     key={idx}
-                    className='flex items-center justify-between bg-zinc-50 border rounded px-2 py-1.5'
+                    className='flex items-center justify-between border rounded px-2 py-1.5'
                   >
                     <div className='flex items-center gap-2 overflow-hidden'>
                       <LinkIcon size={12} className='text-zinc-400 shrink-0' />

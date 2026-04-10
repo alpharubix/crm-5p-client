@@ -8,7 +8,13 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { BookOpen, FolderOpenDot, GalleryVerticalEnd, Logs } from 'lucide-react'
+import {
+  BookOpen,
+  FolderDown,
+  FolderOpenDot,
+  GalleryVerticalEnd,
+  Logs,
+} from 'lucide-react'
 
 const data = {
   user: {
@@ -59,6 +65,17 @@ const data = {
       ],
     },
     {
+      title: 'Export',
+      url: '#',
+      icon: FolderDown,
+      items: [
+        {
+          title: 'All Exports',
+          url: '/exports',
+        },
+      ],
+    },
+    {
       title: 'Logs',
       url: '#',
       icon: Logs,
@@ -69,7 +86,7 @@ const data = {
         },
       ],
     },
-    { 
+    {
       title: 'Projects',
       url: '#',
       icon: FolderOpenDot,

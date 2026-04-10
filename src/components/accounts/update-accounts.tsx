@@ -7,7 +7,6 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -32,7 +31,6 @@ import SelectField from '@/components/shared/select-field'
 import DateField from '@/components/shared/date-field'
 import NoteDialog from '@/components/shared/note-dialog'
 import { Spinner } from '@/components/ui/spinner'
-import ExportCsvButton from '@/components/shared/export-csv-button'
 import users from '@/utils/users.json'
 
 import {
@@ -109,7 +107,7 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
 // Map form values to API payload
 function mapFormToApi(
   formData: UpdateAccountFormValues,
-  dirtyFields: Partial<Record<keyof UpdateAccountFormValues, boolean>>,
+  dirtyFields: Partial<Record<keyof UpdateAccountFormValues, boolean>>
 ): any {
   const allFields = {
     assignment_date: { value: formData.assignmentDate, key: 'assignmentDate' },
@@ -224,7 +222,7 @@ export default function UpdateAccounts() {
     queryFn: async () => {
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
-        { credentials: 'include' },
+        { credentials: 'include' }
       )
       if (!res.ok) throw new Error('Failed to fetch account')
       return res.json()
@@ -301,8 +299,8 @@ export default function UpdateAccounts() {
           e.returnValue = ''
         }
       },
-      [isDirty],
-    ),
+      [isDirty]
+    )
   )
 
   const data = watch()
@@ -695,14 +693,19 @@ export default function UpdateAccounts() {
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
           <div className='md:border-r'>
             <FieldRow label='Business Registration Type'>
-              {isEdit ? (
-                <Input
-                  {...register('businessRegistrationType')}
-                  className='h-8'
-                />
-              ) : (
-                <span>{display(data.businessRegistrationType)}</span>
-              )}
+              <SelectField
+                value={display(data.businessRegistrationType)}
+                isEdit={isEdit}
+                options={[
+                  '-None-',
+                  'Proprietorship',
+                  'Partnership',
+                  'Private Limited',
+                ]}
+                onChange={(v) =>
+                  setValue('businessRegistrationType', v, { shouldDirty: true })
+                }
+              />
             </FieldRow>
 
             <FieldRow
@@ -897,12 +900,6 @@ export default function UpdateAccounts() {
             </p>
 
             <div className='flex gap-2 items-center'>
-              <ExportCsvButton
-                endpoint='/export/notes'
-                params={new URLSearchParams({ parent_id: id || '', module: 'Accounts' })}
-                dataSize={sortedNotes.length}
-                filename={`accounts-notes-${id}`}
-              />
               {showViewMore && (
                 <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
                   <DialogTrigger asChild>
@@ -915,39 +912,41 @@ export default function UpdateAccounts() {
                     </Button>
                   </DialogTrigger>
 
-                <DialogContent className='min-w-4xl'>
-                  <DialogHeader>
-                    <DialogTitle>All Notes ({sortedNotes.length})</DialogTitle>
-                  </DialogHeader>
+                  <DialogContent className='min-w-4xl'>
+                    <DialogHeader>
+                      <DialogTitle>
+                        All Notes ({sortedNotes.length})
+                      </DialogTitle>
+                    </DialogHeader>
 
-                  <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
-                    {sortedNotes.map((note: any, i: number) => (
-                      <div
-                        key={note.parent_id || i}
-                        className='bg-muted/30 p-3 rounded-lg border'
-                      >
-                        <p className='text-sm'>{note.Note_Content}</p>
+                    <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
+                      {sortedNotes.map((note: any, i: number) => (
+                        <div
+                          key={note.parent_id || i}
+                          className='bg-muted/30 p-3 rounded-lg border'
+                        >
+                          <p className='text-sm'>{note.Note_Content}</p>
 
-                        <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
-                          <span>
-                            Created By: {note.Created_By?.name || '—'}
-                          </span>
-                          <span>
-                            Created Date:{' '}
-                            {formatExactDate(
-                              note.Created_Time,
-                              'dd MMM yyyy, hh:mm a',
-                            ) || '—'}
-                          </span>
-                          <div className='font-bold'>
-                            Module : {note.module}
+                          <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                            <span>
+                              Created By: {note.Created_By?.name || '—'}
+                            </span>
+                            <span>
+                              Created Date:{' '}
+                              {formatExactDate(
+                                note.Created_Time,
+                                'dd MMM yyyy, hh:mm a'
+                              ) || '—'}
+                            </span>
+                            <div className='font-bold'>
+                              Module : {note.module}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               )}
             </div>
           </div>
@@ -968,7 +967,7 @@ export default function UpdateAccounts() {
                     Created Date:{' '}
                     {formatExactDate(
                       note.Created_Time,
-                      'dd MMM yyyy, hh:mm a',
+                      'dd MMM yyyy, hh:mm a'
                     ) || '—'}
                   </span>
                   <div className='font-bold'>Module : {note.module}</div>

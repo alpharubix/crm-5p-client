@@ -1,5 +1,3 @@
-'use client'
-
 import * as React from 'react'
 
 import {
@@ -10,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/context/auth-context'
@@ -40,18 +39,7 @@ export function TeamSwitcher({
               size='lg'
               className='data-[state=open]:text-sidebar-accent-foreground'
             >
-              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-                <activeTeam.logo className='size-4' />
-              </div>
-              <div className='grid flex-1 text-left text-sm leading-tight'>
-                <span className='truncate font-medium'>
-                  {user?.user_name || activeTeam.name}
-                </span>
-                <span className='truncate text-xs'>
-                  {user?.role.toUpperCase()}
-                </span>
-              </div>
-              {/* <ChevronsUpDown className="ml-auto" /> */}
+              <SidebarTrigger />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
         </DropdownMenu>

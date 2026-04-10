@@ -256,14 +256,12 @@ export default function EditProjectModal({
 
     if (log.action === 'CREATED') {
       if (log.entity_type === 'PROJECT')
-        return <span className='text-zinc-600'>Created the project</span>
+        return <span >Created the project</span>
       return (
-        <div className='text-zinc-600'>
+        <div >
           <span>
             Created task{' '}
-            <span className='font-medium text-zinc-800'>
-              {changes.title || taskName}
-            </span>
+            <span className='font-medium '>{changes.title || taskName}</span>
           </span>
         </div>
       )
@@ -271,10 +269,9 @@ export default function EditProjectModal({
 
     if (log.action === 'COMMENTED') {
       return (
-        <span className='text-zinc-600'>
-          Commented on{' '}
-          <span className='font-medium text-zinc-800'>{taskName}</span>:{' '}
-          <span className='italic text-zinc-800'>"{changes.content}"</span>
+        <span >
+          Commented on <span className='font-medium '>{taskName}</span>:{' '}
+          <span className='italic '>"{changes.content}"</span>
         </span>
       )
     }
@@ -282,17 +279,17 @@ export default function EditProjectModal({
     if (log.action === 'UPDATED') {
       if (keys.length === 0)
         return (
-          <span className='text-zinc-600'>
+          <span >
             Updated {log.entity_type.toLowerCase()} details
           </span>
         )
 
       return (
-        <div className='text-zinc-600'>
+        <div >
           <span>
             Updated{' '}
             {log.entity_type === 'TASK' ? (
-              <span className='font-medium text-zinc-800'>{taskName}</span>
+              <span className='font-medium '>{taskName}</span>
             ) : (
               'project'
             )}{' '}
@@ -316,12 +313,12 @@ export default function EditProjectModal({
               }
 
               return (
-                <div key={key} className='text-[11px] text-zinc-500'>
-                  <span className='text-zinc-400'>↳</span> Changed{' '}
-                  <span className='font-medium text-zinc-700 capitalize'>
+                <div key={key} className='text-[11px] '>
+                  <span className=''>↳</span> Changed{' '}
+                  <span className='font-medium  capitalize'>
                     {formattedKey}
                   </span>{' '}
-                  to <span className='font-medium text-zinc-700'>{val}</span>
+                  to <span className='font-medium '>{val}</span>
                 </div>
               )
             })}
@@ -330,7 +327,7 @@ export default function EditProjectModal({
       )
     }
 
-    return <span className='text-zinc-600'>Performed an action</span>
+    return <span className=''>Performed an action</span>
   }
 
   return (
@@ -350,13 +347,13 @@ export default function EditProjectModal({
         {/* TABS */}
         <div className='flex items-center gap-4 border-b mt-2'>
           <button
-            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-zinc-500'}`}
+            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : ''}`}
             onClick={() => setActiveTab('details')}
           >
             Project Details
           </button>
           <button
-            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-zinc-500'}`}
+            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : ''}`}
             onClick={() => setActiveTab('history')}
           >
             Activity History
@@ -432,13 +429,10 @@ export default function EditProjectModal({
                     {form.attachment_links.map((link, idx) => (
                       <div
                         key={idx}
-                        className='flex items-center justify-between bg-zinc-50 border rounded px-2 py-1.5'
+                        className='flex items-center justify-between border rounded px-2 py-1.5'
                       >
                         <div className='flex items-center gap-2 overflow-hidden'>
-                          <LinkIcon
-                            size={12}
-                            className='text-zinc-400 shrink-0'
-                          />
+                          <LinkIcon size={12} className=' shrink-0' />
                           <span className='text-xs truncate max-w-[300px] text-blue-600 hover:underline'>
                             <a href={link} target='_blank' rel='noreferrer'>
                               {link}
@@ -449,7 +443,7 @@ export default function EditProjectModal({
                           <button
                             type='button'
                             onClick={() => handleRemoveLink(idx)}
-                            className='text-zinc-400 hover:text-red-500 shrink-0 ml-2'
+                            className=' hover:text-red-500 shrink-0 ml-2'
                           >
                             <X size={18} className='cursor-pointer' />
                           </button>
@@ -460,9 +454,7 @@ export default function EditProjectModal({
                 ) : (
                   !isOwner &&
                   !isApprover && (
-                    <p className='text-xs text-zinc-400 mt-1'>
-                      No attachments provided.
-                    </p>
+                    <p className='text-xs  mt-1'>No attachments provided.</p>
                   )
                 )}
               </div>
@@ -557,7 +549,7 @@ export default function EditProjectModal({
                         .filter(
                           (u) =>
                             String(u.id) === '3899927000000201013' ||
-                            u.name === 'Anslem Prathap',
+                            u.name === 'Anslem Prathap'
                         )
                         .map((u) => (
                           <SelectItem
@@ -625,7 +617,7 @@ export default function EditProjectModal({
                 >
                   {users.map((user: { id: string; name: string }) => {
                     const selected = form.assignees.some(
-                      (u) => u.id === user.id,
+                      (u) => u.id === user.id
                     )
                     return (
                       <div
@@ -692,29 +684,25 @@ export default function EditProjectModal({
           {/* --- HISTORY TAB --- */}
           {activeTab === 'history' && (
             <div className='space-y-4'>
-              {logsLoading && (
-                <p className='text-xs text-zinc-500'>Loading history...</p>
-              )}
+              {logsLoading && <p className='text-xs '>Loading history...</p>}
 
               {!logsLoading && (logsData?.data ?? []).length === 0 && (
-                <p className='text-xs text-zinc-400'>
-                  No activity recorded yet.
-                </p>
+                <p className='text-xs '>No activity recorded yet.</p>
               )}
 
               {!logsLoading &&
                 Array.isArray(logsData?.data) &&
                 logsData.data.map((log: any) => (
                   <div key={log.id} className='flex gap-3 text-xs'>
-                    <div className='w-2 h-2 rounded-full bg-zinc-300 mt-1 shrink-0'></div>
-                    <div className='flex-1 pb-3 border-b border-zinc-100 last:border-0'>
+                    <div className='w-2 h-2 rounded-full mt-1 shrink-0'></div>
+                    <div className='flex-1 pb-3 border-b last:border-0'>
                       <div className='mb-0.5'>
-                        <span className='font-medium text-zinc-800'>
+                        <span className='font-medium '>
                           {USERS_MAP[String(log.user_id)] || 'Unknown User'}
                         </span>{' '}
                       </div>
                       {renderLogDetails(log)}
-                      <div className='text-[10px] text-zinc-400 mt-1.5'>
+                      <div className='text-[10px]  mt-1.5'>
                         {new Date(log.created_at).toLocaleString()}
                       </div>
                     </div>

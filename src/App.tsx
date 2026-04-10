@@ -11,10 +11,10 @@ import { Spinner } from './components/ui/spinner'
 const AccountPage = lazy(() => import('./pages/accounts-page'))
 const ContactPage = lazy(() => import('./pages/contact-page'))
 const UpdateAccounts = lazy(
-  () => import('./components/accounts/update-accounts'),
+  () => import('./components/accounts/update-accounts')
 )
 const UpdateContacts = lazy(
-  () => import('./components/contacts/update-contacts'),
+  () => import('./components/contacts/update-contacts')
 )
 const NotFoundPage = lazy(() => import('./pages/not-found-page'))
 const CreateContact = lazy(() => import('./components/contacts/create-contact'))
@@ -25,6 +25,7 @@ const Project = lazy(() => import('./components/projects/project'))
 const Task = lazy(() => import('./components/projects/task'))
 const CreateDeal = lazy(() => import('./components/deals/create-deals'))
 const SignInPage = lazy(() => import('./pages/signin-page'))
+const Export = lazy(() => import('./components/export/export'))
 
 export default function App() {
   return (
@@ -67,6 +68,7 @@ export default function App() {
 
               <Route path='/projects' element={<Project />} />
               <Route path='/projects/:id' element={<Task />} />
+              <Route path='/exports' element={<Export />} />
               <Route path='*' element={<NotFoundPage />} />
             </Route>
           </Routes>

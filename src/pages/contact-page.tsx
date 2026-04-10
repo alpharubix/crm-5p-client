@@ -25,7 +25,6 @@ import Pagination from '@/components/shared/pagination'
 import type { Contact } from '@/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
-import ExportCsvButton from '@/components/shared/export-csv-button'
 
 export default function ContactsPage() {
   const navigate = useNavigate()
@@ -68,7 +67,7 @@ export default function ContactsPage() {
         `${ENV.VITE_BACKEND_BASE_URL}/contacts?${params.toString()}`,
         {
           credentials: 'include',
-        },
+        }
       )
       if (!res.ok) throw new Error('Failed to fetch contacts')
       return res.json()
@@ -100,7 +99,8 @@ export default function ContactsPage() {
   }
 
   const exportParams = new URLSearchParams()
-  if (appliedFilters.full_name) exportParams.set('full_name', appliedFilters.full_name)
+  if (appliedFilters.full_name)
+    exportParams.set('full_name', appliedFilters.full_name)
   if (appliedFilters.email) exportParams.set('email', appliedFilters.email)
   if (appliedFilters.city) exportParams.set('city', appliedFilters.city)
   if (appliedFilters.mobile) exportParams.set('mobile', appliedFilters.mobile)
@@ -134,7 +134,7 @@ export default function ContactsPage() {
         queryFn: async () => {
           const res = await fetch(
             `${ENV.VITE_BACKEND_BASE_URL}/contacts?contact_id=${id}`,
-            { credentials: 'include' },
+            { credentials: 'include' }
           )
           if (!res.ok) throw new Error('Failed to fetch contact')
           return res.json()
@@ -166,13 +166,6 @@ export default function ContactsPage() {
         )}
 
         <div className='flex gap-2'>
-          <ExportCsvButton
-            endpoint='/export/contacts'
-            params={exportParams}
-            dataSize={pageInfo.data_size || 0}
-            filename='contacts'
-            isLoading={isLoading}
-          />
           <Button
             variant='outline'
             className='cursor-pointer'
@@ -204,7 +197,7 @@ export default function ContactsPage() {
       </div>
 
       {/* ---------------- Layout ---------------- */}
-      <div className='grid grid-cols-[260px_1fr] gap-4'> 
+      <div className='grid grid-cols-[260px_1fr] gap-4'>
         {/* -------- Filters -------- */}
         <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(90vh-200px)]'>
           <h3 className='font-semibold text-sm'>Filter Contacts by</h3>
@@ -274,7 +267,7 @@ export default function ContactsPage() {
         </div>
 
         {/* -------- Table -------- */}
-        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]'>
+        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-140px)]'>
           <div className='border rounded-md flex-1 overflow-auto relative'>
             {isLoading ? (
               <div className='flex items-center justify-center h-64'>
