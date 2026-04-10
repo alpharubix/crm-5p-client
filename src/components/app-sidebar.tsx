@@ -123,8 +123,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain
           items={data.navMain.filter((item) => {
-            if (item.title === 'Logs') {
-              return user?.role === 'super_admin'
+            if (item.title === 'Logs' && user?.role !== 'super_admin') {
+              return false
+            }
+            if (item.title === 'Export' && user?.role !== 'super_admin') {
+              return false
             }
             return true
           })}

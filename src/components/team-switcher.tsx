@@ -1,10 +1,6 @@
 import * as React from 'react'
 
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -33,16 +29,13 @@ export function TeamSwitcher({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size='lg'
-              className='data-[state=open]:text-sidebar-accent-foreground'
-            >
-              <SidebarTrigger />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-        </DropdownMenu>
+        <SidebarMenuButton
+          size='lg'
+          className='data-[state=open]:text-sidebar-accent-foreground'
+          asChild
+        >
+          <SidebarTrigger />
+        </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
   )
