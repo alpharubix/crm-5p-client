@@ -250,24 +250,40 @@ export default function UpdateDeals() {
     ),
   )
 
-  const {
-    data: dealResponse,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['deal', id],
-    queryFn: async () => {
-      const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${id}`,
-        { credentials: 'include' },
-      )
-      if (!res.ok) throw new Error('Failed to fetch deal')
-      return res.json()
-    },
-    enabled: !!id,
-  })
+  const isLoading = false
+  const error = null
+  const dealResponse: any = {
+    data: [
+      {
+        id: id || '1001',
+        account_id: 'acc101',
+        account_name: 'JASODA ENTERPRISES',
+        deal_owner_id: 'sandeep',
+        deal_type: 'NTB',
+        loan_type: 'SCF',
+        type_of_case_login: 'Fresh',
+        ticket_login: 'Approved',
+        case_stage: 'RM - Doc QC',
+        case_status: 'Lender Review',
+        sanction_amount: 1000000,
+        disbursed_amount: 500000,
+        approved_amount: 800000,
+        amount_required: 1000000,
+        processing_fees: 5000,
+        mm_charges: 2000,
+        insurance_amount: 1000,
+        pf_percentage: 1.5,
+        rate_of_interest: 12.5,
+        interest_type: 'Reducing',
+        lender_name: 'Kotak Mahindra Bank Ltd',
+        customer_rejection_reason: '-None-',
+        lender_rejection_reason: '-None-',
+        notes: [],
+      },
+    ],
+  }
 
-  const dealData: Deal = dealResponse?.data?.[0] || dealResponse?.data
+  const dealData: any = dealResponse?.data?.[0] || dealResponse?.data
 
   const notes = (dealData as any)?.notes || []
 
@@ -277,11 +293,11 @@ export default function UpdateDeals() {
     )
   })
 
-  useEffect(() => {
-    if (dealData) {
-      reset(mapDealToForm(dealData))
-    }
-  }, [dealData, reset])
+  // useEffect(() => {
+  //   if (dealData) {
+  //     reset(mapDealToForm(dealData))
+  //   }
+  // }, [dealData, reset])
 
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateDealFormValues) => {
@@ -347,13 +363,13 @@ export default function UpdateDeals() {
     )
   }
 
-  if (error || !dealData) {
-    return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <p className='text-muted-foreground'>Deal not found</p>
-      </div>
-    )
-  }
+  //   if (error || !dealData) {
+  //     return (
+  //       <div className='flex items-center justify-center min-h-screen'>
+  //         <p className='text-muted-foreground'>Deal not found</p>
+  //       </div>
+  //     )
+  //   }
 
   const MAX_NOTES_VISIBLE = 3
   const showViewMore = sortedNotes.length > MAX_NOTES_VISIBLE
@@ -367,17 +383,12 @@ export default function UpdateDeals() {
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
           <h1 className='text-lg font-semibold'>
-            Deal Name:{' '}
-            <span className='text-primary font-bold '>
-              {dealData.account_name || `#${dealData.id}`}
-            </span>{' '}
-            <span className='text-primary font-bold '>{`#${dealData.id}`}</span>
-          </h1>
-          <h1 className='text-lg font-semibold'>
             Deal Owner Name:{' '}
             <span className='text-primary font-bold '>
-              {(users as Record<string, string>)[dealData.deal_owner_id] ||
+              {/* {(users as Record<string, string>)[dealData.deal_owner_id] ||
                 `#${dealData.id}`}
+             */}
+              sandeep
             </span>
           </h1>
         </div>
@@ -750,57 +761,7 @@ export default function UpdateDeals() {
             </FieldRow>
           </div>
         </CardContent>
-        {/* ================= Linked Tickets ================= */}
-        <SectionHeader title='Linked Tickets' />
-        <CardContent className='p-4 space-y-3 border-b'>
-          <div className='flex items-center justify-between mb-2'>
-            <p className='text-sm text-muted-foreground'>
-              Total Tickets:{' '}
-              <span className='font-semibold'>
-                {(dealData as any)?.tickets?.length || 0}
-              </span>
-            </p>
-          </div>
 
-          {!(dealData as any)?.tickets ||
-          (dealData as any).tickets.length === 0 ? (
-            <p className='text-sm text-muted-foreground'>
-              No tickets associated with this deal.
-            </p>
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-              {(dealData as any).tickets.map((ticket: any) => (
-                <div
-                  key={ticket.id}
-                  onClick={() => navigate(`/tickets/${ticket.id}`)}
-                  className='bg-muted/30 p-3 rounded-lg border hover:border-primary hover:bg-muted/50 transition-all cursor-pointer group'
-                >
-                  <div className='flex justify-between items-start mb-2'>
-                    <span className='text-xs font-bold text-primary'>
-                      #{ticket.id}
-                    </span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold ${
-                        ticket.ticket_status === 'Approved'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-zinc-200 text-zinc-700'
-                      }`}
-                    >
-                      {ticket.ticket_status || 'N/A'}
-                    </span>
-                  </div>
-                  <p className='text-sm font-semibold truncate'>
-                    {ticket.lender_name || 'No Lender'}
-                  </p>
-                  <div className='flex flex-col mt-2 gap-1 text-[11px] text-muted-foreground uppercase'>
-                    <span>Type: {ticket.type_of_loan || '—'}</span>
-                    <span>Stage: {ticket.ticket_stage || '—'}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
         {/* ================= Notes ================= */}
         <SectionHeader title='Notes' />
 
@@ -898,7 +859,7 @@ export default function UpdateDeals() {
 
           <NoteDialog onAddNote={handleAddNote} />
 
-          <DocumentationSection dealId={id!} />
+          <DocumentationSection />
         </CardContent>
       </Card>
     </div>
