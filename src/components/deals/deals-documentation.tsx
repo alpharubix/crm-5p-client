@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
 import SectionHeader from '@/components/shared/section-header'
 import {
   Table,
@@ -12,6 +13,24 @@ import {
 } from '@/components/ui/table'
 import SelectField from '../shared/select-field'
 import { Input } from '../ui/input'
+import { ENV } from '@/conf'
+import users from '@/utils/users.json'
+import { formatExactDate } from '@/utils/date-formatter'
+import { toast } from 'sonner'
+
+function toDateInputValue(val: string | undefined): string {
+  if (!val) return ''
+  // already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val
+  // ISO string like 2026-04-10T00:00:00+00:00
+  if (val.includes('T')) return val.split('T')[0]
+  // dd-MM-yy format like "21-03-26"
+  const parts = val.split('-')
+  if (parts.length === 3 && parts[2].length === 2) {
+    return `20${parts[2]}-${parts[1]}-${parts[0]}`
+  }
+  return val
+}
 
 const STATUS_OPTIONS = ['Completed', 'Pending', 'In Progress', 'On Hold']
 const MODULE_OPTIONS = [
@@ -25,148 +44,183 @@ const MODULE_OPTIONS = [
 ]
 
 type DocRow = {
+  id?: string
   module: string
   description: string
-  from: string
-  to: string
+  from_date: string
+  to_date: string
   status: string
   link: string
-  createdDate: string
-  modifiedDate: string
-  createdBy: string
-  modifiedBy: string
+  created_by?: string
+  modified_by?: string
+  created_at?: string
+  updated_at?: string
+  _isNew?: boolean // local flag for unsaved rows
 }
 
-const DUMMY_ROWS: DocRow[] = [
-  {
-    module: 'Banking',
-    description: 'OD 50L bank statement',
-    from: '01-Apr-25',
-    to: '31-Mar-26',
-    status: 'Completed',
-    link: 'https://workdrive.zoho.in/file/2kue1',
-    createdDate: '01-Apr-26',
-    modifiedDate: '12-Apr-26',
-    createdBy: 'Subhasini T S',
-    modifiedBy: 'Sandip Kumar Jena',
-  },
-  {
-    module: 'GST',
-    description: 'GST 3B',
-    from: '01-Apr-25',
-    to: '31-Mar-26',
-    status: 'Pending',
-    link: 'https://workdrive.zoho.in/file/2kue1',
-    createdDate: '01-Apr-26',
-    modifiedDate: '',
-    createdBy: 'Sutapa Roy',
-    modifiedBy: '',
-  },
-  {
-    module: 'KYC',
-    description: 'Aadhar and PAN - Applicant',
-    from: '',
-    to: '',
-    status: 'Completed',
-    link: 'https://workdrive.zoho.in/file/2kue1',
-    createdDate: '03-Apr-26',
-    modifiedDate: '',
-    createdBy: '',
-    modifiedBy: '',
-  },
-  {
-    module: 'KYC',
-    description: 'Aadhar and PAN - Co Applicant',
-    from: '',
-    to: '',
-    status: 'Completed',
-    link: 'https://workdrive.zoho.in/file/2kue1',
-    createdDate: '03-Apr-26',
-    modifiedDate: '',
-    createdBy: '',
-    modifiedBy: '',
-  },
-  {
-    module: 'ITR',
-    description: 'FY24-26',
-    from: '',
-    to: '',
-    status: 'Pending',
-    link: '',
-    createdDate: '',
-    modifiedDate: '',
-    createdBy: '',
-    modifiedBy: '',
-  },
-  {
-    module: 'Ledger',
-    description: 'Himalaya one year',
-    from: '',
-    to: '',
-    status: 'Pending',
-    link: '',
-    createdDate: '',
-    modifiedDate: '',
-    createdBy: '',
-    modifiedBy: '',
-  },
-  {
-    module: 'Credit Bureau',
-    description: '',
-    from: '',
-    to: '',
-    status: 'Pending',
-    link: '',
-    createdDate: '',
-    modifiedDate: '',
-    createdBy: '',
-    modifiedBy: '',
-  },
-  {
-    module: 'Others',
-    description: '',
-    from: '',
-    to: '',
-    status: 'Pending',
-    link: '',
-    createdDate: '',
-    modifiedDate: '',
-    createdBy: '',
-    modifiedBy: '',
-  },
-]
+export default function DocumentationSection({ dealId }: { dealId: string }) {
+  const queryClient = useQueryClient()
+  const [isEdit, setIsEdit] = useState(false)
+  const [localRows, setLocalRows] = useState<DocRow[]>([])
 
-export default function DocumentationSection() {
-  const [rows, setRows] = useState<DocRow[]>(DUMMY_ROWS)
+  const { data, isLoading } = useQuery({
+    queryKey: ['deal-documents', dealId],
+    queryFn: async () => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/deals/${dealId}/documents`,
+        {
+          credentials: 'include',
+        },
+      )
+      if (!res.ok) throw new Error('Failed to fetch documents')
+      return res.json()
+    },
+    enabled: !!dealId,
+  })
 
-  const updateCell = (ri: number, key: keyof DocRow, value: string) => {
-    setRows((prev) =>
-      prev.map((row, i) => (i === ri ? { ...row, [key]: value } : row)),
+  const docs: DocRow[] = data?.data ?? []
+
+  // merge API rows with local new rows
+  const rows = isEdit
+    ? [...docs.map((d) => ({ ...d })), ...localRows.filter((r) => r._isNew)]
+    : docs
+
+  const createMutation = useMutation({
+    mutationFn: async (row: DocRow) => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/deals/${dealId}/documents`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            module: row.module,
+            description: row.description,
+            from_date: row.from_date,
+            to_date: row.to_date,
+            status: row.status,
+            link: row.link,
+          }),
+        },
+      )
+      if (!res.ok) throw new Error('Failed to create')
+      return res.json()
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, row }: { id: string; row: DocRow }) => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/deals/${dealId}/documents/${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            module: row.module,
+            description: row.description,
+            from_date: row.from_date,
+            to_date: row.to_date,
+            status: row.status,
+            link: row.link,
+          }),
+        },
+      )
+      if (!res.ok) throw new Error('Failed to update')
+      return res.json()
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/deals/${dealId}/documents/${docId}`,
+        {
+          method: 'DELETE',
+          credentials: 'include',
+        },
+      )
+      if (!res.ok) throw new Error('Failed to delete')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deal-documents', dealId] })
+    },
+  })
+
+  // track edits to existing rows locally during edit mode
+  const [editedRows, setEditedRows] = useState<Record<string, DocRow>>({})
+
+  function updateExistingCell(id: string, key: keyof DocRow, value: string) {
+    setEditedRows((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] || docs.find((d) => d.id === id)!), [key]: value },
+    }))
+  }
+
+  function updateNewCell(index: number, key: keyof DocRow, value: string) {
+    setLocalRows((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, [key]: value } : r)),
     )
   }
 
-  const [isEdit, setIsEdit] = useState(false)
-
-  const addRow = () => {
-    setRows((prev) => [
+  function addRow() {
+    setLocalRows((prev) => [
       ...prev,
       {
         module: 'Banking',
         description: '',
-        from: '',
-        to: '',
+        from_date: '',
+        to_date: '',
         status: 'Pending',
         link: '',
-        createdDate: '',
-        modifiedDate: '',
-        createdBy: '',
-        modifiedBy: '',
+        _isNew: true,
       },
     ])
+    if (!isEdit) setIsEdit(true)
   }
 
-  const deleteRow = (ri: number) => {
-    setRows((prev) => prev.filter((_, i) => i !== ri))
+  async function handleSave() {
+    const newRows = localRows.filter((r) => r._isNew)
+    const allRows = [...docs.map((d) => editedRows[d.id!] || d), ...newRows]
+
+    const invalid = allRows.some((r) => !r.module || !r.from_date || !r.to_date)
+    if (invalid) {
+      toast.error('Module, From date and To date are required for all rows')
+      return
+    }
+
+    try {
+      // save new rows
+      for (const row of localRows.filter((r) => r._isNew)) {
+        await createMutation.mutateAsync(row)
+      }
+      // save edited existing rows
+      for (const [id, row] of Object.entries(editedRows)) {
+        await updateMutation.mutateAsync({ id, row })
+      }
+      queryClient.invalidateQueries({ queryKey: ['deal-documents', dealId] })
+      setLocalRows([])
+      setEditedRows({})
+      setIsEdit(false)
+      toast.success('Documents saved')
+    } catch {
+      toast.error('Failed to save documents')
+    }
+  }
+
+  function handleCancel() {
+    setLocalRows([])
+    setEditedRows({})
+    setIsEdit(false)
+  }
+
+  async function handleDelete(docId?: string, localIndex?: number) {
+    if (docId) {
+      await deleteMutation.mutateAsync(docId)
+    } else if (localIndex !== undefined) {
+      setLocalRows((prev) => prev.filter((_, i) => i !== localIndex))
+    }
   }
 
   return (
@@ -184,20 +238,14 @@ export default function DocumentationSection() {
             </Button>
           ) : (
             <div className='flex gap-2'>
-              <Button
-                size='sm'
-                className='cursor-pointer'
-                onClick={() => setIsEdit(false)}
-              >
+              <Button size='sm' className='cursor-pointer' onClick={handleSave}>
                 Save
               </Button>
               <Button
                 size='sm'
-                className='cursor-pointer'
                 variant='outline'
-                onClick={() => {
-                  setIsEdit(false)
-                }}
+                className='cursor-pointer'
+                onClick={handleCancel}
               >
                 Cancel
               </Button>
@@ -212,165 +260,301 @@ export default function DocumentationSection() {
           <Table>
             <TableHeader className='bg-muted/50 text-xs text-muted-foreground uppercase tracking-wide'>
               <TableRow>
-                <TableHead className='px-3 py-2 text-left font-medium border-b'>
-                  Module
-                </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b'>
+                <TableHead className='px-3 py-2 border-b'>Module *</TableHead>
+                <TableHead className='px-3 py-2 border-b'>
                   Description
                 </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b whitespace-nowrap'>
-                  From (dd-mmm-yy)
+                <TableHead className='px-3 py-2 border-b whitespace-nowrap'>
+                  From *
                 </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b whitespace-nowrap'>
-                  To (dd-mmm-yy)
+                <TableHead className='px-3 py-2 border-b whitespace-nowrap'>
+                  To *
                 </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b'>
-                  Status
+                <TableHead className='px-3 py-2 border-b'>Status</TableHead>
+                <TableHead className='px-3 py-2 border-b'>Link</TableHead>
+                <TableHead className='px-3 py-2 border-b whitespace-nowrap'>
+                  Created At
                 </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b'>
-                  Link
+                <TableHead className='px-3 py-2 border-b whitespace-nowrap'>
+                  Updated At
                 </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b whitespace-nowrap'>
-                  Created Date
-                </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b whitespace-nowrap'>
-                  Modified Date
-                </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b whitespace-nowrap'>
+                <TableHead className='px-3 py-2 border-b whitespace-nowrap'>
                   Created By
                 </TableHead>
-                <TableHead className='px-3 py-2 text-left font-medium border-b whitespace-nowrap'>
+                <TableHead className='px-3 py-2 border-b whitespace-nowrap'>
                   Modified By
                 </TableHead>
                 <TableHead className='px-3 py-2 border-b w-16' />
               </TableRow>
             </TableHeader>
-          </Table>
-          <TableBody>
-            {rows.map((row, ri) => (
-              <TableRow
-                key={ri}
-                className='border-b last:border-0 hover:bg-muted/30 group'
-              >
-                <TableCell className='px-3 py-2'>
-                  <SelectField
-                    isEdit={isEdit}
-                    options={MODULE_OPTIONS}
-                    value={row.module}
-                    onChange={(e: string) => updateCell(ri, 'module', e)}
-                  />
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  {isEdit ? (
-                    <Input
-                      value={row.description}
-                      onChange={(e) =>
-                        updateCell(ri, 'description', e.target.value)
-                      }
-                      className='bg-transparent border-none outline-none w-full min-w-[120px] text-sm'
-                      placeholder='—'
-                    />
-                  ) : (
-                    <span>{row.description || '—'}</span>
-                  )}
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  <input
-                    value={row.from}
-                    onChange={(e) => updateCell(ri, 'from', e.target.value)}
-                    className='bg-transparent border-none outline-none w-full min-w-[90px] text-sm'
-                    placeholder='—'
-                  />
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  <input
-                    value={row.to}
-                    onChange={(e) => updateCell(ri, 'to', e.target.value)}
-                    className='bg-transparent border-none outline-none w-full min-w-[90px] text-sm'
-                    placeholder='—'
-                  />
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  <SelectField
-                    isEdit={isEdit}
-                    options={STATUS_OPTIONS}
-                    value={row.status}
-                    onChange={(e: string) => updateCell(ri, 'status', e)}
-                  />
-                </TableCell>
-                <TableCell className='px-3 py-2 max-w-[140px]'>
-                  {row.link ? (
-                    <a
-                      href={row.link}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-primary text-xs truncate block hover:underline'
-                      title={row.link}
-                    >
-                      {row.link.replace('https://', '')}
-                    </a>
-                  ) : (
-                    <input
-                      value={row.link}
-                      onChange={(e) => updateCell(ri, 'link', e.target.value)}
-                      className='bg-transparent border-none outline-none w-full text-sm'
-                      placeholder='—'
-                    />
-                  )}
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  <input
-                    value={row.createdDate}
-                    onChange={(e) =>
-                      updateCell(ri, 'createdDate', e.target.value)
-                    }
-                    className='bg-transparent border-none outline-none w-full min-w-20 text-sm'
-                    placeholder='—'
-                  />
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  <input
-                    value={row.modifiedDate}
-                    onChange={(e) =>
-                      updateCell(ri, 'modifiedDate', e.target.value)
-                    }
-                    className='bg-transparent border-none outline-none w-full min-w-20 text-sm'
-                    placeholder='—'
-                  />
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  <input
-                    value={row.createdBy}
-                    onChange={(e) =>
-                      updateCell(ri, 'createdBy', e.target.value)
-                    }
-                    className='bg-transparent border-none outline-none w-full min-w-[100px] text-sm'
-                    placeholder='—'
-                  />
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  <input
-                    value={row.modifiedBy}
-                    onChange={(e) =>
-                      updateCell(ri, 'modifiedBy', e.target.value)
-                    }
-                    className='bg-transparent border-none outline-none w-full min-w-[100px] text-sm'
-                    placeholder='—'
-                  />
-                </TableCell>
-                <TableCell className='px-3 py-2'>
-                  <Button
-                    size='sm'
-                    variant='ghost'
-                    className='opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive text-xs h-6 px-2'
-                    onClick={() => deleteRow(ri)}
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={11}
+                    className='text-center text-xs text-muted-foreground py-4'
                   >
-                    Remove
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={11}
+                    className='text-center text-xs text-muted-foreground py-4'
+                  >
+                    No documents yet
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <>
+                  {/* existing rows from API */}
+                  {docs.map((doc) => {
+                    const row = editedRows[doc.id!] || doc
+                    return (
+                      <TableRow
+                        key={doc.id}
+                        className='border-b hover:bg-muted/30 group'
+                      >
+                        <TableCell className='px-3 py-2'>
+                          <SelectField
+                            isEdit={isEdit}
+                            options={MODULE_OPTIONS}
+                            value={row.module}
+                            onChange={(v) =>
+                              updateExistingCell(doc.id!, 'module', v)
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          {isEdit ? (
+                            <Input
+                              value={row.description}
+                              onChange={(e) =>
+                                updateExistingCell(
+                                  doc.id!,
+                                  'description',
+                                  e.target.value,
+                                )
+                              }
+                              className='h-7 text-sm'
+                              placeholder='—'
+                            />
+                          ) : (
+                            <span>{row.description || '—'}</span>
+                          )}
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          {isEdit ? (
+                            <Input
+                              value={toDateInputValue(row.from_date)}
+                              type='date'
+                              onChange={(e) =>
+                                updateExistingCell(
+                                  doc.id!,
+                                  'from_date',
+                                  e.target.value,
+                                )
+                              }
+                              className='h-7 text-sm min-w-[90px]'
+                              placeholder='dd-mmm-yy'
+                            />
+                          ) : (
+                            <span>
+                              {row.from_date
+                                ? toDateInputValue(row.from_date)
+                                : '—'}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          {isEdit ? (
+                            <Input
+                              value={toDateInputValue(row.to_date)}
+                              type='date'
+                              onChange={(e) =>
+                                updateExistingCell(
+                                  doc.id!,
+                                  'to_date',
+                                  e.target.value,
+                                )
+                              }
+                              className='h-7 text-sm min-w-[90px]'
+                              placeholder='dd-mmm-yy'
+                            />
+                          ) : (
+                            <span>
+                              {row.to_date
+                                ? toDateInputValue(row.to_date)
+                                : '—'}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          <SelectField
+                            isEdit={isEdit}
+                            options={STATUS_OPTIONS}
+                            value={row.status}
+                            onChange={(v) =>
+                              updateExistingCell(doc.id!, 'status', v)
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className='px-3 py-2 max-w-[140px]'>
+                          {isEdit ? (
+                            <Input
+                              value={row.link}
+                              onChange={(e) =>
+                                updateExistingCell(
+                                  doc.id!,
+                                  'link',
+                                  e.target.value,
+                                )
+                              }
+                              className='h-7 text-sm'
+                              placeholder='—'
+                            />
+                          ) : row.link ? (
+                            <a
+                              href={row.link}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                              className='text-primary text-xs truncate block hover:underline'
+                            >
+                              {row.link.replace('https://', '')}
+                            </a>
+                          ) : (
+                            <span>—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap'>
+                          {doc.created_at
+                            ? formatExactDate(doc.created_at, 'dd MMM yyyy')
+                            : '—'}
+                        </TableCell>
+                        <TableCell className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap'>
+                          {doc.updated_at
+                            ? formatExactDate(doc.updated_at, 'dd MMM yyyy')
+                            : '—'}
+                        </TableCell>
+                        <TableCell className='px-3 py-2 text-xs text-muted-foreground'>
+                          {(users as Record<string, string>)[
+                            doc.created_by ?? ''
+                          ] || '—'}
+                        </TableCell>
+                        <TableCell className='px-3 py-2 text-xs text-muted-foreground'>
+                          {(users as Record<string, string>)[
+                            doc.modified_by ?? ''
+                          ] || '—'}
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          {isEdit && (
+                            <Button
+                              size='sm'
+                              variant='ghost'
+                              className='text-destructive hover:text-destructive text-xs h-6 px-2'
+                              onClick={() => handleDelete(doc.id)}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+
+                  {/* new unsaved rows */}
+                  {localRows
+                    .filter((r) => r._isNew)
+                    .map((row, i) => (
+                      <TableRow
+                        key={`new-${i}`}
+                        className='border-b hover:bg-muted/30 group bg-muted/10'
+                      >
+                        <TableCell className='px-3 py-2'>
+                          <SelectField
+                            isEdit={true}
+                            options={MODULE_OPTIONS}
+                            value={row.module}
+                            onChange={(v) => updateNewCell(i, 'module', v)}
+                          />
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          <Input
+                            value={row.description}
+                            onChange={(e) =>
+                              updateNewCell(i, 'description', e.target.value)
+                            }
+                            className='h-7 text-sm'
+                            placeholder='—'
+                          />
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          <Input
+                            value={toDateInputValue(row.from_date)}
+                            type='date'
+                            onChange={(e) =>
+                              updateNewCell(i, 'from_date', e.target.value)
+                            }
+                            className='h-7 text-sm min-w-[130px]'
+                          />
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          <Input
+                            value={toDateInputValue(row.to_date)}
+                            type='date'
+                            onChange={(e) =>
+                              updateNewCell(i, 'to_date', e.target.value)
+                            }
+                            className='h-7 text-sm min-w-[130px]'
+                          />
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          <SelectField
+                            isEdit={true}
+                            options={STATUS_OPTIONS}
+                            value={row.status}
+                            onChange={(v) => updateNewCell(i, 'status', v)}
+                          />
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          <Input
+                            value={row.link}
+                            onChange={(e) =>
+                              updateNewCell(i, 'link', e.target.value)
+                            }
+                            className='h-7 text-sm'
+                            placeholder='—'
+                          />
+                        </TableCell>
+                        <TableCell className='px-3 py-2 text-xs text-muted-foreground'>
+                          —
+                        </TableCell>
+                        <TableCell className='px-3 py-2 text-xs text-muted-foreground'>
+                          —
+                        </TableCell>
+                        <TableCell className='px-3 py-2 text-xs text-muted-foreground'>
+                          —
+                        </TableCell>
+                        <TableCell className='px-3 py-2 text-xs text-muted-foreground'>
+                          —
+                        </TableCell>
+                        <TableCell className='px-3 py-2'>
+                          <Button
+                            size='sm'
+                            variant='ghost'
+                            className='text-destructive hover:text-destructive text-xs h-6 px-2'
+                            onClick={() => handleDelete(undefined, i)}
+                          >
+                            Remove
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </>

@@ -1,13 +1,7 @@
 import { useState } from 'react'
+import { FilterX, Search } from 'lucide-react'
 import { Button } from '../ui/button'
-import { Dialog } from '../ui/dialog'
-import CreateProjectForm from '../projects/create-project'
-import type { Project } from '@/types/project-types'
-import ProjectList from '../projects/project-list'
-import ProjectKanban, { type ProjectFilters } from '../projects/project-kanban'
-import DealsKanbanView from './deals-kanban-view'
-// import { DUMMY_PROJECTS } from '@/conf'
-import { LayoutList, KanbanSquare, FilterX, Search } from 'lucide-react'
+import { Input } from '../ui/input'
 import {
   Select,
   SelectContent,
@@ -15,178 +9,153 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select'
-import { PROJECT_TYPES, STATUSES } from '@/conf'
-import { Input } from '../ui/input'
-import { USERS_MAP } from '../projects/create-task'
+import DealsKanbanView, { type KanbanFilters } from './deals-kanban-view'
+import { Label } from '../ui/label'
 
-const defaultFilters: ProjectFilters = {
-  search: '',
-  assignee_id: 'all',
-  start_date: '',
-  end_date: '',
-  project_type: 'all',
-  status: 'all',
+interface LocalFilters {
+  search: string
+  project_type: string
+  status: string
+  assignee_id: string
+  created_from: string
+  created_to: string
 }
 
-const DUMMY_PROJECTS = [
-  {
-    id: '1',
-    DealName: 'Deal-1001',
-    DealId: '1001',
-    DealOwner: 'Ashok',
-    LenderName: 'Kotak',
-  },
-  {
-    id: '2',
-    DealName: 'Deal-1002',
-    DealId: '1002',
-    DealOwner: 'sandeep',
-    LenderName: 'Axis',
-  },
-  {
-    id: '3',
-    DealName: 'Deal-1003',
-    DealId: '1003',
-    DealOwner: 'sandeep',
-    LenderName: 'Axis',
-  },
-  {
-    id: '4',
-    DealName: 'Deal-1004',
-    DealId: '1004',
-    DealOwner: 'Arjun',
-    LenderName: 'Indusind',
-  },
-]
+const defaultFilters: LocalFilters = {
+  search: '',
+  project_type: 'all',
+  status: 'all',
+  assignee_id: 'all',
+  created_from: '',
+  created_to: '',
+}
+
+function getDefaultDates() {
+  const to = new Date()
+  const from = new Date()
+  from.setDate(from.getDate() - 30)
+  return {
+    created_from: from.toISOString().split('T')[0], // "YYYY-MM-DD"
+    created_to: to.toISOString().split('T')[0],
+  }
+}
 
 export default function DealsKanban() {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [modalState, setModalState] = useState<'closed' | 'create' | 'detail'>(
-    'closed',
-  )
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
-  const [filters, setFilters] = useState<ProjectFilters>(defaultFilters)
-  // UI binds to this (no API calls)
-  const [localFilters, setLocalFilters] =
-    useState<ProjectFilters>(defaultFilters)
-
-  // useQuery in the child components listens to this
+  const [defaultDates] = useState(getDefaultDates)
+  const [localFilters, setLocalFilters] = useState<LocalFilters>({
+    ...defaultFilters,
+    created_from: defaultDates.created_from,
+    created_to: defaultDates.created_to,
+  })
   const [appliedFilters, setAppliedFilters] =
-    useState<ProjectFilters>(defaultFilters)
+    useState<KanbanFilters>(defaultDates)
+  const [hasApplied, setHasApplied] = useState(true)
 
-  function setFilter(key: keyof ProjectFilters, value: string) {
+  function setFilter(key: keyof LocalFilters, value: string) {
     setLocalFilters((prev) => ({ ...prev, [key]: value }))
   }
 
   function applyFilters() {
-    setAppliedFilters(localFilters)
+    const f: KanbanFilters = {}
+    if (localFilters.search) f.account_name = localFilters.search
+    if (localFilters.project_type !== 'all')
+      f.loan_type = localFilters.project_type
+    if (localFilters.status !== 'all') f.deal_status = localFilters.status
+    if (localFilters.created_from) f.created_from = localFilters.created_from
+    if (localFilters.created_to) f.created_to = localFilters.created_to
+    setAppliedFilters(f)
+    setHasApplied(true)
   }
 
   function clearFilters() {
-    setLocalFilters(defaultFilters)
-    setAppliedFilters(defaultFilters)
-  }
-  function openCreate() {
-    setSelectedProject(null)
-    setModalState('create')
-  }
-
-  function handleCreated(project: Project) {
-    setProjects((prev) => [project, ...prev])
-    setSelectedProject(project)
-    setModalState('detail')
+    const cleared: LocalFilters = {
+      search: '',
+      project_type: 'all',
+      status: 'all',
+      assignee_id: 'all',
+      created_from: '',
+      created_to: '',
+    }
+    setLocalFilters(cleared)
+    setAppliedFilters({})
   }
 
-  function handleSelectProject(project: Project) {
-    setSelectedProject(project)
-    setModalState('detail')
-  }
-
-  function handleClose() {
-    setModalState('closed')
-    setSelectedProject(null)
-  }
+  const hasActiveFilters = true
 
   return (
     <div className='w-full h-full p-4 flex flex-col max-w-[1240px] mx-auto'>
       <div className='flex flex-col flex-1 min-h-0'>
         <div className='flex items-center justify-between mb-6 shrink-0'>
-          <div>
-            <h1 className='text-lg font-semibold'>Deals Kanban</h1>
-            <p className='text-xs mt-0.5'>{/* {projects.length} projects */}</p>
-          </div>
-          <Button>Create +</Button>
+          <h1 className='text-lg font-semibold'>Deals Kanban</h1>
+          {/* <Button>Create +</Button> */}
         </div>
-        {/* FILTER BAR */}
-        <div className='flex flex-wrap items-center gap-3 mb-4 p-3  border rounded-md shadow-sm shrink-0'>
+
+        <div className='flex flex-wrap items-center gap-3 mb-4 p-3 border rounded-md shadow-sm shrink-0'>
           <Input
-            placeholder='Deal name...'
+            placeholder='Account name...'
             className='h-8 text-xs w-[180px]'
             value={localFilters.search}
             onChange={(e) => setFilter('search', e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
           />
 
-          <Select value={localFilters.assignee_id}>
-            <SelectTrigger className='h-8 text-xs w-[140px]'>
-              <SelectValue placeholder='Deal Type' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>Deal Type</SelectItem>
-              <SelectItem value='ntb'>NTB</SelectItem>
-              <SelectItem value='ntc'>NTC</SelectItem>
-              <SelectItem value='ntl'>NTL</SelectItem>
-              <SelectItem value='adhoc'>Adhoc</SelectItem>
-              <SelectItem value='renewal'>Renewal</SelectItem>
-              <SelectItem value='renewal_enhancement'>
-                Renewal & Enhancement
-              </SelectItem>
-              <SelectItem value='existing'>Existing</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={localFilters.project_type}>
-            <SelectTrigger className='h-8 text-xs w-[130px]'>
+          <Select
+            value={localFilters.project_type}
+            onValueChange={(v) => setFilter('project_type', v)}
+          >
+            <SelectTrigger className='h-8 text-xs w-40'>
               <SelectValue placeholder='Type of Loan' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>Type of Loan</SelectItem>
-              <SelectItem value='scf'>SCF</SelectItem>
-              <SelectItem value='scf_renewal'>SCF Renewal</SelectItem>
-              <SelectItem value='scf_enhancement'>SCF Enhancement</SelectItem>
-              <SelectItem value='scf_renewal_enhancement'>
+              <SelectItem value='all'>--Type of Loan--</SelectItem>
+              <SelectItem value='SCF'>SCF</SelectItem>
+              <SelectItem value='SCF Renewal'>SCF Renewal</SelectItem>
+              <SelectItem value='SCF Enhancement'>SCF Enhancement</SelectItem>
+              <SelectItem value='SCF (Renewal and Enhancement)'>
                 SCF (Renewal and Enhancement)
               </SelectItem>
-              <SelectItem value='open_scf'>Open SCF</SelectItem>
-              <SelectItem value='open_scf_renewal'>Open SCF Renewal</SelectItem>
-              <SelectItem value='open_scf_enhancement'>
-                Open SCF Enhancement
-              </SelectItem>
-              <SelectItem value='open_scf_renewal_enhancement'>
-                Open SCF (Renewal and Enhancement)
-              </SelectItem>
-              <SelectItem value='bt_scf'>BT-SCF</SelectItem>
-              <SelectItem value='bt_open_scf'>BT-Open SCF</SelectItem>
-              <SelectItem value='unsecured_od'>Unsecured OD</SelectItem>
-              <SelectItem value='unsecured_term_loan'>
+              <SelectItem value='Open SCF'>Open SCF</SelectItem>
+              <SelectItem value='BT-SCF'>BT-SCF</SelectItem>
+              <SelectItem value='Unsecured OD'>Unsecured OD</SelectItem>
+              <SelectItem value='Unsecured Term Loan'>
                 Unsecured Term Loan
               </SelectItem>
-              <SelectItem value='secured_loan'>Secured Loan</SelectItem>
-              <SelectItem value='secured_bt'>Secured BT</SelectItem>
-              <SelectItem value='vehicle_loan'>Vehicle Loan</SelectItem>
-            </SelectContent>
-          </Select>
-          {/* FIXED: Using STATUS_OPTIONS array here */}
-          <Select value={localFilters.status}>
-            <SelectTrigger className='h-8 text-xs '>
-              <SelectValue placeholder='Lender Name' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>Lender Name</SelectItem>
+              <SelectItem value='Secured Loan'>Secured Loan</SelectItem>
+              <SelectItem value='Vehicle Loan'>Vehicle Loan</SelectItem>
             </SelectContent>
           </Select>
 
+          <Select
+            value={localFilters.status}
+            onValueChange={(v) => setFilter('status', v)}
+          >
+            <SelectTrigger className='h-8 text-xs w-[140px]'>
+              <SelectValue placeholder='Case Status' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>--Case Status--</SelectItem>
+              <SelectItem value='Active'>Active</SelectItem>
+              <SelectItem value='Disbursed'>Disbursed</SelectItem>
+              <SelectItem value='Rejected'>Rejected</SelectItem>
+              <SelectItem value='Closed'>Closed</SelectItem>
+            </SelectContent>
+          </Select>
+          <Label htmlFor='from_date'>From -</Label>
+          <Input
+            id='from_date'
+            type='date'
+            className='h-8 text-xs w-[140px]'
+            value={localFilters.created_from}
+            onChange={(e) => setFilter('created_from', e.target.value)}
+          />
+          <Label htmlFor='to_date'>To -</Label>
+          <Input
+            id='to_date'
+            type='date'
+            className='h-8 text-xs w-[140px]'
+            value={localFilters.created_to}
+            onChange={(e) => setFilter('created_to', e.target.value)}
+          />
           <div className='flex items-center gap-2 ml-auto'>
             <Button
               size='sm'
@@ -196,12 +165,7 @@ export default function DealsKanban() {
               <Search size={14} className='mr-1.5' /> Apply
             </Button>
 
-            {(localFilters.search ||
-              localFilters.assignee_id !== 'all' ||
-              localFilters.project_type !== 'all' ||
-              localFilters.status !== 'all' ||
-              localFilters.start_date ||
-              localFilters.end_date) && (
+            {hasActiveFilters && (
               <Button
                 variant='ghost'
                 size='sm'
@@ -213,23 +177,11 @@ export default function DealsKanban() {
             )}
           </div>
         </div>
+
         <div className='flex-1 overflow-hidden'>
-          {viewMode === 'list' ? <DealsKanbanView /> : <ProjectList />}
+          <DealsKanbanView filters={appliedFilters} enabled={hasApplied} />
         </div>
       </div>
-      <Dialog
-        open={modalState !== 'closed'}
-        onOpenChange={(o) => {
-          if (!o) handleClose()
-        }}
-      >
-        {modalState === 'create' && (
-          <CreateProjectForm onCreated={handleCreated} onCancel={handleClose} />
-        )}
-        {/* {modalState === 'detail' && selectedProject && (
-          <ProjectDetail project={selectedProject} onClose={handleClose} />
-        )} */}
-      </Dialog>
     </div>
   )
 }

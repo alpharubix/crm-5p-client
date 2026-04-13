@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Button } from '../ui/button'
 import { FilterX, Search } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
 import {
   Select,
   SelectContent,
@@ -8,184 +9,189 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select'
-import { Input } from '../ui/input'
-import TicketsKanbanView from './tickets-kanban-view'
+import TicketsKanbanView, { type KanbanFilters } from './tickets-kanban-view'
+import { Label } from '../ui/label'
 
-// Filters definition
-export interface TicketFilters {
+interface LocalFilters {
   search: string
-  ticketLogin: string
-  typeOfLoan: string
-  ticketStage: string
+  type_of_loan: string
+  ticket_status: string
+  assignee_id: string
+  created_from: string
+  created_to: string
 }
 
-const defaultFilters: TicketFilters = {
+const defaultFilters: LocalFilters = {
   search: '',
-  ticketLogin: 'all',
-  typeOfLoan: 'all',
-  ticketStage: 'all',
+  type_of_loan: 'all',
+  ticket_status: 'all',
+  assignee_id: 'all',
+  created_from: '',
+  created_to: '',
+}
+
+function getDefaultDates() {
+  const to = new Date()
+  const from = new Date()
+  from.setDate(from.getDate() - 30)
+  return {
+    created_from: from.toISOString().split('T')[0],
+    created_to: to.toISOString().split('T')[0],
+  }
 }
 
 export default function TicketsKanban() {
-  const [localFilters, setLocalFilters] =
-    useState<TicketFilters>(defaultFilters)
+  const [defaultDates] = useState(getDefaultDates)
+  const [localFilters, setLocalFilters] = useState<LocalFilters>({
+    ...defaultFilters,
+    created_from: defaultDates.created_from,
+    created_to: defaultDates.created_to,
+  })
   const [appliedFilters, setAppliedFilters] =
-    useState<TicketFilters>(defaultFilters)
+    useState<KanbanFilters>(defaultDates)
+  const [hasApplied, setHasApplied] = useState(true)
 
-  function setFilter(key: keyof TicketFilters, value: string) {
+  function setFilter(key: keyof LocalFilters, value: string) {
     setLocalFilters((prev) => ({ ...prev, [key]: value }))
   }
 
   function applyFilters() {
-    setAppliedFilters(localFilters)
+    const f: KanbanFilters = {}
+    if (localFilters.search) f.account_name = localFilters.search
+    if (localFilters.type_of_loan !== 'all')
+      f.type_of_loan = localFilters.type_of_loan
+    if (localFilters.ticket_status !== 'all')
+      f.ticket_status = localFilters.ticket_status
+    if (localFilters.created_from) f.created_from = localFilters.created_from
+    if (localFilters.created_to) f.created_to = localFilters.created_to
+    setAppliedFilters(f)
+    setHasApplied(true)
   }
+  const hasActiveFilters = true // dates are always set
 
   function clearFilters() {
-    setLocalFilters(defaultFilters)
-    setAppliedFilters(defaultFilters)
+    const cleared: LocalFilters = {
+      search: '',
+      type_of_loan: 'all',
+      ticket_status: 'all',
+      assignee_id: 'all',
+      created_from: '',
+      created_to: '',
+    }
+    setLocalFilters(cleared)
+    setAppliedFilters({})
   }
+
+  // const hasActiveFilters =
+  //   localFilters.search ||
+  //   localFilters.assignee_id !== 'all' ||
+  //   localFilters.type_of_loan !== 'all' ||
+  //   localFilters.ticket_status !== 'all' ||
+  //   localFilters.created_from !== defaultDates.created_from ||
+  //   localFilters.created_to !== defaultDates.created_to
 
   return (
     <div className='w-full h-full p-4 flex flex-col max-w-[1240px] mx-auto'>
       <div className='flex flex-col flex-1 min-h-0'>
         <div className='flex items-center justify-between mb-6 shrink-0'>
-          <div>
-            <h1 className='text-lg font-semibold'>Tickets Kanban</h1>
-          </div>
-          <Button size='sm' className='cursor-pointer'>
-            Create +
-          </Button>
+          <h1 className='text-lg font-semibold'>Tickets Kanban</h1>
         </div>
-        {/* FILTER BAR */}
+
         <div className='flex flex-wrap items-center gap-3 mb-4 p-3 border rounded-md shadow-sm shrink-0'>
-          <Select
-            value={localFilters.ticketLogin}
-            onValueChange={(val) => setFilter('ticketLogin', val)}
-          >
-            <SelectTrigger className='h-8 text-xs w-[140px]'>
-              <SelectValue placeholder='Ticket Login' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>Ticket Login</SelectItem>
-              <SelectItem value='approved'>Approved</SelectItem>
-              <SelectItem value='disapproved'>Disapproved</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input
+            placeholder='Account name...'
+            className='h-8 text-xs w-[180px]'
+            value={localFilters.search}
+            onChange={(e) => setFilter('search', e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+          />
 
           <Select
-            value={localFilters.typeOfLoan}
-            onValueChange={(val) => setFilter('typeOfLoan', val)}
+            value={localFilters.type_of_loan}
+            onValueChange={(v) => setFilter('type_of_loan', v)}
           >
-            <SelectTrigger className='h-8 text-xs w-[130px]'>
+            <SelectTrigger className='h-8 text-xs w-40'>
               <SelectValue placeholder='Type of Loan' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>Type of Loan</SelectItem>
-              <SelectItem value='scf'>SCF</SelectItem>
-              <SelectItem value='scf_renewal'>SCF Renewal</SelectItem>
-              <SelectItem value='scf_enhancement'>SCF Enhancement</SelectItem>
-              <SelectItem value='scf_renewal_enhancement'>
+              <SelectItem value='all'>--Type of Loan--</SelectItem>
+              <SelectItem value='SCF'>SCF</SelectItem>
+              <SelectItem value='SCF Renewal'>SCF Renewal</SelectItem>
+              <SelectItem value='SCF Enhancement'>SCF Enhancement</SelectItem>
+              <SelectItem value='SCF (Renewal and Enhancement)'>
                 SCF (Renewal and Enhancement)
               </SelectItem>
-              <SelectItem value='open_scf'>Open SCF</SelectItem>
-              <SelectItem value='open_scf_renewal'>Open SCF Renewal</SelectItem>
-              <SelectItem value='open_scf_enhancement'>
-                Open SCF Enhancement
-              </SelectItem>
-              <SelectItem value='open_scf_renewal_enhancement'>
-                Open SCF (Renewal and Enhancement)
-              </SelectItem>
-              <SelectItem value='bt_scf'>BT-SCF</SelectItem>
-              <SelectItem value='bt_open_scf'>BT-Open SCF</SelectItem>
-              <SelectItem value='unsecured_od'>Unsecured OD</SelectItem>
-              <SelectItem value='unsecured_term'>
+              <SelectItem value='Open SCF'>Open SCF</SelectItem>
+              <SelectItem value='BT-SCF'>BT-SCF</SelectItem>
+              <SelectItem value='Unsecured OD'>Unsecured OD</SelectItem>
+              <SelectItem value='Unsecured Term Loan'>
                 Unsecured Term Loan
               </SelectItem>
-              <SelectItem value='secured_loan'>Secured Loan</SelectItem>
-              <SelectItem value='secured_bt'>Secured BT</SelectItem>
-              <SelectItem value='vehicle_loan'>Vehicle Loan</SelectItem>
+              <SelectItem value='Secured Loan'>Secured Loan</SelectItem>
+              <SelectItem value='Vehicle Loan'>Vehicle Loan</SelectItem>
             </SelectContent>
           </Select>
 
           <Select
-            value={localFilters.ticketStage}
-            onValueChange={(val) => setFilter('ticketStage', val)}
+            value={localFilters.ticket_status}
+            onValueChange={(v) => setFilter('ticket_status', v)}
           >
             <SelectTrigger className='h-8 text-xs w-[140px]'>
-              <SelectValue placeholder='Ticket Stage' />
+              <SelectValue placeholder='Ticket Status' />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>Ticket Stage</SelectItem>
-              <SelectItem value='rm_doc_qc'>RM - Doc QC</SelectItem>
-              <SelectItem value='cpi_analysis'>CPI Analysis</SelectItem>
-              <SelectItem value='pendency_raised_by_lender'>
-                Pendency Raised by Lender
+              <SelectItem value='all'>--Ticket Status--</SelectItem>
+              <SelectItem value='Yet to Lender Login'>
+                Yet to Lender Login
               </SelectItem>
-              <SelectItem value='pendency_resolved'>
-                Pendency Resolved
-              </SelectItem>
-              <SelectItem value='gst_finfort_initiated'>
-                GST Finfort - Initiated
-              </SelectItem>
-              <SelectItem value='gst_finfort_completed'>
-                GST Finfort - Completed
-              </SelectItem>
-              <SelectItem value='jr_credit_manager_review'>
-                Jr Credit Manager Review
-              </SelectItem>
-              <SelectItem value='pd_pending'>PD Pending</SelectItem>
-              <SelectItem value='pd_completed'>PD Completed</SelectItem>
-              <SelectItem value='sr_credit_manager_review'>
-                Sr Credit Manager Review
-              </SelectItem>
-              <SelectItem value='ncm_review'>NCM Review</SelectItem>
-              <SelectItem value='approval_pending'>Approval Pending</SelectItem>
-              <SelectItem value='commercial_shared_with_cust'>
-                Commercial Shared with Cust
-              </SelectItem>
-              <SelectItem value='cust_accepted_loan_offer'>
-                Cust Accepted Loan Offer
-              </SelectItem>
-              <SelectItem value='pf_paid'>PF Paid</SelectItem>
-              <SelectItem value='sanctioned'>Sanctioned</SelectItem>
-              <SelectItem value='sl_sign_and_psd_initiated'>
-                SL Sign and PSD Initiated
-              </SelectItem>
-              <SelectItem value='sl_sign_and_psd_completed'>
-                SL Sign and PSD Completed
-              </SelectItem>
-              <SelectItem value='disbursed'>Disbursed</SelectItem>
-              <SelectItem value='rejected'>Rejected</SelectItem>
-              <SelectItem value='not_interested'>Not Interested</SelectItem>
+              <SelectItem value='Lender Review'>Lender Review</SelectItem>
+              <SelectItem value='In Credit'>In Credit</SelectItem>
+              <SelectItem value='Approved'>Approved</SelectItem>
+              <SelectItem value='Disbursed'>Disbursed</SelectItem>
+              <SelectItem value='Rejected'>Rejected</SelectItem>
+              <SelectItem value='Not Interested'>Not Interested</SelectItem>
             </SelectContent>
           </Select>
-
+          <Label htmlFor='from_date'>From -</Label>
+          <Input
+            id='from_date'
+            type='date'
+            className='h-8 text-xs w-[140px]'
+            value={localFilters.created_from}
+            onChange={(e) => setFilter('created_from', e.target.value)}
+          />
+          <Label htmlFor='to_date'>To -</Label>
+          <Input
+            id='to_date'
+            type='date'
+            className='h-8 text-xs w-[140px]'
+            value={localFilters.created_to}
+            onChange={(e) => setFilter('created_to', e.target.value)}
+          />
           <div className='flex items-center gap-2 ml-auto'>
             <Button
               size='sm'
               onClick={applyFilters}
-              className='h-8 text-xs px-3 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+              className='h-8 text-xs px-3 bg-blue-600 hover:bg-blue-700 text-white'
             >
               <Search size={14} className='mr-1.5' /> Apply
             </Button>
 
-            {(localFilters.search ||
-              localFilters.ticketLogin !== 'all' ||
-              localFilters.typeOfLoan !== 'all' ||
-              localFilters.ticketStage !== 'all') && (
+            {hasActiveFilters && (
               <Button
                 variant='ghost'
                 size='sm'
                 onClick={clearFilters}
-                className='h-8 text-xs text-zinc-500 hover:text-zinc-800 px-2 cursor-pointer'
+                className='h-8 text-xs text-zinc-500 hover:text-zinc-800 px-2'
               >
                 <FilterX size={14} className='mr-1' /> Clear
               </Button>
             )}
           </div>
         </div>
+
         <div className='flex-1 overflow-hidden'>
-          <TicketsKanbanView filters={appliedFilters} />
+          <TicketsKanbanView filters={appliedFilters} enabled={hasApplied} />
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '../ui/card'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -12,6 +13,16 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core'
+import { ENV } from '@/conf'
+import users from '@/utils/users.json'
+
+export interface KanbanFilters {
+  account_name?: string
+  deal_status?: string
+  loan_type?: string
+  created_from?: string
+  created_to?: string
+}
 
 export interface DealData {
   id: string
@@ -22,47 +33,16 @@ export interface DealData {
   status: string
 }
 
-const DUMMY_TICKETS: DealData[] = [
-  {
-    id: '1771',
-    dealName: 'JASODA ENTERPRISES',
-    dealId: '1771',
-    dealOwner: 'Anslem Prathap',
-    lenderName: 'HDFC Bank',
-    status: 'Active',
-  },
-  {
-    id: '71',
-    dealName: 'RUDRA ENTERPRISES',
-    dealId: '71',
-    dealOwner: 'Digamber Pandey',
-    lenderName: 'Kotak Mahindra Bank Ltd',
-    status: 'Disbursed',
-  },
-  {
-    id: '3',
-    dealName: 'Del-1003',
-    dealId: '1003',
-    dealOwner: 'sandeep',
-    lenderName: 'Profectus Capital Private Ltd',
-    status: 'Achievement',
-  },
-  {
-    id: '87',
-    dealName: 'RIYA BANGLES',
-    dealId: '87',
-    dealOwner: 'Ayush Dingane',
-    lenderName: 'Kotak Mahindra Bank Ltd',
-    status: 'Commercials NI',
-  },
-]
-
 const COLUMNS = [
   'Deal Created',
   'Lender Review',
   'Lender Rejected',
+  'Approved',
+  'Yet to Lender Login',
+  'Disbursed',
   'Achievement',
   'Not Interested',
+  'Active',
 ]
 
 const COLUMN_STYLES: Record<string, { header: string; dot: string }> = {
@@ -102,27 +82,25 @@ function DraggableTicketCard({ deal }: { deal: DealData }) {
       className={isDragging ? 'opacity-50' : ''}
     >
       <Card
-        className={`transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30`}
+        className='transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30'
         onClick={() => navigate(`/deals/${deal.id}`)}
       >
         <CardContent className='p-3 text-sm grid gap-1'>
-          <div className='flex justify-between items-start gap-2'>
-            <p className='font-semibold text-base leading-tight'>
-              {deal.dealName}
-            </p>
-          </div>
-
+          <p className='font-semibold text-base leading-tight'>
+            {deal.dealName}
+          </p>
           <div className='grid grid-cols-[110px_1fr] gap-x-2 gap-y-1 mt-2 items-start text-xs'>
             <span className='text-muted-foreground font-medium'>Deal ID</span>
-            <span className='font-medium line-clamp-1' title={deal.dealId}>
+            <span className='font-medium line-clamp-1'>
               {deal.dealId || '-'}
             </span>
-
             <span className='text-muted-foreground font-medium'>
               Deal Owner
             </span>
-            <span className='font-medium'>{deal.dealOwner || '-'}</span>
-
+            <span className='font-medium'>
+              {(users as Record<string, string>)[deal.dealOwner] ||
+                `#${deal.dealOwner}`}
+            </span>
             <span className='text-muted-foreground font-medium'>
               Lender Name
             </span>
@@ -183,13 +161,52 @@ function DroppableTicketColumn({
   )
 }
 
-export default function TicketsKanbanView() {
-  const [ticketsList, setTicketsList] = useState<DealData[]>(DUMMY_TICKETS)
-  const [activeTicket, setActiveTicket] = useState<DealData | null>(null)
-
+export default function DealsKanbanView({
+  filters,
+  enabled,
+}: {
+  filters: KanbanFilters
+  enabled: boolean
+}) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
+
+  const [ticketsList, setTicketsList] = useState<DealData[]>([])
+  const [activeTicket, setActiveTicket] = useState<DealData | null>(null)
+
+  const { data: grouped = {}, isLoading } = useQuery({
+    queryKey: ['deals-kanban', filters],
+    queryFn: async () => {
+      const params = new URLSearchParams({ kanban: 'true' })
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v) params.set(k, v)
+      })
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/deals?${params}`, {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('Failed')
+      const json = await res.json()
+      return (json.data ?? {}) as Record<string, any[]>
+    },
+    enabled,
+    retry: false,
+  })
+
+  useEffect(() => {
+    const flat: DealData[] = Object.entries(grouped).flatMap(
+      ([status, deals]) =>
+        deals.map((d: any) => ({
+          id: String(d.id),
+          dealName: d.account_name ?? '-',
+          dealId: String(d.id),
+          dealOwner: String(d.deal_owner_id ?? '-'),
+          lenderName: d.lender_name ?? '-',
+          status: d.case_status ?? status,
+        })),
+    )
+    setTicketsList(flat)
+  }, [grouped])
 
   function onDragStart(event: DragStartEvent) {
     const ticket = ticketsList.find((t) => t.id === event.active.id)
@@ -200,42 +217,54 @@ export default function TicketsKanbanView() {
     const { active, over } = event
     setActiveTicket(null)
     if (!over) return
-
     const newStatus = String(over.id)
-
     setTicketsList((prev) =>
       prev.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t)),
     )
   }
 
-  return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
-      <div className='flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0'>
-        {COLUMNS.map((col) => {
-          const colTickets = ticketsList.filter((t) => t.status === col)
-          return (
-            <DroppableTicketColumn
-              key={col}
-              status={col}
-              tickets={colTickets}
-            />
-          )
-        })}
+  if (!enabled) {
+    return (
+      <div className='flex items-center justify-center h-full text-sm text-muted-foreground'>
+        Apply filters to load deals
       </div>
+    )
+  }
 
-      <DragOverlay>
-        {activeTicket && (
-          <Card className='cursor-grabbing shadow-lg opacity-90 border-l-4 border-l-primary/50 py-0'>
-            <CardContent className='p-3 text-sm'>
-              <p className='font-semibold'>{activeTicket.dealName}</p>
-            </CardContent>
-          </Card>
-        )}
-      </DragOverlay>
-    </DndContext>
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center h-full text-sm text-muted-foreground'>
+        Loading...
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      {/* <DndContext
+    sensors={sensors}
+    onDragStart={onDragStart}
+    onDragEnd={onDragEnd}
+    > */}
+      <div className='flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0'>
+        {COLUMNS.map((col) => (
+          <DroppableTicketColumn
+            key={col}
+            status={col}
+            tickets={ticketsList.filter((t) => t.status === col)}
+          />
+        ))}
+      </div>
+      {/* <DragOverlay> */}
+      {activeTicket && (
+        <Card className='cursor-grabbing shadow-lg opacity-90 border-l-4 border-l-primary/50 py-0'>
+          <CardContent className='p-3 text-sm'>
+            <p className='font-semibold'>{activeTicket.dealName}</p>
+          </CardContent>
+        </Card>
+      )}
+      {/* </DragOverlay> */}
+      {/* </DndContext> */}
+    </div>
   )
 }

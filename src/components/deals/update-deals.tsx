@@ -750,7 +750,57 @@ export default function UpdateDeals() {
             </FieldRow>
           </div>
         </CardContent>
+        {/* ================= Linked Tickets ================= */}
+        <SectionHeader title='Linked Tickets' />
+        <CardContent className='p-4 space-y-3 border-b'>
+          <div className='flex items-center justify-between mb-2'>
+            <p className='text-sm text-muted-foreground'>
+              Total Tickets:{' '}
+              <span className='font-semibold'>
+                {(dealData as any)?.tickets?.length || 0}
+              </span>
+            </p>
+          </div>
 
+          {!(dealData as any)?.tickets ||
+          (dealData as any).tickets.length === 0 ? (
+            <p className='text-sm text-muted-foreground'>
+              No tickets associated with this deal.
+            </p>
+          ) : (
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
+              {(dealData as any).tickets.map((ticket: any) => (
+                <div
+                  key={ticket.id}
+                  onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  className='bg-muted/30 p-3 rounded-lg border hover:border-primary hover:bg-muted/50 transition-all cursor-pointer group'
+                >
+                  <div className='flex justify-between items-start mb-2'>
+                    <span className='text-xs font-bold text-primary'>
+                      #{ticket.id}
+                    </span>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold ${
+                        ticket.ticket_status === 'Approved'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-zinc-200 text-zinc-700'
+                      }`}
+                    >
+                      {ticket.ticket_status || 'N/A'}
+                    </span>
+                  </div>
+                  <p className='text-sm font-semibold truncate'>
+                    {ticket.lender_name || 'No Lender'}
+                  </p>
+                  <div className='flex flex-col mt-2 gap-1 text-[11px] text-muted-foreground uppercase'>
+                    <span>Type: {ticket.type_of_loan || '—'}</span>
+                    <span>Stage: {ticket.ticket_stage || '—'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
         {/* ================= Notes ================= */}
         <SectionHeader title='Notes' />
 
@@ -848,7 +898,7 @@ export default function UpdateDeals() {
 
           <NoteDialog onAddNote={handleAddNote} />
 
-          <DocumentationSection />
+          <DocumentationSection dealId={id!} />
         </CardContent>
       </Card>
     </div>

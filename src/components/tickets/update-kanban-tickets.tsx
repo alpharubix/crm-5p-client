@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useBeforeUnload, useParams, useNavigate } from 'react-router-dom'
@@ -238,7 +238,7 @@ export default function UpdateDeals() {
   })
 
   useBeforeUnload(
-    React.useCallback(
+    useCallback(
       (e) => {
         if (isDirty) {
           e.preventDefault()
@@ -249,40 +249,23 @@ export default function UpdateDeals() {
     ),
   )
 
-  const isLoading = false
-  const error = null
-  const dealResponse: any = {
-    data: [
-      {
-        id: id || '1001',
-        account_id: 'acc101',
-        account_name: 'JASODA ENTERPRISES',
-        deal_owner_id: 'Arjun',
-        deal_type: 'NTB',
-        loan_type: 'SCF',
-        type_of_case_login: 'Fresh',
-        ticket_login: 'Approved',
-        case_stage: 'RM - Doc QC',
-        case_status: 'Lender Review',
-        sanction_amount: 1000000,
-        disbursed_amount: 500000,
-        approved_amount: 800000,
-        amount_required: 1000000,
-        processing_fees: 5000,
-        mm_charges: 2000,
-        insurance_amount: 1000,
-        pf_percentage: 1.5,
-        rate_of_interest: 12.5,
-        interest_type: 'Reducing',
-        lender_name: 'Kotak Mahindra Bank Ltd',
-        customer_rejection_reason: '-None-',
-        lender_rejection_reason: '-None-',
-        notes: [],
-      },
-    ],
-  }
+  const {
+    data: dealData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['ticket', id],
+    queryFn: async () => {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/tickets/${id}`, {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('Failed to fetch ticket')
+      return res.json()
+    },
+    enabled: !!id,
+  })
 
-  const dealData: any = dealResponse?.data?.[0] || dealResponse?.data
+  // const dealData: any = dealResponse?.data?.[0] || dealResponse?.data
 
   const notes = (dealData as any)?.notes || []
 
@@ -292,16 +275,16 @@ export default function UpdateDeals() {
     )
   })
 
-  // useEffect(() => {
-  //   if (dealData) {
-  //     reset(mapDealToForm(dealData))
-  //   }
-  // }, [dealData, reset])
+  useEffect(() => {
+    if (dealData) {
+      reset(mapDealToForm(dealData))
+    }
+  }, [dealData, reset])
 
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateDealFormValues) => {
       const payload = mapFormToApi(values, dirtyFields)
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/deals/${id}`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/tickets/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -317,7 +300,7 @@ export default function UpdateDeals() {
       toast.success('Deal updated successfully')
       setIsEdit(false)
       reset(variables)
-      queryClient.invalidateQueries({ queryKey: ['deal', id] })
+      queryClient.invalidateQueries({ queryKey: ['ticket', id] })
     },
     onError: (err) => {
       toast.error(err.message || 'Failed to update deal')
@@ -339,13 +322,13 @@ export default function UpdateDeals() {
         body: JSON.stringify({
           id: id,
           note: note.description,
-          module: 'Deals',
+          module: 'Tickets',
         }),
       })
 
       if (res.ok) {
         toast.success('Note added successfully')
-        queryClient.invalidateQueries({ queryKey: ['deal', id] })
+        queryClient.invalidateQueries({ queryKey: ['ticket', id] })
       } else {
         toast.error('Failed to add note')
       }
@@ -362,13 +345,13 @@ export default function UpdateDeals() {
     )
   }
 
-  //   if (error || !dealData) {
-  //     return (
-  //       <div className='flex items-center justify-center min-h-screen'>
-  //         <p className='text-muted-foreground'>Deal not found</p>
-  //       </div>
-  //     )
-  //   }
+  if (error || !dealData) {
+    return (
+      <div className='flex items-center justify-center min-h-screen'>
+        <p className='text-muted-foreground'>Deal not found</p>
+      </div>
+    )
+  }
 
   const MAX_NOTES_VISIBLE = 3
   const showViewMore = sortedNotes.length > MAX_NOTES_VISIBLE
@@ -429,10 +412,10 @@ export default function UpdateDeals() {
           )}
           <Button
             variant='default'
-            onClick={() => navigate(`/accounts/${dealData.account_id}`)}
+            onClick={() => navigate(`/deals/${dealData.deal_id}`)}
             className='ml-2'
           >
-            Go to Accounts
+            Go to Deal
           </Button>
         </div>
       </div>

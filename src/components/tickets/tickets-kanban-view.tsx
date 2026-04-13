@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '../ui/card'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -12,67 +13,29 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core'
+import { ENV } from '@/conf'
+import users from '@/utils/users.json'
+
+export interface KanbanFilters {
+  account_name?: string
+  ticket_status?: string
+  type_of_loan?: string
+  created_from?: string
+  created_to?: string
+}
 
 export interface TicketData {
   id: string
-  ticketName: string
+  dealName: string
+  ticketId: string
+  dealOwner: string
   lenderName: string
-  typeOfLoan: string
-  ticketStage: string
-  lenderLoginDate: string
   status: string
 }
 
-const DUMMY_TICKETS: TicketData[] = [
-  {
-    id: '1',
-    ticketName: 'TKT-1001',
-    lenderName: 'Tyger Capital Private Ltd',
-    typeOfLoan: 'SCF',
-    ticketStage: 'RM - Doc QC',
-    lenderLoginDate: '2026-03-25',
-    status: 'Yet to Lender',
-  },
-  {
-    id: '2',
-    ticketName: 'TKT-1002',
-    lenderName: 'Kotak Mahindra Bank Ltd',
-    typeOfLoan: 'Unsecured OD',
-    ticketStage: 'CPI Analysis',
-    lenderLoginDate: '2026-03-20',
-    status: 'Lender Review',
-  },
-  {
-    id: '3',
-    ticketName: 'TKT-1003',
-    lenderName: 'Profectus Capital Private Ltd',
-    typeOfLoan: 'Secured Loan',
-    ticketStage: 'Approval Pending',
-    lenderLoginDate: '2026-03-28',
-    status: 'In Credit',
-  },
-  {
-    id: '4',
-    ticketName: 'TKT-1004',
-    lenderName: 'Rupifi Private Ltd',
-    typeOfLoan: 'Open SCF',
-    ticketStage: 'Sanctioned',
-    lenderLoginDate: '2026-03-10',
-    status: 'Approved',
-  },
-  {
-    id: '5',
-    ticketName: 'TKT-1005',
-    lenderName: 'Aditya Birla Capital Limited',
-    typeOfLoan: 'SCF Renewal',
-    ticketStage: 'Disbursed',
-    lenderLoginDate: '2026-03-05',
-    status: 'Disbursed',
-  },
-]
-
+// Adjust these to match your actual Ticket statuses
 const COLUMNS = [
-  'Yet to Lender',
+  'Yet to Lender Login',
   'Lender Review',
   'In Credit',
   'Approved',
@@ -82,7 +45,7 @@ const COLUMNS = [
 ]
 
 const COLUMN_STYLES: Record<string, { header: string; dot: string }> = {
-  'Yet to Lender': {
+  'Yet to Lender Login': {
     header: 'text-zinc-500 border-zinc-300',
     dot: 'bg-zinc-400',
   },
@@ -91,21 +54,24 @@ const COLUMN_STYLES: Record<string, { header: string; dot: string }> = {
     dot: 'bg-blue-500',
   },
   'In Credit': {
+    header: 'text-indigo-600 border-indigo-300',
+    dot: 'bg-indigo-500',
+  },
+  Approved: {
     header: 'text-emerald-600 border-emerald-300',
     dot: 'bg-emerald-500',
   },
-  Approved: {
-    header: 'text-orange-700 border-orange-300',
-    dot: 'bg-orange-500',
-  },
   Disbursed: {
+    header: 'text-green-700 border-green-300',
+    dot: 'bg-green-600',
+  },
+  Rejected: {
+    header: 'text-red-600 border-red-300',
+    dot: 'bg-red-500',
+  },
+  'Not Interested': {
     header: 'text-purple-600 border-purple-300',
     dot: 'bg-purple-500',
-  },
-  Rejected: { header: 'text-red-600 border-red-300', dot: 'bg-red-500' },
-  'Not Interested': {
-    header: 'text-zinc-600 border-zinc-300',
-    dot: 'bg-zinc-600',
   },
 }
 
@@ -123,41 +89,29 @@ function DraggableTicketCard({ ticket }: { ticket: TicketData }) {
       className={isDragging ? 'opacity-50' : ''}
     >
       <Card
-        className={`transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30`}
+        className='transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30'
         onClick={() => navigate(`/tickets/${ticket.id}`)}
       >
         <CardContent className='p-3 text-sm grid gap-1'>
-          <div className='flex justify-between items-start gap-2'>
-            <p className='font-semibold text-base leading-tight'>
-              {ticket.ticketName}
-            </p>
-          </div>
-
+          <p className='font-semibold text-base leading-tight'>
+            {ticket.dealName}
+          </p>
           <div className='grid grid-cols-[110px_1fr] gap-x-2 gap-y-1 mt-2 items-start text-xs'>
+            <span className='text-muted-foreground font-medium'>Ticket ID</span>
+            <span className='font-medium line-clamp-1'>
+              {ticket.ticketId || '-'}
+            </span>
+            <span className='text-muted-foreground font-medium'>
+              Deal Owner
+            </span>
+            <span className='font-medium'>
+              {(users as Record<string, string>)[ticket.dealOwner] ||
+                `#${ticket.dealOwner}`}
+            </span>
             <span className='text-muted-foreground font-medium'>
               Lender Name
             </span>
-            <span
-              className='font-medium line-clamp-1'
-              title={ticket.lenderName}
-            >
-              {ticket.lenderName || '-'}
-            </span>
-
-            <span className='text-muted-foreground font-medium'>
-              Type of Loan
-            </span>
-            <span className='font-medium'>{ticket.typeOfLoan || '-'}</span>
-
-            <span className='text-muted-foreground font-medium'>
-              Ticket Stage
-            </span>
-            <span className='font-medium'>{ticket.ticketStage || '-'}</span>
-
-            <span className='text-muted-foreground font-medium'>
-              Lender Login Date
-            </span>
-            <span className='font-medium'>{ticket.lenderLoginDate || '-'}</span>
+            <span className='font-medium'>{ticket.lenderName || '-'}</span>
           </div>
         </CardContent>
       </Card>
@@ -214,13 +168,55 @@ function DroppableTicketColumn({
   )
 }
 
-export default function TicketsKanbanView({ filters }: { filters: any }) {
-  const [ticketsList, setTicketsList] = useState<TicketData[]>(DUMMY_TICKETS)
-  const [activeTicket, setActiveTicket] = useState<TicketData | null>(null)
-
+export default function TicketsKanbanView({
+  filters,
+  enabled,
+}: {
+  filters: KanbanFilters
+  enabled: boolean
+}) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
+
+  const [ticketsList, setTicketsList] = useState<TicketData[]>([])
+  const [activeTicket, setActiveTicket] = useState<TicketData | null>(null)
+
+  const { data: grouped = {}, isLoading } = useQuery({
+    queryKey: ['tickets-kanban', filters],
+    queryFn: async () => {
+      const params = new URLSearchParams({ kanban: 'true' })
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v) params.set(k, v)
+      })
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/tickets?${params}`,
+        {
+          credentials: 'include',
+        },
+      )
+      if (!res.ok) throw new Error('Failed')
+      const json = await res.json()
+      return (json.data ?? {}) as Record<string, any[]>
+    },
+    enabled,
+    retry: false,
+  })
+
+  useEffect(() => {
+    const flat: TicketData[] = Object.entries(grouped).flatMap(
+      ([status, tickets]) =>
+        tickets.map((t: any) => ({
+          id: String(t.id),
+          dealName: t.account_name ?? '-',
+          ticketId: String(t.id),
+          dealOwner: String(t.deal_owner_id ?? '-'),
+          lenderName: t.lender_name ?? '-',
+          status: t.ticket_status ?? status,
+        })),
+    )
+    setTicketsList(flat)
+  }, [grouped])
 
   function onDragStart(event: DragStartEvent) {
     const ticket = ticketsList.find((t) => t.id === event.active.id)
@@ -231,59 +227,54 @@ export default function TicketsKanbanView({ filters }: { filters: any }) {
     const { active, over } = event
     setActiveTicket(null)
     if (!over) return
-
     const newStatus = String(over.id)
-
     setTicketsList((prev) =>
       prev.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t)),
     )
   }
 
-  // Basic filtering visually applied to local tickets
-  const filteredTickets = ticketsList.filter((t) => {
-    if (
-      filters.search &&
-      !t.ticketName.toLowerCase().includes(filters.search.toLowerCase()) &&
-      !t.lenderName.toLowerCase().includes(filters.search.toLowerCase())
+  if (!enabled) {
+    return (
+      <div className='flex items-center justify-center h-full text-sm text-muted-foreground'>
+        Apply filters to load tickets
+      </div>
     )
-      return false
-    if (
-      filters.typeOfLoan !== 'all' &&
-      t.typeOfLoan.toLowerCase().replace(/ /g, '_') !== filters.typeOfLoan
+  }
+
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center h-full text-sm text-muted-foreground'>
+        Loading...
+      </div>
     )
-      return false
-    // we can add more basic mock filtering if needed
-    return true
-  })
+  }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
+    <div>
+      {/* <DndContext
+    sensors={sensors}
+    onDragStart={onDragStart}
+    onDragEnd={onDragEnd}
+    > */}
       <div className='flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0'>
-        {COLUMNS.map((col) => {
-          const colTickets = filteredTickets.filter((t) => t.status === col)
-          return (
-            <DroppableTicketColumn
-              key={col}
-              status={col}
-              tickets={colTickets}
-            />
-          )
-        })}
+        {COLUMNS.map((col) => (
+          <DroppableTicketColumn
+            key={col}
+            status={col}
+            tickets={ticketsList.filter((t) => t.status === col)}
+          />
+        ))}
       </div>
-
-      <DragOverlay>
-        {activeTicket && (
-          <Card className='cursor-grabbing shadow-lg opacity-90 border-l-4 border-l-primary/50 py-0'>
-            <CardContent className='p-3 text-sm'>
-              <p className='font-semibold'>{activeTicket.ticketName}</p>
-            </CardContent>
-          </Card>
-        )}
-      </DragOverlay>
-    </DndContext>
+      {/* <DragOverlay> */}
+      {activeTicket && (
+        <Card className='cursor-grabbing shadow-lg opacity-90 border-l-4 border-l-primary/50 py-0'>
+          <CardContent className='p-3 text-sm'>
+            <p className='font-semibold'>{activeTicket.dealName}</p>
+          </CardContent>
+        </Card>
+      )}
+      {/* </DragOverlay> */}
+      {/* </DndContext> */}
+    </div>
   )
 }
