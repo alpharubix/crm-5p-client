@@ -367,11 +367,16 @@ export default function UpdateDeals() {
           <h1 className='text-lg font-semibold'>
             Deal Owner Name:{' '}
             <span className='text-primary font-bold '>
-              {/* {(users as Record<string, string>)[dealData.deal_owner_id] ||
-                `#${dealData.id}`}
-             */}
-              Arjun
+              {(users as Record<string, string>)[dealData.created_by] || `NA`}
             </span>
+          </h1>
+          <h1 className='text-lg font-semibold'>
+            Deal Id:{' '}
+            <span className='text-primary font-bold '>#{dealData.deal_id}</span>
+          </h1>
+          <h1 className='text-lg font-semibold'>
+            Ticket Id:{' '}
+            <span className='text-primary font-bold '>#{dealData.id}</span>
           </h1>
         </div>
         <div className='flex items-center gap-2'>
