@@ -35,6 +35,7 @@ import { formatExactDate } from '@/utils/date-formatter'
 import { formatAmount } from '@/utils/number-formatter'
 import { format } from 'date-fns'
 import DocumentationSection from './deals-documentation'
+import { Plus } from 'lucide-react'
 
 function mapDealToForm(apiData: any): UpdateDealFormValues {
   return {
@@ -760,6 +761,14 @@ export default function UpdateDeals() {
                 {(dealData as any)?.tickets?.length || 0}
               </span>
             </p>
+            <Button
+              size='sm'
+              variant='outline'
+              className='cursor-pointer'
+              onClick={() => navigate(`/deals/${id}/tickets/create`)}
+            >
+              <Plus className='h-4 w-4 mr-1' /> Add Ticket
+            </Button>
           </div>
 
           {!(dealData as any)?.tickets ||
