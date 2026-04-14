@@ -69,6 +69,7 @@ export type Deal = {
   interest_type: string
   tenure: string
   potential: string
+  partner_code: string
 }
 
 export type UpdateAccountFormValues = {
