@@ -6,6 +6,7 @@ import PublicRoute from './components/public-routes'
 import SidebarComponent from './components/sidebar-component'
 import { GlobalProgressBar } from './components/global-progress-bar'
 import { Spinner } from './components/ui/spinner'
+import DealsKanban from './components/deals/deals-kanban'
 
 // Lazy loaded pages and heavy route components
 const AccountPage = lazy(() => import('./pages/accounts-page'))
@@ -26,6 +27,14 @@ const Task = lazy(() => import('./components/projects/task'))
 const CreateDeal = lazy(() => import('./components/deals/create-deals'))
 const SignInPage = lazy(() => import('./pages/signin-page'))
 const Export = lazy(() => import('./components/export/export'))
+const TicketsKanban = lazy(() => import('./components/tickets/tickets-kanban'))
+const CreateTicket = lazy(() => import('./components/tickets/create-ticket'))
+const UpdateTicketsKanban = lazy(
+  () => import('./components/tickets/update-kanban-tickets'),
+)
+const UpdateDealsKanban = lazy(
+  () => import('./components/deals/update-kanban-deals'),
+)
 
 export default function App() {
   return (
@@ -61,6 +70,14 @@ export default function App() {
               <Route path='/deals-create' element={<CreateDeal />} />
               {/* /deals/:id */}
               <Route path='/deals/:id' element={<UpdateDeals />} />
+              <Route path='/kanban-deals' element={<DealsKanban />} />
+
+              <Route path='/kanban-tickets' element={<TicketsKanban />} />
+              <Route path='/tickets/:id' element={<UpdateTicketsKanban />} />
+              <Route
+                path='/deals/:dealId/tickets/create'
+                element={<CreateTicket />}
+              />
 
               <Route element={<ProtectedLogRoute />}>
                 <Route path='/audit-logs' element={<AuditLogs />} />

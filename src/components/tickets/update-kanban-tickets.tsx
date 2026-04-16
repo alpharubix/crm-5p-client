@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useBeforeUnload, useParams, useNavigate } from 'react-router-dom'
@@ -33,8 +33,6 @@ import {
 import { formatExactDate } from '@/utils/date-formatter'
 import { formatAmount } from '@/utils/number-formatter'
 import { format } from 'date-fns'
-import DocumentationSection from './deals-documentation'
-import { Plus } from 'lucide-react'
 
 function mapDealToForm(apiData: any): UpdateDealFormValues {
   return {
@@ -239,7 +237,7 @@ export default function UpdateDeals() {
   })
 
   useBeforeUnload(
-    React.useCallback(
+    useCallback(
       (e) => {
         if (isDirty) {
           e.preventDefault()
@@ -251,23 +249,22 @@ export default function UpdateDeals() {
   )
 
   const {
-    data: dealResponse,
+    data: dealData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['deal', id],
+    queryKey: ['ticket', id],
     queryFn: async () => {
-      const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${id}`,
-        { credentials: 'include' },
-      )
-      if (!res.ok) throw new Error('Failed to fetch deal')
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/tickets/${id}`, {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('Failed to fetch ticket')
       return res.json()
     },
     enabled: !!id,
   })
 
-  const dealData: Deal = dealResponse?.data?.[0] || dealResponse?.data
+  // const dealData: any = dealResponse?.data?.[0] || dealResponse?.data
 
   const notes = (dealData as any)?.notes || []
 
@@ -286,7 +283,7 @@ export default function UpdateDeals() {
   const updateMutation = useMutation({
     mutationFn: async (values: UpdateDealFormValues) => {
       const payload = mapFormToApi(values, dirtyFields)
-      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/deals/${id}`, {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/tickets/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -302,7 +299,7 @@ export default function UpdateDeals() {
       toast.success('Deal updated successfully')
       setIsEdit(false)
       reset(variables)
-      queryClient.invalidateQueries({ queryKey: ['deal', id] })
+      queryClient.invalidateQueries({ queryKey: ['ticket', id] })
     },
     onError: (err) => {
       toast.error(err.message || 'Failed to update deal')
@@ -324,13 +321,13 @@ export default function UpdateDeals() {
         body: JSON.stringify({
           id: id,
           note: note.description,
-          module: 'Deals',
+          module: 'Tickets',
         }),
       })
 
       if (res.ok) {
         toast.success('Note added successfully')
-        queryClient.invalidateQueries({ queryKey: ['deal', id] })
+        queryClient.invalidateQueries({ queryKey: ['ticket', id] })
       } else {
         toast.error('Failed to add note')
       }
@@ -367,18 +364,18 @@ export default function UpdateDeals() {
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
           <h1 className='text-lg font-semibold'>
-            Deal Name:{' '}
-            <span className='text-primary font-bold '>
-              {dealData.account_name || `#${dealData.id}`}
-            </span>{' '}
-            <span className='text-primary font-bold '>{`#${dealData.id}`}</span>
-          </h1>
-          <h1 className='text-lg font-semibold'>
             Deal Owner Name:{' '}
             <span className='text-primary font-bold '>
-              {(users as Record<string, string>)[dealData.deal_owner_id] ||
-                `#${dealData.id}`}
+              {(users as Record<string, string>)[dealData.created_by] || `NA`}
             </span>
+          </h1>
+          <h1 className='text-lg font-semibold'>
+            Deal Id:{' '}
+            <span className='text-primary font-bold '>#{dealData.deal_id}</span>
+          </h1>
+          <h1 className='text-lg font-semibold'>
+            Ticket Id:{' '}
+            <span className='text-primary font-bold '>#{dealData.id}</span>
           </h1>
         </div>
         <div className='flex items-center gap-2'>
@@ -419,202 +416,73 @@ export default function UpdateDeals() {
           )}
           <Button
             variant='default'
-            onClick={() => navigate(`/accounts/${dealData.account_id}`)}
+            onClick={() => navigate(`/deals/${dealData.deal_id}`)}
             className='ml-2'
           >
-            Go to Accounts
+            Go to Deal
           </Button>
         </div>
       </div>
 
       <Card className='overflow-hidden space-y-1'>
-        {/* ================= Lender Login Information ================= */}
-        <SectionHeader title='Lender Login Information' />
+        {/* ================= Loan Account Status ================= */}
+        <SectionHeader title='Loan Account Status' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
           <div className='md:border-r'>
-            <FieldRow label='Deal Type' error={errors.dealType?.message}>
+            <FieldRow label='Ticket Login' error={errors.ticketLogin?.message}>
               <SelectField
                 isEdit={isEdit}
-                options={[
-                  'NTB',
-                  'NTC',
-                  'NTL',
-                  'Adhoc',
-                  'Renewal',
-                  'Renewal & Enhancement',
-                  'Existing',
-                ]}
-                value={formValues.dealType as string}
+                options={['Approved', 'Disapproved']}
+                value={formValues.ticketLogin as string}
                 onChange={(value) =>
-                  setValue('dealType', value, {
+                  setValue('ticketLogin', value, {
                     shouldValidate: true,
                     shouldDirty: true,
                   })
                 }
               />
             </FieldRow>
+            <FieldRow label='Potential' error={errors.potential?.message}>
+              {isEdit ? (
+                <Input
+                  {...register('potential')}
+                  placeholder='Potential'
+                  className='h-8'
+                />
+              ) : (
+                <span>{formValues.potential || '—'}</span>
+              )}
+            </FieldRow>
             <FieldRow
-              label='Deal Call Back Date/Time'
-              error={errors.dealCallBackDatetime?.message}
+              label='Lender Login Date'
+              error={errors.lenderLoginDate?.message}
             >
               {isEdit ? (
                 <DateField
                   isEdit={isEdit}
-                  showTime={true}
                   value={
-                    formValues.dealCallBackDatetime
-                      ? new Date(formValues.dealCallBackDatetime)
+                    formValues.lenderLoginDate
+                      ? new Date(formValues.lenderLoginDate)
                       : undefined
                   }
                   onChange={(date) => {
                     setValue(
-                      'dealCallBackDatetime',
-                      date ? date.toISOString() : '',
+                      'lenderLoginDate',
+                      date ? format(date, 'yyyy-MM-dd') : '',
                       {
                         shouldValidate: true,
                         shouldDirty: true,
                       },
                     )
                   }}
-                  disablePast={true}
                 />
               ) : (
                 <span>
-                  {formValues.dealCallBackDatetime
-                    ? formatExactDate(
-                        formValues.dealCallBackDatetime,
-                        'dd MMM yyyy, hh:mm a',
-                      )
+                  {formValues.lenderLoginDate
+                    ? formatExactDate(formValues.lenderLoginDate, 'dd MMM yyyy')
                     : '—'}
                 </span>
               )}
-            </FieldRow>
-            <FieldRow
-              label='Amount Required'
-              error={errors.amountRequired?.message}
-            >
-              {isEdit ? (
-                <Input
-                  {...register('amountRequired')}
-                  placeholder='Amount Required'
-                  type='number'
-                  step='0.01'
-                  className='h-8'
-                />
-              ) : (
-                <span>
-                  {formatAmount(Number(formValues.amountRequired)) || '—'}
-                </span>
-              )}
-            </FieldRow>
-            <FieldRow label='Type of Loan' error={errors.loanType?.message}>
-              <SelectField
-                isEdit={isEdit}
-                options={[
-                  'SCF',
-                  'SCF Renewal',
-                  'SCF Enhancement',
-                  'SCF (Renewal and Enhancement)',
-                  'Open SCF',
-                  'Open SCF Renewal',
-                  'Open SCF Enhancement',
-                  'Open SCF (Renewal and Enhancement)',
-                  'BT-SCF',
-                  'BT-Open SCF',
-                  'Unsecured OD',
-                  'Unsecured Term Loan',
-                  'Secured Loan',
-                  'Secured BT',
-                  'Vehicle Loan',
-                ]}
-                value={formValues.loanType as string}
-                onChange={(value) =>
-                  setValue('loanType', value, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-              />
-            </FieldRow>
-            <FieldRow label='Created By'>
-              <span>
-                {(users as Record<string, string>)[
-                  formValues.createdBy as string
-                ] ||
-                  formValues.createdBy ||
-                  '—'}
-              </span>
-            </FieldRow>
-            <FieldRow label='Modified By'>
-              <span>
-                {(users as Record<string, string>)[
-                  formValues.modifiedBy as string
-                ] ||
-                  formValues.modifiedBy ||
-                  '—'}
-              </span>
-            </FieldRow>
-          </div>
-          <div>
-            <FieldRow label='Account Name'>
-              <span>{dealData.account_name || '—'}</span>
-            </FieldRow>
-            <FieldRow label='Deal Name'>
-              <span>{dealData.account_name || '—'}</span>
-            </FieldRow>
-            <FieldRow label='Deal Status' error={errors.caseStatus?.message}>
-              <SelectField
-                isEdit={isEdit}
-                options={[
-                  'Yet to Lender Login',
-                  'Lender Review',
-                  'In Credit',
-                  'Approved',
-                  'Disbursed',
-                  'Rejected',
-                  'Not Interested',
-                ]}
-                value={formValues.caseStatus as string}
-                onChange={(value) =>
-                  setValue('caseStatus', value, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-              />
-            </FieldRow>
-            <FieldRow label='Deal Stage' error={errors.caseStage?.message}>
-              <SelectField
-                isEdit={isEdit}
-                options={[
-                  'RM - Doc QC',
-                  'CPI Analysis',
-                  'Pendency Raised by Lender',
-                  'Pendency Resolved',
-                  'GST Finfort - Initiated',
-                  'GST Finfort - Completed',
-                  'Jr Credit Manager Review',
-                  'PD Pending',
-                  'PD Completed',
-                  'Sr Credit Manager Review',
-                  'NCM Review',
-                  'Approval Pending',
-                  'Commercial Shared with Cust',
-                  'Cust Accepted Loan Offer',
-                  'PF Paid',
-                  'Sanctioned',
-                  'SL Sign and PSD Initiated',
-                  'SL Sign and PSD Completed',
-                  'Disbursed',
-                ]}
-                value={formValues.caseStage as string}
-                onChange={(value) =>
-                  setValue('caseStage', value, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-              />
             </FieldRow>
             <FieldRow
               label='Targeted Disbursement date'
@@ -685,103 +553,7 @@ export default function UpdateDeals() {
               )}
             </FieldRow>
           </div>
-        </CardContent>
-
-        {/* ================= Loan Liabilities Information ================= */}
-        <SectionHeader title='Loan Liabilities Information' />
-        <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
-          <div className='md:border-r'>
-            <FieldRow label='Deal Name'>
-              <span>{dealData.account_name || '—'}</span>
-            </FieldRow>
-            <FieldRow
-              label='Lender Login Date'
-              error={errors.lenderLoginDate?.message}
-            >
-              {isEdit ? (
-                <DateField
-                  isEdit={isEdit}
-                  value={
-                    formValues.lenderLoginDate
-                      ? new Date(formValues.lenderLoginDate)
-                      : undefined
-                  }
-                  onChange={(date) => {
-                    setValue(
-                      'lenderLoginDate',
-                      date ? format(date, 'yyyy-MM-dd') : '',
-                      {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                      },
-                    )
-                  }}
-                />
-              ) : (
-                <span>
-                  {formValues.lenderLoginDate
-                    ? formatExactDate(formValues.lenderLoginDate, 'dd MMM yyyy')
-                    : '—'}
-                </span>
-              )}
-            </FieldRow>
-            <FieldRow
-              label='Type of case login'
-              error={errors.typeOfCaseLogin?.message}
-            >
-              <SelectField
-                isEdit={isEdit}
-                options={['Fresh', 'Spillover']}
-                value={formValues.typeOfCaseLogin as string}
-                onChange={(value) =>
-                  setValue('typeOfCaseLogin', value, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-              />
-            </FieldRow>
-            <FieldRow
-              label='Amount Required'
-              error={errors.amountRequired?.message}
-            >
-              {isEdit ? (
-                <Input
-                  {...register('amountRequired')}
-                  placeholder='Amount Required'
-                  type='number'
-                  step='0.01'
-                  className='h-8'
-                />
-              ) : (
-                <span>
-                  {formatAmount(Number(formValues.amountRequired)) || '—'}
-                </span>
-              )}
-            </FieldRow>
-            <FieldRow label='Created By'>
-              <span>
-                {(users as Record<string, string>)[
-                  formValues.createdBy as string
-                ] ||
-                  formValues.createdBy ||
-                  '—'}
-              </span>
-            </FieldRow>
-            <FieldRow label='Modified By'>
-              <span>
-                {(users as Record<string, string>)[
-                  formValues.modifiedBy as string
-                ] ||
-                  formValues.modifiedBy ||
-                  '—'}
-              </span>
-            </FieldRow>
-          </div>
           <div>
-            <FieldRow label='Account Name'>
-              <span>{dealData.account_name || '—'}</span>
-            </FieldRow>
             <FieldRow label='Lender Name' error={errors.lenderName?.message}>
               <SelectField
                 isEdit={isEdit}
@@ -835,6 +607,91 @@ export default function UpdateDeals() {
             </FieldRow>
             <FieldRow label='Partner Code'>
               <span>{dealData.partner_code || '—'}</span>
+            </FieldRow>
+            <FieldRow label='Type of Loan' error={errors.loanType?.message}>
+              <SelectField
+                isEdit={isEdit}
+                options={[
+                  'SCF',
+                  'SCF Renewal',
+                  'SCF Enhancement',
+                  'SCF (Renewal and Enhancement)',
+                  'Open SCF',
+                  'Open SCF Renewal',
+                  'Open SCF Enhancement',
+                  'Open SCF (Renewal and Enhancement)',
+                  'BT-SCF',
+                  'BT-Open SCF',
+                  'Unsecured OD',
+                  'Unsecured Term Loan',
+                  'Secured Loan',
+                  'Secured BT',
+                  'Vehicle Loan',
+                ]}
+                value={formValues.loanType as string}
+                onChange={(value) =>
+                  setValue('loanType', value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+              />
+            </FieldRow>
+            <FieldRow label='Ticket Status' error={errors.loanType?.message}>
+              <SelectField
+                isEdit={isEdit}
+                options={[
+                  'Yet to Lender Login',
+                  'Lender Review',
+                  'In Credit',
+                  'Approved',
+                  'Disbursed',
+                  'Rejected',
+                  'Not Interested',
+                ]}
+                value={formValues.loanType as string}
+                onChange={(value) =>
+                  setValue('loanType', value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+              />
+            </FieldRow>
+            <FieldRow label='Ticket Stage' error={errors.loanType?.message}>
+              <SelectField
+                isEdit={isEdit}
+                options={[
+                  'RM - Doc QC',
+                  'CPI Analysis',
+                  'Pendency Raised by Lender',
+                  'Pendency Resolved',
+                  'GST Finfort - Initiated',
+                  'GST Finfort - Completed',
+                  'Jr Credit Manager Review',
+                  'PD Pending',
+                  'PD Completed',
+                  'Sr Credit Manager Review',
+                  'NCM Review',
+                  'Approval Pending',
+                  'Commercial Shared with Cust',
+                  'Cust Accepted Loan Offer',
+                  'PF Paid',
+                  'Sanctioned',
+                  'SL Sign and PSD Initiated',
+                  'SL Sign and PSD Completed',
+                  'Disbursed',
+                  'Rejected',
+                  'Not Interested',
+                ]}
+                value={formValues.loanType as string}
+                onChange={(value) =>
+                  setValue('loanType', value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+              />
             </FieldRow>
           </div>
         </CardContent>
@@ -914,6 +771,88 @@ export default function UpdateDeals() {
               )}
             </FieldRow>
             <FieldRow
+              label='Rate of Interest'
+              error={errors.rateOfInterest?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('rateOfInterest')}
+                  placeholder='Rate Of Interest'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>{formValues.rateOfInterest || '—'}</span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='Interest Type'
+              error={errors.interestType?.message}
+            >
+              <SelectField
+                isEdit={isEdit}
+                options={['Reducing', 'Fixed', 'Floating']}
+                value={formValues.interestType as string}
+                onChange={(value) =>
+                  setValue('interestType', value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+              />
+            </FieldRow>
+          </div>
+          <div>
+            <FieldRow
+              label='Sanction Amount'
+              error={errors.sanctionAmount?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('sanctionAmount')}
+                  placeholder='Sanction Amount'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>
+                  {formatAmount(Number(formValues.sanctionAmount)) || '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='Disbursed Amount'
+              error={errors.disbursedAmount?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('disbursedAmount')}
+                  placeholder='Disbursed Amount'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>
+                  {formatAmount(Number(formValues.disbursedAmount)) || '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow label='Tenure' error={errors.tenure?.message}>
+              {isEdit ? (
+                <Input
+                  {...register('tenure')}
+                  placeholder='Tenure'
+                  type='number'
+                  className='h-8'
+                />
+              ) : (
+                <span>{formValues.tenure || '—'}</span>
+              )}
+            </FieldRow>
+            <FieldRow
               label='Loan Start Date'
               error={errors.loanStartDate?.message}
             >
@@ -973,80 +912,6 @@ export default function UpdateDeals() {
               )}
             </FieldRow>
           </div>
-          <div>
-            <FieldRow
-              label='Sanction Amount'
-              error={errors.sanctionAmount?.message}
-            >
-              {isEdit ? (
-                <Input
-                  {...register('sanctionAmount')}
-                  placeholder='Sanction Amount'
-                  type='number'
-                  step='0.01'
-                  className='h-8'
-                />
-              ) : (
-                <span>
-                  {formatAmount(Number(formValues.sanctionAmount)) || '—'}
-                </span>
-              )}
-            </FieldRow>
-            <FieldRow
-              label='Disbursed Amount'
-              error={errors.disbursedAmount?.message}
-            >
-              {isEdit ? (
-                <Input
-                  {...register('disbursedAmount')}
-                  placeholder='Disbursed Amount'
-                  type='number'
-                  step='0.01'
-                  className='h-8'
-                />
-              ) : (
-                <span>
-                  {formatAmount(Number(formValues.disbursedAmount)) || '—'}
-                </span>
-              )}
-            </FieldRow>
-            <FieldRow label='Tenure' error={errors.tenure?.message}>
-              {isEdit ? (
-                <Input
-                  {...register('tenure')}
-                  placeholder='Tenure'
-                  type='number'
-                  className='h-8'
-                />
-              ) : (
-                <span>{formValues.tenure || '—'}</span>
-              )}
-            </FieldRow>
-            <FieldRow label='MM Charges' error={errors.mmCharges?.message}>
-              {isEdit ? (
-                <Input
-                  {...register('mmCharges')}
-                  placeholder='MM Charges'
-                  type='number'
-                  step='0.01'
-                  className='h-8'
-                />
-              ) : (
-                <span>{formatAmount(Number(formValues.mmCharges)) || '—'}</span>
-              )}
-            </FieldRow>
-          </div>
-          <div>
-            <FieldRow label='Sanction Letter'>
-              <span>{dealData.sanction_letter || '—'}</span>
-            </FieldRow>
-            <FieldRow
-              label='Payment Receipt'
-              error={errors.paymentReceipt?.message}
-            >
-              <span>—</span>
-            </FieldRow>
-          </div>
         </CardContent>
 
         {/* ================= Rejection Status ================= */}
@@ -1095,65 +960,7 @@ export default function UpdateDeals() {
             </FieldRow>
           </div>
         </CardContent>
-        {/* ================= Linked Tickets ================= */}
-        <SectionHeader title='Linked Tickets' />
-        <CardContent className='p-4 space-y-3 border-b'>
-          <div className='flex items-center justify-between mb-2'>
-            <p className='text-sm text-muted-foreground'>
-              Total Tickets:{' '}
-              <span className='font-semibold'>
-                {(dealData as any)?.tickets?.length || 0}
-              </span>
-            </p>
-            <Button
-              size='sm'
-              variant='outline'
-              className='cursor-pointer'
-              onClick={() => navigate(`/deals/${id}/tickets/create`)}
-            >
-              <Plus className='h-4 w-4 mr-1' /> Add Ticket
-            </Button>
-          </div>
 
-          {!(dealData as any)?.tickets ||
-          (dealData as any).tickets.length === 0 ? (
-            <p className='text-sm text-muted-foreground'>
-              No tickets associated with this deal.
-            </p>
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-              {(dealData as any).tickets.map((ticket: any) => (
-                <div
-                  key={ticket.id}
-                  onClick={() => navigate(`/tickets/${ticket.id}`)}
-                  className='bg-muted/30 p-3 rounded-lg border hover:border-primary hover:bg-muted/50 transition-all cursor-pointer group'
-                >
-                  <div className='flex justify-between items-start mb-2'>
-                    <span className='text-xs font-bold text-primary'>
-                      #{ticket.id}
-                    </span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold ${
-                        ticket.ticket_status === 'Approved'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-zinc-200 text-zinc-700'
-                      }`}
-                    >
-                      {ticket.ticket_status || 'N/A'}
-                    </span>
-                  </div>
-                  <p className='text-sm font-semibold truncate'>
-                    {ticket.lender_name || 'No Lender'}
-                  </p>
-                  <div className='flex flex-col mt-2 gap-1 text-[11px] text-muted-foreground uppercase'>
-                    <span>Type: {ticket.type_of_loan || '—'}</span>
-                    <span>Stage: {ticket.ticket_stage || '—'}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
         {/* ================= Notes ================= */}
         <SectionHeader title='Notes' />
 
@@ -1242,8 +1049,6 @@ export default function UpdateDeals() {
           )}
 
           <NoteDialog onAddNote={handleAddNote} />
-
-          <DocumentationSection dealId={id!} />
         </CardContent>
       </Card>
     </div>

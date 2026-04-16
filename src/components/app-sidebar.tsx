@@ -51,6 +51,14 @@ const data = {
           title: 'Deals',
           url: '/deals',
         },
+        {
+          title: 'Deals Kanban',
+          url: '/kanban-deals',
+        },
+        {
+          title: 'Tickets Kanban',
+          url: '/kanban-tickets',
+        }
         // {
         //   title: 'Deals',
         //   url: '/deals',
