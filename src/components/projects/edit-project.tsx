@@ -20,7 +20,14 @@ import {
 } from '../ui/select'
 import { Badge } from '../ui/badge'
 import { X, Link as LinkIcon } from 'lucide-react'
-import { API_TO_STATUS, ENV, PRIORITIES, PROJECT_TYPES, STATUSES } from '@/conf'
+import {
+  API_TO_STATUS,
+  ENV,
+  PRIORITIES,
+  PROJECT_TYPES,
+  STATUSES,
+  USERS_MAP,
+} from '@/conf'
 import type {
   Priority,
   Project,
@@ -30,15 +37,6 @@ import type {
 } from '@/types/project-types'
 import { useAuth } from '@/context/auth-context'
 import { STATUS_MAP } from './project-kanban'
-
-const USERS_MAP: Record<string, string> = {
-  '3899927000000615348': 'Ashok M',
-  '3899927000000964875': 'Suraj Gupta',
-  '3899927000000882594': 'Myisa Beiucy',
-  '3899927000000723465': 'Kaveri Metri',
-  '3899927000000201013': 'Anslem Prathap',
-  '3899927000005965002': 'Subhasini TS',
-}
 
 interface EditProjectModalProps {
   open: boolean
@@ -67,7 +65,6 @@ export default function EditProjectModal({
     user &&
     project &&
     String(user.user_id) === String((project as any).approver_id)
-  const ownerOnly = !isOwner
 
   const [form, setForm] = useState({
     name: '',
@@ -158,7 +155,7 @@ export default function EditProjectModal({
   }
 
   function toggleAssignee(user: any) {
-    if (ownerOnly) return
+    if (!isOwner && !isApprover) return
     const mapped: any = { id: user.id, name: user.name }
     setForm((f) => {
       const exists = f.assignees.some((u) => u.id === mapped.id)
@@ -182,7 +179,7 @@ export default function EditProjectModal({
   }
 
   function handleRemoveLink(index: number) {
-    if (ownerOnly) return
+    if (!isOwner && !isApprover) return
     setForm((f) => ({
       ...f,
       attachment_links: f.attachment_links.filter((_, i) => i !== index),
@@ -259,14 +256,12 @@ export default function EditProjectModal({
 
     if (log.action === 'CREATED') {
       if (log.entity_type === 'PROJECT')
-        return <span className='text-zinc-600'>Created the project</span>
+        return <span >Created the project</span>
       return (
-        <div className='text-zinc-600'>
+        <div >
           <span>
             Created task{' '}
-            <span className='font-medium text-zinc-800'>
-              {changes.title || taskName}
-            </span>
+            <span className='font-medium '>{changes.title || taskName}</span>
           </span>
         </div>
       )
@@ -274,10 +269,9 @@ export default function EditProjectModal({
 
     if (log.action === 'COMMENTED') {
       return (
-        <span className='text-zinc-600'>
-          Commented on{' '}
-          <span className='font-medium text-zinc-800'>{taskName}</span>:{' '}
-          <span className='italic text-zinc-800'>"{changes.content}"</span>
+        <span >
+          Commented on <span className='font-medium '>{taskName}</span>:{' '}
+          <span className='italic '>"{changes.content}"</span>
         </span>
       )
     }
@@ -285,17 +279,17 @@ export default function EditProjectModal({
     if (log.action === 'UPDATED') {
       if (keys.length === 0)
         return (
-          <span className='text-zinc-600'>
+          <span >
             Updated {log.entity_type.toLowerCase()} details
           </span>
         )
 
       return (
-        <div className='text-zinc-600'>
+        <div >
           <span>
             Updated{' '}
             {log.entity_type === 'TASK' ? (
-              <span className='font-medium text-zinc-800'>{taskName}</span>
+              <span className='font-medium '>{taskName}</span>
             ) : (
               'project'
             )}{' '}
@@ -319,12 +313,12 @@ export default function EditProjectModal({
               }
 
               return (
-                <div key={key} className='text-[11px] text-zinc-500'>
-                  <span className='text-zinc-400'>↳</span> Changed{' '}
-                  <span className='font-medium text-zinc-700 capitalize'>
+                <div key={key} className='text-[11px] '>
+                  <span className=''>↳</span> Changed{' '}
+                  <span className='font-medium  capitalize'>
                     {formattedKey}
                   </span>{' '}
-                  to <span className='font-medium text-zinc-700'>{val}</span>
+                  to <span className='font-medium '>{val}</span>
                 </div>
               )
             })}
@@ -333,7 +327,7 @@ export default function EditProjectModal({
       )
     }
 
-    return <span className='text-zinc-600'>Performed an action</span>
+    return <span className=''>Performed an action</span>
   }
 
   return (
@@ -353,13 +347,13 @@ export default function EditProjectModal({
         {/* TABS */}
         <div className='flex items-center gap-4 border-b mt-2'>
           <button
-            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-zinc-500'}`}
+            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : ''}`}
             onClick={() => setActiveTab('details')}
           >
             Project Details
           </button>
           <button
-            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-zinc-500'}`}
+            className={`text-xs font-semibold pb-2 px-1 ${activeTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : ''}`}
             onClick={() => setActiveTab('history')}
           >
             Activity History
@@ -380,7 +374,7 @@ export default function EditProjectModal({
                   className='mt-1 h-8 text-sm'
                   value={form.name}
                   onChange={(e) => set('name', e.target.value)}
-                  disabled={ownerOnly}
+                  disabled={!isOwner && !isApprover}
                 />
                 {errors.name && (
                   <p className='text-xs text-red-500 mt-1'>{errors.name}</p>
@@ -395,14 +389,14 @@ export default function EditProjectModal({
                   rows={2}
                   value={form.description}
                   onChange={(e) => set('description', e.target.value)}
-                  disabled={ownerOnly}
+                  disabled={!isOwner && !isApprover}
                 />
               </div>
 
               {/* Attachment Links (NEW) */}
               <div>
                 <Label className='text-xs font-medium'>Attachment Links</Label>
-                {!ownerOnly && (
+                {(isOwner || isApprover) && (
                   <div className='flex gap-2 mt-1'>
                     <Input
                       className='h-8 text-sm flex-1'
@@ -430,47 +424,43 @@ export default function EditProjectModal({
 
                 {form.attachment_links.length > 0 ? (
                   <div
-                    className={`flex flex-col gap-1.5 ${ownerOnly ? 'mt-1' : 'mt-2'}`}
+                    className={`flex flex-col gap-1.5 ${!isOwner && !isApprover ? 'mt-1' : 'mt-2'}`}
                   >
                     {form.attachment_links.map((link, idx) => (
                       <div
                         key={idx}
-                        className='flex items-center justify-between bg-zinc-50 border rounded px-2 py-1.5'
+                        className='flex items-center justify-between border rounded px-2 py-1.5'
                       >
                         <div className='flex items-center gap-2 overflow-hidden'>
-                          <LinkIcon
-                            size={12}
-                            className='text-zinc-400 shrink-0'
-                          />
+                          <LinkIcon size={12} className=' shrink-0' />
                           <span className='text-xs truncate max-w-[300px] text-blue-600 hover:underline'>
                             <a href={link} target='_blank' rel='noreferrer'>
                               {link}
                             </a>
                           </span>
                         </div>
-                        {!ownerOnly && (
+                        {(!isOwner || !isApprover) && (
                           <button
                             type='button'
                             onClick={() => handleRemoveLink(idx)}
-                            className='text-zinc-400 hover:text-red-500 shrink-0 ml-2'
+                            className=' hover:text-red-500 shrink-0 ml-2'
                           >
-                            <X size={12} />
+                            <X size={18} className='cursor-pointer' />
                           </button>
                         )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  ownerOnly && (
-                    <p className='text-xs text-zinc-400 mt-1'>
-                      No attachments provided.
-                    </p>
+                  !isOwner &&
+                  !isApprover && (
+                    <p className='text-xs  mt-1'>No attachments provided.</p>
                   )
                 )}
               </div>
 
               {/* Priority + Status + Type */}
-              <div className='grid grid-cols-3 gap-3'>
+              <div className='flex items-center gap-4 flex-wrap'>
                 <div>
                   <Label className='text-xs font-medium'>
                     Priority <span className='text-red-500'>*</span>
@@ -478,7 +468,7 @@ export default function EditProjectModal({
                   <Select
                     value={form.priority}
                     onValueChange={(v) => set('priority', v as Priority)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   >
                     <SelectTrigger className='mt-1 h-8 text-sm'>
                       <SelectValue placeholder='Select' />
@@ -529,7 +519,7 @@ export default function EditProjectModal({
                   <Select
                     value={form.projectType}
                     onValueChange={(v) => set('projectType', v as ProjectType)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   >
                     <SelectTrigger className='mt-1 h-8 text-sm'>
                       <SelectValue placeholder='Select' />
@@ -543,24 +533,41 @@ export default function EditProjectModal({
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
                   <Label className='text-xs font-medium'>Approver</Label>
                   <Select
                     value={form.approverId}
                     onValueChange={(v) => set('approverId', v)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   >
                     <SelectTrigger className='mt-1 h-8 text-sm'>
                       <SelectValue placeholder='Select' />
                     </SelectTrigger>
                     <SelectContent>
-                      {users.map((u) => (
-                        <SelectItem key={u.id} value={u.id} className='text-sm'>
-                          {u.name}
-                        </SelectItem>
-                      ))}
+                      {users
+                        .filter(
+                          (u) =>
+                            String(u.id) === '3899927000000201013' ||
+                            u.name === 'Anslem Prathap'
+                        )
+                        .map((u) => (
+                          <SelectItem
+                            key={u.id}
+                            value={u.id}
+                            className='text-sm'
+                          >
+                            {u.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className='text-sm mt-4'>
+                  <span className='font-medium block'>
+                    {USERS_MAP[project?.created_by || ''] || 'Unknown User'}{' '}
+                    (Initiator)
+                  </span>
                 </div>
               </div>
 
@@ -575,7 +582,7 @@ export default function EditProjectModal({
                     className='mt-1 h-8 text-sm'
                     value={form.startDate}
                     onChange={(e) => set('startDate', e.target.value)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   />
                   {errors.startDate && (
                     <p className='text-xs text-red-500 mt-1'>
@@ -592,7 +599,7 @@ export default function EditProjectModal({
                     className='mt-1 h-8 text-sm'
                     value={form.endDate}
                     onChange={(e) => set('endDate', e.target.value)}
-                    disabled={ownerOnly}
+                    disabled={!isOwner && !isApprover}
                   />
                   {errors.endDate && (
                     <p className='text-xs text-red-500 mt-1'>
@@ -606,11 +613,11 @@ export default function EditProjectModal({
               <div>
                 <Label className='text-xs font-medium'>Team Members</Label>
                 <div
-                  className={`mt-1 border rounded-md overflow-hidden divide-y max-h-40 overflow-y-auto ${ownerOnly ? 'opacity-70 pointer-events-none' : ''}`}
+                  className={`mt-1 border rounded-md overflow-hidden divide-y max-h-40 overflow-y-auto ${!isOwner && !isApprover ? 'opacity-70 pointer-events-none' : ''}`}
                 >
                   {users.map((user: { id: string; name: string }) => {
                     const selected = form.assignees.some(
-                      (u) => u.id === user.id,
+                      (u) => u.id === user.id
                     )
                     return (
                       <div
@@ -656,7 +663,7 @@ export default function EditProjectModal({
                         className='text-xs gap-1 pl-2 pr-1'
                       >
                         {USERS_MAP[u.id]}
-                        {!ownerOnly && (
+                        {(isOwner || isApprover) && (
                           <button
                             onClick={() =>
                               toggleAssignee({ id: u.id, name: u.name })
@@ -677,29 +684,25 @@ export default function EditProjectModal({
           {/* --- HISTORY TAB --- */}
           {activeTab === 'history' && (
             <div className='space-y-4'>
-              {logsLoading && (
-                <p className='text-xs text-zinc-500'>Loading history...</p>
-              )}
+              {logsLoading && <p className='text-xs '>Loading history...</p>}
 
               {!logsLoading && (logsData?.data ?? []).length === 0 && (
-                <p className='text-xs text-zinc-400'>
-                  No activity recorded yet.
-                </p>
+                <p className='text-xs '>No activity recorded yet.</p>
               )}
 
               {!logsLoading &&
                 Array.isArray(logsData?.data) &&
                 logsData.data.map((log: any) => (
                   <div key={log.id} className='flex gap-3 text-xs'>
-                    <div className='w-2 h-2 rounded-full bg-zinc-300 mt-1 shrink-0'></div>
-                    <div className='flex-1 pb-3 border-b border-zinc-100 last:border-0'>
+                    <div className='w-2 h-2 rounded-full mt-1 shrink-0'></div>
+                    <div className='flex-1 pb-3 border-b last:border-0'>
                       <div className='mb-0.5'>
-                        <span className='font-medium text-zinc-800'>
+                        <span className='font-medium '>
                           {USERS_MAP[String(log.user_id)] || 'Unknown User'}
                         </span>{' '}
                       </div>
                       {renderLogDetails(log)}
-                      <div className='text-[10px] text-zinc-400 mt-1.5'>
+                      <div className='text-[10px]  mt-1.5'>
                         {new Date(log.created_at).toLocaleString()}
                       </div>
                     </div>

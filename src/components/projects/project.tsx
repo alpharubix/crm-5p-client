@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { Button } from '../ui/button'
 import { Dialog } from '../ui/dialog'
-import ProjectDetail from './project-detail'
 import CreateProjectForm from './create-project'
 import type { Project } from '@/types/project-types'
 import ProjectList from './project-list'
 import ProjectKanban, { type ProjectFilters } from './project-kanban'
-// import { DUMMY_PROJECTS } from '@/conf'
-import { LayoutList, KanbanSquare, FilterX, Search } from 'lucide-react'
+import { FilterX, Search } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -15,9 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select'
-import { PROJECT_TYPES, STATUSES } from '@/conf'
+import { PROJECT_TYPES, USERS_MAP } from '@/conf'
 import { Input } from '../ui/input'
-import { USERS_MAP } from './create-task'
 
 const defaultFilters: ProjectFilters = {
   search: '',
@@ -40,11 +37,11 @@ const STATUS_OPTIONS = [
 export default function Project() {
   const [projects, setProjects] = useState<Project[]>([])
   const [modalState, setModalState] = useState<'closed' | 'create' | 'detail'>(
-    'closed',
+    'closed'
   )
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
-  const [filters, setFilters] = useState<ProjectFilters>(defaultFilters)
+  // const [filters, setFilters] = useState<ProjectFilters>(defaultFilters)
   // UI binds to this (no API calls)
   const [localFilters, setLocalFilters] =
     useState<ProjectFilters>(defaultFilters)
@@ -117,94 +114,96 @@ export default function Project() {
           </div>
         </div>
         {/* FILTER BAR */}
-        <div className='flex flex-wrap items-center gap-3 mb-4 p-3  border rounded-md shadow-sm shrink-0'>
-          <Input
-            placeholder='Search name...'
-            className='h-8 text-xs w-[180px]'
-            value={localFilters.search}
-            onChange={(e) => setFilter('search', e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-          />
+        <div className='flex flex-wrap items-center justify-between gap-3 mb-6 p-2 bg-card border rounded-lg shadow-sm'>
+          <div className='flex flex-wrap items-center gap-2 flex-1'>
+            {/* Search */}
+            <div className='relative w-full max-w-60'>
+              <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Input
+                placeholder='Search projects...'
+                className='pl-8 h-9 bg-muted/40 border-transparent hover:border-border focus-visible:border-primary focus-visible:ring-1 transition-colors shadow-none'
+                value={localFilters.search}
+                onChange={(e) => setFilter('search', e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+              />
+            </div>
 
-          <Select
-            value={localFilters.assignee_id}
-            onValueChange={(v) => setFilter('assignee_id', v)}
-          >
-            <SelectTrigger className='h-8 text-xs w-[140px]'>
-              <SelectValue placeholder='Assignee' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>All Assignees</SelectItem>
-              {Object.entries(USERS_MAP).map(([id, name]) => (
-                <SelectItem key={id} value={id}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <div className='h-5 w-px bg-border mx-1 hidden sm:block' />
 
-          <Select
-            value={localFilters.project_type}
-            onValueChange={(v) => setFilter('project_type', v)}
-          >
-            <SelectTrigger className='h-8 text-xs w-[130px]'>
-              <SelectValue placeholder='Type' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>All Types</SelectItem>
-              {PROJECT_TYPES.map((t) => (
-                <SelectItem key={t} value={t.toLowerCase()}>
-                  {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {/* Selects */}
+            <Select
+              value={localFilters.assignee_id}
+              onValueChange={(v) => setFilter('assignee_id', v)}
+            >
+              <SelectTrigger className='h-9 w-[140px] bg-muted/40 border-transparent hover:border-border transition-colors shadow-none'>
+                <SelectValue placeholder='Assignee' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All Assignees</SelectItem>
+                {Object.entries(USERS_MAP).map(([id, name]) => (
+                  <SelectItem key={id} value={id}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          {/* FIXED: Using STATUS_OPTIONS array here */}
-          <Select
-            value={localFilters.status}
-            onValueChange={(v) => setFilter('status', v)}
-          >
-            <SelectTrigger className='h-8 text-xs w-[140px]'>
-              <SelectValue placeholder='Status' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all'>All Statuses</SelectItem>
-              {STATUS_OPTIONS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select
+              value={localFilters.project_type}
+              onValueChange={(v) => setFilter('project_type', v)}
+            >
+              <SelectTrigger className='h-9 w-[130px] bg-muted/40 border-transparent hover:border-border transition-colors shadow-none'>
+                <SelectValue placeholder='Type' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All Types</SelectItem>
+                {PROJECT_TYPES.map((t) => (
+                  <SelectItem key={t} value={t.toLowerCase()}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <div className='flex items-center gap-1'>
-            <Input
-              type='date'
-              className='h-8 text-xs w-[120px]'
-              value={localFilters.start_date}
-              onChange={(e) => setFilter('start_date', e.target.value)}
-              title='Start Date'
-            />
-            <span className='text-zinc-400 text-xs'>-</span>
-            <Input
-              type='date'
-              className='h-8 text-xs w-[120px]'
-              value={localFilters.end_date}
-              onChange={(e) => setFilter('end_date', e.target.value)}
-              title='End Date'
-            />
+            <Select
+              value={localFilters.status}
+              onValueChange={(v) => setFilter('status', v)}
+            >
+              <SelectTrigger className='h-9 w-[140px] bg-muted/40 border-transparent hover:border-border transition-colors shadow-none'>
+                <SelectValue placeholder='Status' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All Statuses</SelectItem>
+                {STATUS_OPTIONS.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className='h-5 w-px bg-border mx-1 hidden lg:block' />
+
+            {/* Date Range */}
+            <div className='flex items-center gap-1 rounded-md px-1.5 h-8 shadow-sm'>
+              <Input
+                type='date'
+                className='h-6 text-[11px] w-[105px] border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none'
+                value={localFilters.start_date}
+                onChange={(e) => setFilter('start_date', e.target.value)}
+              />
+              <span className='text-zinc-300 text-xs'>→</span>
+              <Input
+                type='date'
+                className='h-6 text-[11px] w-[105px] border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none'
+                value={localFilters.end_date}
+                onChange={(e) => setFilter('end_date', e.target.value)}
+              />
+            </div>
           </div>
 
-          <div className='flex items-center gap-2 ml-auto'>
-            <Button
-              size='sm'
-              onClick={applyFilters}
-              className='h-8 text-xs px-3 bg-blue-600 hover:bg-blue-700 text-white'
-            >
-              <Search size={14} className='mr-1.5' /> Apply
-            </Button>
-
+          {/* Actions */}
+          <div className='flex items-center gap-2 shrink-0'>
             {(localFilters.search ||
               localFilters.assignee_id !== 'all' ||
               localFilters.project_type !== 'all' ||
@@ -215,19 +214,22 @@ export default function Project() {
                 variant='ghost'
                 size='sm'
                 onClick={clearFilters}
-                className='h-8 text-xs text-zinc-500 hover:text-zinc-800 px-2'
+                className='h-9 px-3 text-muted-foreground hover:text-foreground'
               >
-                <FilterX size={14} className='mr-1' /> Clear
+                Clear
               </Button>
             )}
+            <Button
+              size='sm'
+              onClick={applyFilters}
+              className='h-9 px-4 shadow-sm'
+            >
+              Apply Filters
+            </Button>
           </div>
         </div>
         <div className='flex-1 overflow-hidden'>
-          {viewMode === 'list' ? (
-            <ProjectKanban filters={appliedFilters} />
-          ) : (
-            <ProjectList />
-          )}
+          <ProjectKanban filters={appliedFilters} />
         </div>
       </div>
       <Dialog

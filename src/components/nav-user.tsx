@@ -1,4 +1,10 @@
-import { ChevronsUpDown, CircleUserRound, LogOut } from 'lucide-react'
+import {
+  ChevronsUpDown,
+  CircleUserRound,
+  LogOut,
+  Moon,
+  Sun,
+} from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -17,6 +23,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/context/auth-context'
+import { Switch } from './ui/switch'
+import { useEffect, useState } from 'react'
 
 export function NavUser({
   user,
@@ -29,6 +37,28 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const { logout } = useAuth()
+
+  const [darkMode, setDarkMode] = useState(false)
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+      setDarkMode(true)
+    }
+  }, [])
+
+  const handleThemeChange = (checked: boolean) => {
+    setDarkMode(checked)
+
+    if (checked) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -70,6 +100,16 @@ export function NavUser({
                   <span className='truncate font-medium'>{user.name}</span>
                   <span className='truncate text-xs'>{user.email}</span>
                 </div>
+              </div>
+              <div className='ml-15 mt-3 flex items-center gap-2'>
+                <Sun className='h-5 w-5' />
+                <Switch
+                  id='dark-mode'
+                  className='cursor-pointer'
+                  checked={darkMode}
+                  onCheckedChange={handleThemeChange}
+                />
+                <Moon className='h-5 w-5' />
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

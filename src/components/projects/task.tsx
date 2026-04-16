@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Pencil } from 'lucide-react'
+import { ArrowLeft, LinkIcon, Pencil } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -12,7 +12,7 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core'
-import { ENV } from '@/conf'
+import { ENV, USERS_MAP } from '@/conf'
 import { useQuery } from '@tanstack/react-query'
 import CreateTaskModal from './create-task'
 import { Button } from '../ui/button'
@@ -221,7 +221,7 @@ export default function Task() {
         `${ENV.VITE_BACKEND_BASE_URL}/projects/${id}/tasks`,
         {
           credentials: 'include',
-        },
+        }
       )
       if (!res.ok) throw new Error('Failed')
       return res.json()
@@ -245,13 +245,13 @@ export default function Task() {
         priority: t.priority.charAt(0).toUpperCase() + t.priority.slice(1),
         type: t.type.charAt(0).toUpperCase() + t.type.slice(1),
         assignee: t.assignee_name ?? '—',
-      })),
+      }))
     )
   }, [tasksData])
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
 
   // Role checks ── owner or approver have full access; anyone else is assignee-only
@@ -294,7 +294,7 @@ export default function Task() {
 
     // update locally immediately
     setTasks((prev) =>
-      prev.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t)),
+      prev.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t))
     )
 
     // persist to DB
@@ -305,41 +305,110 @@ export default function Task() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: REVERSE_MAP[newStatus] }),
-      },
+      }
     )
   }
 
   return (
-    <div className='min-h-screen'>
-      {/* Header */}
-      <div className='border-b  px-6 py-4'>
+    <div className='min-h-screen '>
+      {/* Header Section */}
+      <div className='px-6 py-6 shadow-sm'>
         <button
           onClick={() => navigate('/projects')}
-          className='flex items-center gap-1.5 text-xs  transition-colors mb-3'
+          className='flex items-center gap-1.5 text-xs transition-colors mb-4 cursor-pointer'
         >
           <ArrowLeft size={13} /> Back to Projects
         </button>
-        <div className='flex items-center justify-between'>
+
+        <div className='flex items-start justify-between mb-6'>
           <div>
-            <h1 className='text-base font-semibold '>{project?.name}</h1>
-            <p className='text-xs font-mono mt-0.5'>{project?.id}</p>
+            <div className='flex items-center gap-3 mb-1'>
+              <h1 className='text-xl font-bold '>{project?.name}</h1>
+              <span className='text-xs font-mono px-2 py-0.5 rounded'>
+                #{project?.id}
+              </span>
+              <span className='text-xs uppercase tracking-wider  text-blue-700 border px-2 py-0.5 rounded font-semibold'>
+                {project?.project_type}
+              </span>
+            </div>
+            <p className='text-sm max-w-3xl mt-2'>{project?.description}</p>
           </div>
 
-          <div className='flex items-center gap-2'>
-            <span className='text-xs px-2 py-0.5 rounded border font-medium '>
-              {project?.priority}
-            </span>
-            <span className='text-xs px-2 py-0.5 rounded border font-medium '>
-              {project?.status}
-            </span>
-            <span className='text-xs ml-2'>
+          <Button
+            size='sm'
+            onClick={() => setTaskModalOpen(true)}
+            className='cursor-pointer shrink-0'
+          >
+            + Add Task
+          </Button>
+        </div>
+
+        {/* Metadata Grid */}
+        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm border rounded-lg p-4 mb-4'>
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs  uppercase'>Status & Priority</span>
+            <div className='flex items-center gap-2'>
+              <span className='text-xs capitalize px-2 py-0.5 rounded border font-medium'>
+                {project?.status}
+              </span>
+              <span className='text-xs capitalize px-2 py-0.5 rounded border font-medium'>
+                {project?.priority}
+              </span>
+            </div>
+          </div>
+
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs  uppercase'>Timeline</span>
+            <span className='font-medium '>
               {project?.start_date} → {project?.end_date}
             </span>
-            <Button size='sm' onClick={() => setTaskModalOpen(true)}>
-              + Add Task
-            </Button>
+          </div>
+
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs  uppercase'>Created</span>
+            <span className='font-medium '>
+              {USERS_MAP[project?.created_by]}
+            </span>
+            <span className='text-xs '>{project?.created_at}</span>
+          </div>
+
+          <div className='flex flex-col gap-1'>
+            <span className='text-xs  uppercase'>Team</span>
+            <span className='text-xs '>
+              <span className='font-medium'>Approver:</span>{' '}
+              {USERS_MAP[project?.approver_id]}
+            </span>
+            <span className='text-xs  truncate'>
+              <span className='font-medium'>Actioners:</span>{' '}
+              {project?.actioner_ids
+                ?.map((id: string) => USERS_MAP[id])
+                .join(', ')}
+            </span>
           </div>
         </div>
+
+        {/* Attachments */}
+        {project?.attachment_links?.length > 0 && (
+          <div className='flex flex-col gap-2'>
+            <span className='text-xs  font-medium uppercase'>Attachments</span>
+            <div className='flex flex-wrap gap-2'>
+              {project?.attachment_links.map((link: string, idx: number) => (
+                <a
+                  key={idx}
+                  href={link}
+                  target='_blank'
+                  rel='noreferrer'
+                  className='flex items-center gap-2 rounded px-3 py-1.5 transition-colors group text-blue-500'
+                >
+                  <LinkIcon size={12} className='shrink-0' />
+                  <span className='text-xs truncate max-w-[250px] group-hover:text-blue-700'>
+                    {link}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Kanban */}
@@ -366,6 +435,8 @@ export default function Task() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      {/* Modals */}
       <CreateTaskModal
         open={taskModalOpen}
         onClose={() => setTaskModalOpen(false)}
@@ -421,8 +492,8 @@ export default function Task() {
                       updated.type.slice(1),
                     assignee: updated.assignee_name ?? '—',
                   }
-                : t,
-            ),
+                : t
+            )
           )
         }}
       />

@@ -33,9 +33,7 @@ import users from '@/utils/users.json'
 import Pagination from '@/components/shared/pagination'
 import { useNavigate } from 'react-router-dom'
 import { formatExactDate } from '@/utils/date-formatter'
-import { formatAmount } from '@/utils/number-formatter'
 import HighlightedText from '@/components/shared/highlighted-text'
-import ExportCsvButton from '@/components/shared/export-csv-button'
 
 const LENDER_NAMES = [
   'Kotak Mahindra Bank Ltd',
@@ -152,7 +150,7 @@ const DealsPage = () => {
         `${ENV.VITE_BACKEND_BASE_URL}/deals?${params.toString()}`,
         {
           credentials: 'include',
-        },
+        }
       )
       if (!res.ok) throw new Error('Failed to fetch deals')
       return res.json()
@@ -224,7 +222,7 @@ const DealsPage = () => {
         queryFn: async () => {
           const res = await fetch(
             `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${id}`,
-            { credentials: 'include' },
+            { credentials: 'include' }
           )
           if (!res.ok) throw new Error('Failed to fetch deal')
           return res.json()
@@ -258,13 +256,6 @@ const DealsPage = () => {
         )}
 
         <div className='flex gap-2'>
-          <ExportCsvButton
-            endpoint='/export/deals'
-            params={exportParams}
-            dataSize={pageInfo.data_size || 0}
-            filename='deals'
-            isLoading={isLoading}
-          />
           <Button
             variant='outline'
             className='cursor-pointer'
@@ -290,11 +281,11 @@ const DealsPage = () => {
 
       <div className='grid grid-cols-[260px_1fr] gap-4'>
         {/* Filter sidebar */}
-        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-200px)]'>
+        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-140px)]'>
           <h3 className='font-semibold text-sm'>Filter Deals by</h3>
 
           {/* Account Name */}
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Deal Name</Label>
             <Input
               placeholder='Account Name'
@@ -444,7 +435,7 @@ const DealsPage = () => {
         </div>
 
         {/* Table */}
-        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]'>
+        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-140px)]'>
           {isLoading ? (
             <div className='flex items-center justify-center h-64 border rounded-md'>
               <Spinner className='h-8 w-8 text-muted-foreground' />
@@ -509,7 +500,7 @@ const DealsPage = () => {
                             {deal.deal_call_back_datetime
                               ? formatExactDate(
                                   deal.deal_call_back_datetime,
-                                  'dd MMM yyyy, hh:mm a',
+                                  'dd MMM yyyy, hh:mm a'
                                 )
                               : '—'}
                           </TableCell>

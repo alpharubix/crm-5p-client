@@ -18,21 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select'
-import { ENV } from '@/conf'
+import { ENV, USERS_MAP } from '@/conf'
+import { X, Link as LinkIcon } from 'lucide-react'
+import { useAuth } from '@/context/auth-context' // <-- Added for "Created By"
 
 interface CreateTaskModalProps {
   open: boolean
   onClose: () => void
   projectId: string
   onCreated: (task: any) => void
-}
-export const USERS_MAP: Record<string, string> = {
-  '3899927000000615348': 'Ashok M',
-  '3899927000000964875': 'Suraj Gupta',
-  '3899927000000882594': 'Myisa Beiucy',
-  '3899927000000723465': 'Kaveri Metri',
-  '3899927000000201013': 'Anslem Prathap',
-  '3899927000005965002': 'Subhasini TS',
 }
 
 const TYPES = ['feature', 'bug', 'enhancement', 'research']
@@ -44,6 +38,9 @@ const emptyForm = () => ({
   type: '',
   priority: '',
   assignee_id: '',
+  start_date: '',
+  end_date: '',
+  attachment_links: [] as string[],
 })
 
 export default function CreateTaskModal({
@@ -54,7 +51,9 @@ export default function CreateTaskModal({
 }: CreateTaskModalProps) {
   const [form, setForm] = useState(emptyForm())
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [currentLink, setCurrentLink] = useState('')
   const queryClient = useQueryClient()
+  const { user } = useAuth() // <-- Fetch current user
 
   const { data: projectData } = useQuery({
     queryKey: ['project', projectId],
@@ -75,9 +74,29 @@ export default function CreateTaskModal({
     name: USERS_MAP[String(id)] ?? id,
   }))
 
-  function set(key: string, value: string) {
+  function set(key: string, value: any) {
     setForm((f) => ({ ...f, [key]: value }))
     setErrors((e) => ({ ...e, [key]: '' }))
+  }
+
+  // Safely handle arrays in case it's undefined
+  function handleAddLink() {
+    if (!currentLink.trim()) return
+    setForm((f) => ({
+      ...f,
+      attachment_links: [...(f.attachment_links || []), currentLink.trim()],
+    }))
+    setCurrentLink('')
+  }
+
+  // Safely handle array filtering
+  function handleRemoveLink(index: number) {
+    setForm((f) => ({
+      ...f,
+      attachment_links: (f.attachment_links || []).filter(
+        (_, i) => i !== index,
+      ),
+    }))
   }
 
   function validate() {
@@ -85,6 +104,9 @@ export default function CreateTaskModal({
     if (!form.title.trim()) e.title = 'Required'
     if (!form.type) e.type = 'Required'
     if (!form.priority) e.priority = 'Required'
+    if (form.start_date && form.end_date && form.start_date > form.end_date) {
+      e.end_date = 'Must be after start date'
+    }
     return e
   }
 
@@ -102,6 +124,13 @@ export default function CreateTaskModal({
             type: body.type,
             priority: body.priority,
             assignee_id: body.assignee_id ? body.assignee_id : null,
+            start_date: body.start_date
+              ? new Date(body.start_date).toISOString()
+              : null,
+            end_date: body.end_date
+              ? new Date(body.end_date).toISOString()
+              : null,
+            attachment_links: body.attachment_links,
           }),
         },
       )
@@ -112,6 +141,7 @@ export default function CreateTaskModal({
       queryClient.invalidateQueries({ queryKey: ['tasks', projectId] })
       onCreated(newTask)
       setForm(emptyForm())
+      setCurrentLink('')
       onClose()
     },
   })
@@ -122,7 +152,17 @@ export default function CreateTaskModal({
       setErrors(errs)
       return
     }
-    mutation.mutate(form)
+
+    const finalForm = { ...form }
+    if (currentLink.trim()) {
+      finalForm.attachment_links = [
+        ...(finalForm.attachment_links || []),
+        currentLink.trim(),
+      ]
+      setCurrentLink('')
+    }
+
+    mutation.mutate(finalForm)
   }
 
   return (
@@ -132,16 +172,24 @@ export default function CreateTaskModal({
         if (!o) onClose()
       }}
     >
-      <DialogContent className='max-w-md'>
+      <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle className='text-base font-semibold'>
             New Task
           </DialogTitle>
-          {projectData?.name && (
-            <p className='text-xs text-muted-foreground mt-0.5'>
-              {projectData.name}
-            </p>
-          )}
+          <div className='flex justify-between items-center mt-0.5'>
+            {projectData?.name && (
+              <p className='text-xs text-muted-foreground'>
+                {projectData.name}
+              </p>
+            )}
+            {/* --- CREATED BY DISPLAY --- */}
+            {user?.user_name && (
+              <p className='text-xs font-medium text-zinc-500'>
+                Creator: {user.user_name}
+              </p>
+            )}
+          </div>
         </DialogHeader>
 
         <div className='space-y-4 py-1'>
@@ -171,6 +219,61 @@ export default function CreateTaskModal({
               value={form.description}
               onChange={(e) => set('description', e.target.value)}
             />
+          </div>
+
+          {/* Attachment Links */}
+          <div>
+            <Label className='text-xs font-medium'>Attachment Links</Label>
+            <div className='flex gap-2 mt-1'>
+              <Input
+                className='h-8 text-sm flex-1'
+                placeholder='https://...'
+                value={currentLink}
+                onChange={(e) => setCurrentLink(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddLink()
+                  }
+                }}
+              />
+              <Button
+                type='button'
+                size='sm'
+                variant='secondary'
+                onClick={handleAddLink}
+                className='h-8 px-3'
+              >
+                Add
+              </Button>
+            </div>
+            {/* Added optional chaining here just in case */}
+            {form.attachment_links?.length > 0 && (
+              <div className='flex flex-col gap-1.5 mt-2'>
+                {form.attachment_links.map((link, idx) => (
+                  <div
+                    key={idx}
+                    className='flex items-center justify-between border rounded px-2 py-1.5'
+                  >
+                    <div className='flex items-center gap-2 overflow-hidden'>
+                      <LinkIcon size={12} className='text-zinc-400 shrink-0' />
+                      <span className='text-xs truncate max-w-[300px] text-blue-600 hover:underline'>
+                        <a href={link} target='_blank' rel='noreferrer'>
+                          {link}
+                        </a>
+                      </span>
+                    </div>
+                    <button
+                      type='button'
+                      onClick={() => handleRemoveLink(idx)}
+                      className='text-zinc-400 hover:text-red-500 shrink-0 ml-2'
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Type + Priority */}
@@ -229,6 +332,34 @@ export default function CreateTaskModal({
             </div>
           </div>
 
+          {/* Start Date + End Date */}
+          <div className='grid grid-cols-2 gap-3'>
+            <div>
+              <Label className='text-xs font-medium'>Start Date</Label>
+              <Input
+                type='date'
+                className='mt-1 h-8 text-sm'
+                value={form.start_date}
+                onChange={(e) => set('start_date', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label className='text-xs font-medium'>
+                Projected Completion
+              </Label>
+              <Input
+                type='date'
+                className='mt-1 h-8 text-sm'
+                value={form.end_date}
+                onChange={(e) => set('end_date', e.target.value)}
+              />
+              {errors.end_date && (
+                <p className='text-xs text-red-500 mt-1'>{errors.end_date}</p>
+              )}
+            </div>
+          </div>
+
           {/* Assignee */}
           <div>
             <Label className='text-xs font-medium'>Assignee</Label>
@@ -262,6 +393,7 @@ export default function CreateTaskModal({
             size='sm'
             onClick={handleSubmit}
             disabled={mutation.isPending}
+            className='cursor-pointer'
           >
             {mutation.isPending ? 'Creating...' : 'Create Task'}
           </Button>
