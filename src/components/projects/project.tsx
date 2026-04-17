@@ -37,7 +37,7 @@ const STATUS_OPTIONS = [
 export default function Project() {
   const [projects, setProjects] = useState<Project[]>([])
   const [modalState, setModalState] = useState<'closed' | 'create' | 'detail'>(
-    'closed',
+    'closed'
   )
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
@@ -185,7 +185,7 @@ export default function Project() {
             <div className='h-5 w-px bg-border mx-1 hidden lg:block' />
 
             {/* Date Range */}
-            <div className='flex items-center gap-1 bg-white border border-zinc-200 rounded-md px-1.5 h-8 shadow-sm'>
+            <div className='flex items-center gap-1 rounded-md px-1.5 h-8 shadow-sm'>
               <Input
                 type='date'
                 className='h-6 text-[11px] w-[105px] border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none'
@@ -229,11 +229,7 @@ export default function Project() {
           </div>
         </div>
         <div className='flex-1 overflow-hidden'>
-          {viewMode === 'list' ? (
-            <ProjectKanban filters={appliedFilters} />
-          ) : (
-            <ProjectList />
-          )}
+          <ProjectKanban filters={appliedFilters} />
         </div>
       </div>
       <Dialog

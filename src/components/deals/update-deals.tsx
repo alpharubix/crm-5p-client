@@ -8,7 +8,6 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import ExportCsvButton from '@/components/shared/export-csv-button'
 import SectionHeader from '@/components/shared/section-header'
 import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
@@ -36,6 +35,7 @@ import { formatAmount } from '@/utils/number-formatter'
 import { format } from 'date-fns'
 import DocumentationSection from './deals-documentation'
 import { Plus } from 'lucide-react'
+import LENDER_NAMES from '@/utils/lenders.json'
 
 function mapDealToForm(apiData: any): UpdateDealFormValues {
   return {
@@ -238,6 +238,15 @@ export default function UpdateDeals() {
       modifiedBy: 'System Driven Field (User)',
     },
   })
+  const [lenderSearch, setLenderSearch] = useState('')
+  const [lenderOpen, setLenderOpen] = useState(false)
+
+  const filteredLenders =
+    lenderSearch.length > 1
+      ? LENDER_NAMES.filter((l: string) =>
+          l.toLowerCase().includes(lenderSearch.toLowerCase()),
+        ).slice(0, 50) // cap at 50 results
+      : []
 
   useBeforeUnload(
     React.useCallback(
@@ -281,6 +290,7 @@ export default function UpdateDeals() {
   useEffect(() => {
     if (dealData) {
       reset(mapDealToForm(dealData))
+      setLenderSearch(dealData.lender_name || '')
     }
   }, [dealData, reset])
 
@@ -411,6 +421,7 @@ export default function UpdateDeals() {
                 variant='outline'
                 onClick={() => {
                   reset()
+                  setLenderSearch(dealData?.lender_name || '')
                   setIsEdit(false)
                 }}
               >
@@ -617,24 +628,125 @@ export default function UpdateDeals() {
                 }
               />
             </FieldRow>
-            <FieldRow label='Lender Name' error={errors.lenderName?.message}>
+            <FieldRow
+              label='Targeted Disbursement date'
+              error={errors.targetedDisbursementDate?.message}
+            >
+              {isEdit ? (
+                <DateField
+                  isEdit={isEdit}
+                  value={
+                    formValues.targetedDisbursementDate
+                      ? new Date(formValues.targetedDisbursementDate)
+                      : undefined
+                  }
+                  onChange={(date) => {
+                    setValue(
+                      'targetedDisbursementDate',
+                      date ? format(date, 'yyyy-MM-dd') : '',
+                      {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      },
+                    )
+                  }}
+                />
+              ) : (
+                <span>
+                  {formValues.targetedDisbursementDate
+                    ? formatExactDate(
+                        formValues.targetedDisbursementDate,
+                        'dd MMM yyyy',
+                      )
+                    : '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='Disbursement Date'
+              error={errors.disbursementDate?.message}
+            >
+              {isEdit ? (
+                <DateField
+                  isEdit={isEdit}
+                  value={
+                    formValues.disbursementDate
+                      ? new Date(formValues.disbursementDate)
+                      : undefined
+                  }
+                  onChange={(date) => {
+                    setValue(
+                      'disbursementDate',
+                      date ? format(date, 'yyyy-MM-dd') : '',
+                      {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      },
+                    )
+                  }}
+                />
+              ) : (
+                <span>
+                  {formValues.disbursementDate
+                    ? formatExactDate(
+                        formValues.disbursementDate,
+                        'dd MMM yyyy',
+                      )
+                    : '—'}
+                </span>
+              )}
+            </FieldRow>
+          </div>
+        </CardContent>
+
+        {/* ================= Loan Liabilities Information ================= */}
+        <SectionHeader title='Loan Liabilities Information' />
+        <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
+          <div className='md:border-r'>
+            <FieldRow label='Deal Name'>
+              <span>{dealData.account_name || '—'}</span>
+            </FieldRow>
+            <FieldRow
+              label='Lender Login Date'
+              error={errors.lenderLoginDate?.message}
+            >
+              {isEdit ? (
+                <DateField
+                  isEdit={isEdit}
+                  value={
+                    formValues.lenderLoginDate
+                      ? new Date(formValues.lenderLoginDate)
+                      : undefined
+                  }
+                  onChange={(date) => {
+                    setValue(
+                      'lenderLoginDate',
+                      date ? format(date, 'yyyy-MM-dd') : '',
+                      {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      },
+                    )
+                  }}
+                />
+              ) : (
+                <span>
+                  {formValues.lenderLoginDate
+                    ? formatExactDate(formValues.lenderLoginDate, 'dd MMM yyyy')
+                    : '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='Type of case login'
+              error={errors.typeOfCaseLogin?.message}
+            >
               <SelectField
                 isEdit={isEdit}
-                options={[
-                  'Kotak Mahindra Bank Ltd',
-                  'Tyger Capital Private Ltd',
-                  'Profectus Capital Private Ltd',
-                  'Rupifi Private Ltd',
-                  'Niyogin Fintech Ltd',
-                  'Mintifi Finserve Private Limited',
-                  'Aditya Birla Capital Limited',
-                  'Muthoot Fincorp Limited',
-                  'FlexiLoans Technologies Pvt Ltd',
-                  'Hero Fincorp Ltd',
-                ]}
-                value={formValues.lenderName as string}
+                options={['Fresh', 'Spillover']}
+                value={formValues.typeOfCaseLogin as string}
                 onChange={(value) =>
-                  setValue('lenderName', value, {
+                  setValue('typeOfCaseLogin', value, {
                     shouldValidate: true,
                     shouldDirty: true,
                   })
@@ -642,26 +754,93 @@ export default function UpdateDeals() {
               />
             </FieldRow>
             <FieldRow
+              label='Amount Required'
+              error={errors.amountRequired?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('amountRequired')}
+                  placeholder='Amount Required'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>
+                  {formatAmount(Number(formValues.amountRequired)) || '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow label='Created By'>
+              <span>
+                {(users as Record<string, string>)[
+                  formValues.createdBy as string
+                ] ||
+                  formValues.createdBy ||
+                  '—'}
+              </span>
+            </FieldRow>
+            <FieldRow label='Modified By'>
+              <span>
+                {(users as Record<string, string>)[
+                  formValues.modifiedBy as string
+                ] ||
+                  formValues.modifiedBy ||
+                  '—'}
+              </span>
+            </FieldRow>
+          </div>
+          <div>
+            <FieldRow label='Account Name'>
+              <span>{dealData.account_name || '—'}</span>
+            </FieldRow>
+            <FieldRow label='Lender Name' error={errors.lenderName?.message}>
+              <div className='relative'>
+                {/* Input must be present */}
+                <Input
+                  disabled={!isEdit}
+                  value={lenderSearch}
+                  onChange={(e) => {
+                    setLenderSearch(e.target.value)
+                    setLenderOpen(true)
+                  }}
+                  onFocus={() => setLenderOpen(true)}
+                  onBlur={() => setTimeout(() => setLenderOpen(false), 200)}
+                  placeholder='Search Lender...'
+                />
+
+                {isEdit && lenderOpen && filteredLenders.length > 0 && (
+                  <div className='absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto'>
+                    {filteredLenders.map((name: string) => (
+                      <div
+                        key={name}
+                        className='p-2 hover:bg-muted cursor-pointer text-sm'
+                        onMouseDown={() => {
+                          setValue('lenderName', name, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          })
+                          setLenderSearch(name)
+                          setLenderOpen(false)
+                        }}
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </FieldRow>
+            <FieldRow
               label='Lender Login Type'
               error={errors.lenderName?.message}
             >
               <SelectField
                 isEdit={isEdit}
-                options={[
-                  'Kotak Mahindra Bank Ltd',
-                  'Tyger Capital Private Ltd',
-                  'Profectus Capital Private Ltd',
-                  'Rupifi Private Ltd',
-                  'Niyogin Fintech Ltd',
-                  'Mintifi Finserve Private Limited',
-                  'Aditya Birla Capital Limited',
-                  'Muthoot Fincorp Limited',
-                  'FlexiLoans Technologies Pvt Ltd',
-                  'Hero Fincorp Ltd',
-                ]}
+                options={['Direct', 'Partner']}
                 value={formValues.lenderName as string}
                 onChange={(value) =>
-                  setValue('lenderName', value, {
+                  setValue('lenderLoginType', value, {
                     shouldValidate: true,
                     shouldDirty: true,
                   })
@@ -678,6 +857,185 @@ export default function UpdateDeals() {
         <SectionHeader title='Funding & Commercials' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
           <div className='md:border-r'>
+            <FieldRow
+              label='Approved Amount'
+              error={errors.approvedAmount?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('approvedAmount')}
+                  placeholder='Approved Amount'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>
+                  {formatAmount(Number(formValues.approvedAmount)) || '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='Processing Fees'
+              error={errors.processingFees?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('processingFees')}
+                  placeholder='Processing Fees'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>
+                  {formatAmount(Number(formValues.processingFees)) || '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='PF percentage'
+              error={errors.pfPercentage?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('pfPercentage')}
+                  placeholder='PF Percentage'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>{formValues.pfPercentage || '—'}</span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='Insurance Amount'
+              error={errors.insuranceAmount?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('insuranceAmount')}
+                  placeholder='Insurance Amount'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>
+                  {formatAmount(Number(formValues.insuranceAmount)) || '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='Loan Start Date'
+              error={errors.loanStartDate?.message}
+            >
+              {isEdit ? (
+                <DateField
+                  isEdit={isEdit}
+                  value={
+                    formValues.loanStartDate
+                      ? new Date(formValues.loanStartDate)
+                      : undefined
+                  }
+                  onChange={(date) => {
+                    setValue(
+                      'loanStartDate',
+                      date ? format(date, 'yyyy-MM-dd') : '',
+                      {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      },
+                    )
+                  }}
+                />
+              ) : (
+                <span>
+                  {formValues.loanStartDate
+                    ? formatExactDate(formValues.loanStartDate, 'dd MMM yyyy')
+                    : '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow label='Loan End Date' error={errors.loanEndDate?.message}>
+              {isEdit ? (
+                <DateField
+                  isEdit={isEdit}
+                  value={
+                    formValues.loanEndDate
+                      ? new Date(formValues.loanEndDate)
+                      : undefined
+                  }
+                  onChange={(date) => {
+                    setValue(
+                      'loanEndDate',
+                      date ? format(date, 'yyyy-MM-dd') : '',
+                      {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      },
+                    )
+                  }}
+                />
+              ) : (
+                <span>
+                  {formValues.loanEndDate
+                    ? formatExactDate(formValues.loanEndDate, 'dd MMM yyyy')
+                    : '—'}
+                </span>
+              )}
+            </FieldRow>
+          </div>
+          <div>
+            <FieldRow
+              label='Sanction Amount'
+              error={errors.sanctionAmount?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('sanctionAmount')}
+                  placeholder='Sanction Amount'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>
+                  {formatAmount(Number(formValues.sanctionAmount)) || '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow
+              label='Disbursed Amount'
+              error={errors.disbursedAmount?.message}
+            >
+              {isEdit ? (
+                <Input
+                  {...register('disbursedAmount')}
+                  placeholder='Disbursed Amount'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
+                />
+              ) : (
+                <span>
+                  {formatAmount(Number(formValues.disbursedAmount)) || '—'}
+                </span>
+              )}
+            </FieldRow>
+            <FieldRow label='Tenure' error={errors.tenure?.message}>
+              {isEdit ? (
+                <Input
+                  {...register('tenure')}
+                  placeholder='Tenure'
+                  type='number'
+                  className='h-8'
+                />
+              ) : (
+                <span>{formValues.tenure || '—'}</span>
+              )}
+            </FieldRow>
             <FieldRow label='MM Charges' error={errors.mmCharges?.message}>
               {isEdit ? (
                 <Input
@@ -821,14 +1179,6 @@ export default function UpdateDeals() {
             </p>
 
             <div className='flex gap-2 items-center'>
-              <ExportCsvButton
-                endpoint='/export/notes'
-                params={
-                  new URLSearchParams({ parent_id: id || '', module: 'Deals' })
-                }
-                dataSize={sortedNotes.length}
-                filename={`deals-notes-${id}`}
-              />
               {showViewMore && (
                 <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
                   <DialogTrigger asChild>

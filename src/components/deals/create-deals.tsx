@@ -21,6 +21,7 @@ import {
 } from '@/validators/createDeal.schema'
 import DateField from '../shared/date-field'
 import SelectField from '../shared/select-field'
+import LENDER_NAMES from '@/utils/lenders.json'
 
 export default function CreateDeal() {
   const navigate = useNavigate()
@@ -79,6 +80,15 @@ export default function CreateDeal() {
   } = form
 
   const formValues = watch()
+  const [lenderSearch, setLenderSearch] = useState('')
+  const [lenderOpen, setLenderOpen] = useState(false)
+
+  const filteredLenders =
+    lenderSearch.length > 1
+      ? LENDER_NAMES.filter((l: string) =>
+          l.toLowerCase().includes(lenderSearch.toLowerCase()),
+        ).slice(0, 50) // cap at 50 results
+      : []
 
   const [searchTerm, setSearchTerm] = useState(prefilledData.accountName || '')
   const [debouncedSearch, setDebouncedSearch] = useState(
@@ -513,28 +523,37 @@ export default function CreateDeal() {
             </FieldRow>
 
             <FieldRow label='Lender Name' error={errors.lenderName?.message}>
-              <SelectField
-                isEdit={true}
-                options={[
-                  'Kotak Mahindra Bank Ltd',
-                  'Tyger Capital Private Ltd',
-                  'Profectus Capital Private Ltd',
-                  'Rupifi Private Ltd',
-                  'Niyogin Fintech Ltd',
-                  'Mintifi Finserve Private Limited',
-                  'Aditya Birla Capital Limited',
-                  'Muthoot Fincorp Limited',
-                  'FlexiLoans Technologies Pvt Ltd',
-                  'Hero Fincorp Ltd',
-                ]}
-                value={formValues.lenderName}
-                onChange={(value) =>
-                  setValue('lenderName', value, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-              />
+              <div className='relative'>
+                {/* Input must be present */}
+                <Input
+                  value={lenderSearch}
+                  onChange={(e) => {
+                    setLenderSearch(e.target.value)
+                    setLenderOpen(true)
+                  }}
+                  onFocus={() => setLenderOpen(true)}
+                  onBlur={() => setTimeout(() => setLenderOpen(false), 200)}
+                  placeholder='Search Lender...'
+                />
+
+                {lenderOpen && filteredLenders.length > 0 && (
+                  <div className='absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto'>
+                    {filteredLenders.map((name: string) => (
+                      <div
+                        key={name}
+                        className='p-2 hover:bg-muted cursor-pointer text-sm'
+                        onMouseDown={() => {
+                          setValue('lenderName', name, { shouldValidate: true })
+                          setLenderSearch(name)
+                          setLenderOpen(false)
+                        }}
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </FieldRow>
           </div>
           <div>

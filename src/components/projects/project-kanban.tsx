@@ -169,8 +169,8 @@ function DraggableProjectCard({
           canDrag ? 'cursor-grab' : 'cursor-default'
         } ${
           overdue
-            ? 'border-red-200 hover:border-red-300 shadow-sm shadow-red-50'
-            : 'border-zinc-200 hover:border-zinc-300 hover:shadow-sm'
+            ? ''
+            : 'hover:shadow-sm'
         }`}
         onClick={() => {
           if (isOwner || isApprover || isAssigneeOnly)
@@ -180,7 +180,7 @@ function DraggableProjectCard({
         <CardContent className='p-3 flex flex-col gap-3'>
           {/* Header */}
           <div className='flex justify-between items-start gap-2'>
-            <h3 className='font-semibold text-sm leading-snug text-zinc-900 line-clamp-2'>
+            <h3 className='font-semibold text-sm leading-snug line-clamp-2'>
               {project.name}
             </h3>
             {(isOwner || isApprover) && (
@@ -190,7 +190,7 @@ function DraggableProjectCard({
                   e.stopPropagation()
                   onEdit(project)
                 }}
-                className='text-zinc-400 hover:text-zinc-800 transition-colors shrink-0 p-0.5 rounded hover:bg-zinc-100'
+                className='cursor-pointer transition-colors shrink-0 p-0.5 rounded '
               >
                 <Pencil className='w-3.5 h-3.5' />
               </button>
@@ -200,26 +200,26 @@ function DraggableProjectCard({
           {/* Metadata */}
           <div className='flex flex-col gap-1.5 text-xs'>
             <div className='flex items-center justify-between'>
-              <span className='text-zinc-500 font-medium'>Initiator</span>
+              <span className='font-medium'>Initiator</span>
               <span
-                className='font-medium text-zinc-800 truncate max-w-[140px]'
+                className='font-medium  truncate max-w-[140px]'
                 title={USERS_MAP[project.created_by] || project.created_by}
               >
                 {USERS_MAP[project.created_by] || 'Unknown'}
               </span>
             </div>
             <div className='flex items-center justify-between'>
-              <span className='text-zinc-500 font-medium'>Actioner</span>
+              <span className='font-medium'>Actioner</span>
               <span
-                className='font-medium text-zinc-800 truncate max-w-[140px]'
+                className='font-medium  truncate max-w-[140px]'
                 title={actionerNames}
               >
                 {actionerNames || '-'}
               </span>
             </div>
             <div className='flex items-center justify-between'>
-              <span className='text-zinc-500 font-medium'>Timeline</span>
-              <span className='font-medium text-zinc-800'>
+              <span className='font-medium'>Timeline</span>
+              <span className='font-medium '>
                 {project.start_date || '-'} → {project.end_date || '-'}
               </span>
             </div>
@@ -254,7 +254,7 @@ function DraggableProjectCard({
                       e,
                       project.status === 'pending_for_approve'
                         ? 'planning'
-                        : 'completed',
+                        : 'completed'
                     )
                   }
                   className='flex-1 text-[11px] font-bold py-1.5 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors'
@@ -297,18 +297,18 @@ function DroppableProjectColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`min-w-[320px] w-[320px] flex flex-col gap-3 h-full p-3 rounded-lg border bg-zinc-50/50 transition-colors ${
-        isOver ? 'border-blue-300 bg-blue-50/50' : 'border-zinc-200'
+      className={`min-w-[320px] w-[320px] flex flex-col gap-3 h-full p-3 rounded-lg transition-colors ${
+        isOver ? 'border-blue-300 bg-blue-50/50' : ''
       }`}
     >
       <div
-        className={`flex items-center gap-2 pb-2 mb-1 border-b border-zinc-200 ${style.header}`}
+        className={`flex items-center gap-2 pb-2 mb-1 border-b  ${style.header}`}
       >
         <span className={`w-2 h-2 rounded-full shrink-0 ${style.dot}`} />
-        <span className='text-xs font-bold uppercase tracking-wider text-zinc-700'>
+        <span className='text-xs font-bold uppercase tracking-wider '>
           {status}
         </span>
-        <span className='ml-auto text-[11px] font-mono bg-zinc-200/50 text-zinc-600 px-1.5 py-0.5 rounded-md'>
+        <span className='ml-auto text-[11px] font-mono px-1.5 py-0.5 rounded-md'>
           {projects.length}
         </span>
       </div>
@@ -349,7 +349,7 @@ export default function ProjectKanban({
   const navigate = useNavigate()
   const [projectList, setProjectList] = useState<any[]>([])
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
 
   const { data: projects } = useQuery({
@@ -371,7 +371,7 @@ export default function ProjectKanban({
         `${ENV.VITE_BACKEND_BASE_URL}/projects?${params.toString()}`,
         {
           credentials: 'include',
-        },
+        }
       )
       if (res.status === 403) return { forbidden: true }
       if (!res.ok) throw new Error('Failed')
@@ -387,7 +387,7 @@ export default function ProjectKanban({
           ...p,
           id: String(p.id),
           actioner_ids: (p.actioner_ids ?? []).map(String),
-        })),
+        }))
       )
     }
   }, [projects])
@@ -402,8 +402,8 @@ export default function ProjectKanban({
     // optimistic update
     setProjectList((prev) =>
       prev.map((p) =>
-        String(p.id) === String(active.id) ? { ...p, status: newStatus } : p,
-      ),
+        String(p.id) === String(active.id) ? { ...p, status: newStatus } : p
+      )
     )
 
     // persist
@@ -437,10 +437,10 @@ export default function ProjectKanban({
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div className='flex gap-5 pb-6 overflow-x-auto items-start h-[calc(100vh-140px)] min-h-0 px-1'>
+        <div className='flex gap-5 pb-6 overflow-x-auto items-start h-[calc(92vh-140px)] min-h-0 px-1'>
           {COLUMNS.map((col) => {
             const colProjects = projectList.filter(
-              (p) => p.status === STATUS_MAP[col],
+              (p) => p.status === STATUS_MAP[col]
             )
             return (
               <DroppableProjectColumn
@@ -451,7 +451,7 @@ export default function ProjectKanban({
                 navigate={navigate}
                 onStatusChange={(id, status) =>
                   setProjectList((prev) =>
-                    prev.map((p) => (p.id === id ? { ...p, status } : p)),
+                    prev.map((p) => (p.id === id ? { ...p, status } : p))
                   )
                 }
               />

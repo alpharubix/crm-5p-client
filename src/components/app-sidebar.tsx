@@ -8,7 +8,13 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { BookOpen, FolderOpenDot, GalleryVerticalEnd, Logs } from 'lucide-react'
+import {
+  BookOpen,
+  FolderDown,
+  FolderOpenDot,
+  GalleryVerticalEnd,
+  Logs,
+} from 'lucide-react'
 
 const data = {
   user: {
@@ -67,6 +73,17 @@ const data = {
       ],
     },
     {
+      title: 'Export',
+      url: '#',
+      icon: FolderDown,
+      items: [
+        {
+          title: 'All Exports',
+          url: '/exports',
+        },
+      ],
+    },
+    {
       title: 'Logs',
       url: '#',
       icon: Logs,
@@ -77,7 +94,7 @@ const data = {
         },
       ],
     },
-    { 
+    {
       title: 'Projects',
       url: '#',
       icon: FolderOpenDot,
@@ -114,8 +131,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain
           items={data.navMain.filter((item) => {
-            if (item.title === 'Logs') {
-              return user?.role === 'super_admin'
+            if (item.title === 'Logs' && user?.role !== 'super_admin') {
+              return false
+            }
+            if (item.title === 'Export' && user?.role !== 'super_admin') {
+              return false
             }
             return true
           })}

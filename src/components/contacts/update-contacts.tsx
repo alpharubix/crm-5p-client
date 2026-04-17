@@ -16,7 +16,6 @@ import SelectField from '@/components/shared/select-field'
 import NoteDialog from '@/components/shared/note-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { useNavigate } from 'react-router-dom'
-import ExportCsvButton from '@/components/shared/export-csv-button'
 
 import {
   updateContactSchema,
@@ -56,7 +55,7 @@ function mapContactToForm(apiData: any): UpdateContactFormValues {
 // Map form values to API payload
 function mapFormToApi(
   formData: UpdateContactFormValues,
-  dirtyFields: Partial<Record<keyof UpdateContactFormValues, boolean>>,
+  dirtyFields: Partial<Record<keyof UpdateContactFormValues, boolean>>
 ): any {
   const allFields = {
     first_name: { value: formData.firstName, key: 'firstName' },
@@ -119,7 +118,7 @@ export default function UpdateContacts() {
     queryFn: async () => {
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/contacts?contact_id=${id}`,
-        { credentials: 'include' },
+        { credentials: 'include' }
       )
       if (!res.ok) throw new Error('Failed to fetch contact')
       return res.json()
@@ -179,8 +178,8 @@ export default function UpdateContacts() {
           e.returnValue = ''
         }
       },
-      [isDirty],
-    ),
+      [isDirty]
+    )
   )
 
   const data = watch()
@@ -456,12 +455,6 @@ export default function UpdateContacts() {
             </p>
 
             <div className='flex gap-2 items-center'>
-              <ExportCsvButton
-                endpoint='/export/notes'
-                params={new URLSearchParams({ parent_id: id || '', module: 'Contacts' })}
-                dataSize={sortedNotes.length}
-                filename={`contacts-notes-${id}`}
-              />
               {showViewMore && (
                 <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
                   <DialogTrigger asChild>
@@ -474,39 +467,41 @@ export default function UpdateContacts() {
                     </Button>
                   </DialogTrigger>
 
-                <DialogContent className='min-w-4xl'>
-                  <DialogHeader>
-                    <DialogTitle>All Notes ({sortedNotes.length})</DialogTitle>
-                  </DialogHeader>
+                  <DialogContent className='min-w-4xl'>
+                    <DialogHeader>
+                      <DialogTitle>
+                        All Notes ({sortedNotes.length})
+                      </DialogTitle>
+                    </DialogHeader>
 
-                  <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
-                    {sortedNotes.map((note: any, i: number) => (
-                      <div
-                        key={note.parent_id || i}
-                        className='bg-muted/30 p-3 rounded-lg border'
-                      >
-                        <p className='text-sm'>{note.Note_Content}</p>
+                    <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
+                      {sortedNotes.map((note: any, i: number) => (
+                        <div
+                          key={note.parent_id || i}
+                          className='bg-muted/30 p-3 rounded-lg border'
+                        >
+                          <p className='text-sm'>{note.Note_Content}</p>
 
-                        <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
-                          <span>
-                            Created By: {note.Created_By?.name || '—'}
-                          </span>
-                          <span>
-                            Created Date:{' '}
-                            {formatExactDate(
-                              note.Created_Time,
-                              'dd MMM yyyy, hh:mm a',
-                            ) || '—'}
-                          </span>
-                          <div className='font-bold'>
-                            Module : {note.module}
+                          <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
+                            <span>
+                              Created By: {note.Created_By?.name || '—'}
+                            </span>
+                            <span>
+                              Created Date:{' '}
+                              {formatExactDate(
+                                note.Created_Time,
+                                'dd MMM yyyy, hh:mm a'
+                              ) || '—'}
+                            </span>
+                            <div className='font-bold'>
+                              Module : {note.module}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               )}
             </div>
           </div>
@@ -527,7 +522,7 @@ export default function UpdateContacts() {
                     Created Date:{' '}
                     {formatExactDate(
                       note.Created_Time,
-                      'dd MMM yyyy, hh:mm a',
+                      'dd MMM yyyy, hh:mm a'
                     ) || '—'}
                   </span>
                   <div className='font-bold'>Module : {note.module}</div>

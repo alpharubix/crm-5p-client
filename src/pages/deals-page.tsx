@@ -33,22 +33,10 @@ import users from '@/utils/users.json'
 import Pagination from '@/components/shared/pagination'
 import { useNavigate } from 'react-router-dom'
 import { formatExactDate } from '@/utils/date-formatter'
-import { formatAmount } from '@/utils/number-formatter'
 import HighlightedText from '@/components/shared/highlighted-text'
 import ExportCsvButton from '@/components/shared/export-csv-button'
-
-const LENDER_NAMES = [
-  'Kotak Mahindra Bank Ltd',
-  'Tyger Capital Private Ltd',
-  'Profectus Capital Private Ltd',
-  'Rupifi Private Ltd',
-  'Niyogin Fintech Ltd',
-  'Mintifi Finserve Private Limited',
-  'Aditya Birla Capital Limited',
-  'Muthoot Fincorp Limited',
-  'FlexiLoans Technologies Pvt Ltd',
-  'Hero Fincorp Ltd',
-]
+import LENDER_NAMES from '@/utils/lenders.json'
+import { SearchableSelect } from '@/components/searchable-select'
 
 const LOAN_TYPES = [
   'SCF',
@@ -103,6 +91,17 @@ const DealsPage = () => {
     typeOfCaseLogin: searchParams.get('typeOfCaseLogin') || '',
     dealOwnerId: searchParams.get('dealOwnerId') || '',
   })
+  const [lenderSearch, setLenderSearch] = useState(
+    searchParams.get('lenderName') || '',
+  )
+  const [lenderOpen, setLenderOpen] = useState(false)
+
+  const filteredLenders =
+    lenderSearch.length > 1
+      ? LENDER_NAMES.filter((l: string) =>
+          l.toLowerCase().includes(lenderSearch.toLowerCase()),
+        ).slice(0, 50) // cap at 50 results
+      : []
 
   const [appliedFilters, setAppliedFilters] = useState(filters)
 
@@ -152,7 +151,7 @@ const DealsPage = () => {
         `${ENV.VITE_BACKEND_BASE_URL}/deals?${params.toString()}`,
         {
           credentials: 'include',
-        },
+        }
       )
       if (!res.ok) throw new Error('Failed to fetch deals')
       return res.json()
@@ -224,7 +223,7 @@ const DealsPage = () => {
         queryFn: async () => {
           const res = await fetch(
             `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${id}`,
-            { credentials: 'include' },
+            { credentials: 'include' }
           )
           if (!res.ok) throw new Error('Failed to fetch deal')
           return res.json()
@@ -258,13 +257,6 @@ const DealsPage = () => {
         )}
 
         <div className='flex gap-2'>
-          <ExportCsvButton
-            endpoint='/export/deals'
-            params={exportParams}
-            dataSize={pageInfo.data_size || 0}
-            filename='deals'
-            isLoading={isLoading}
-          />
           <Button
             variant='outline'
             className='cursor-pointer'
@@ -290,11 +282,11 @@ const DealsPage = () => {
 
       <div className='grid grid-cols-[260px_1fr] gap-4'>
         {/* Filter sidebar */}
-        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-200px)]'>
+        <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-140px)]'>
           <h3 className='font-semibold text-sm'>Filter Deals by</h3>
 
           {/* Account Name */}
-          <div className="space-y-2">
+          <div className='space-y-2'>
             <Label>Deal Name</Label>
             <Input
               placeholder='Account Name'
@@ -330,21 +322,37 @@ const DealsPage = () => {
           {/* Lender Name */}
           <div className='space-y-2'>
             <Label>Lender Name</Label>
-            <Select
-              value={filters.lenderName}
-              onValueChange={(val) => handleFilterChange('lenderName', val)}
-            >
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Lender Name' />
-              </SelectTrigger>
-              <SelectContent>
-                {LENDER_NAMES.map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className='relative'>
+              <Input
+                value={lenderSearch}
+                onChange={(e) => {
+                  setLenderSearch(e.target.value)
+                  setLenderOpen(true)
+                  handleFilterChange('lenderName', e.target.value) // Sync with filter state
+                }}
+                onFocus={() => setLenderOpen(true)}
+                onBlur={() => setTimeout(() => setLenderOpen(false), 200)}
+                placeholder='Search Lender...'
+              />
+
+              {lenderOpen && filteredLenders.length > 0 && (
+                <div className='absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto'>
+                  {filteredLenders.map((name: string) => (
+                    <div
+                      key={name}
+                      className='p-2 hover:bg-muted cursor-pointer text-sm'
+                      onMouseDown={() => {
+                        handleFilterChange('lenderName', name) // FIXED HERE
+                        setLenderSearch(name)
+                        setLenderOpen(false)
+                      }}
+                    >
+                      {name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Case Status */}
@@ -444,7 +452,7 @@ const DealsPage = () => {
         </div>
 
         {/* Table */}
-        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-200px)]'>
+        <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-140px)]'>
           {isLoading ? (
             <div className='flex items-center justify-center h-64 border rounded-md'>
               <Spinner className='h-8 w-8 text-muted-foreground' />
@@ -509,7 +517,7 @@ const DealsPage = () => {
                             {deal.deal_call_back_datetime
                               ? formatExactDate(
                                   deal.deal_call_back_datetime,
-                                  'dd MMM yyyy, hh:mm a',
+                                  'dd MMM yyyy, hh:mm a'
                                 )
                               : '—'}
                           </TableCell>

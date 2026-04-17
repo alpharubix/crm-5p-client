@@ -120,77 +120,82 @@ export default function AuditLogs() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className='h-[calc(80vh-200px)] overflow-y-scroll'>
-          <div className='rounded-md border'>
-            <Table>
-              <TableHeader>
+      <div>
+        <div className='rounded-md border shadow-sm **:data-[slot=table-container]:max-h-[calc(100vh-220px)] **:data-[slot=table-container]:overflow-y-auto'>
+          <Table>
+            <TableHeader className='sticky top-0 z-10 bg-background shadow-[0_1px_3px_0_rgb(0,0,0,0.1)]'>
+              <TableRow className='hover:bg-transparent'>
+                <TableHead>User</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Entity</TableHead>
+                <TableHead>Entity ID</TableHead>
+                <TableHead>Payload</TableHead>
+                <TableHead className='text-right'>Timestamp</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
                 <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Entity</TableHead>
-                  <TableHead>Payload</TableHead>
-                  <TableHead className='text-right'>Timestamp</TableHead>
+                  <TableCell colSpan={6} className='h-24 text-center'>
+                    <div className='flex justify-center flex-col items-center gap-2'>
+                      <Spinner className='h-6 w-6' />
+                      <span className='text-muted-foreground'>
+                        Loading logs...
+                      </span>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className='h-24 text-center'>
-                      <div className='flex justify-center flex-col items-center gap-2'>
-                        <Spinner className='h-6 w-6' />
-                        <span className='text-muted-foreground'>
-                          Loading logs...
-                        </span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : logs.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className='h-24 text-center text-muted-foreground'
-                    >
-                      No logs found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  logs.map((log: any) => {
-                    const userName = users[log.user_id]
-                    return (
-                      <TableRow key={log.id}>
-                        <TableCell>
-                          <div className='flex items-center gap-2'>
-                            <Avatar className='h-8 w-8'>
-                              <AvatarFallback>
-                                {userName?.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className='flex flex-col'>
-                              <span className='font-medium text-sm'>
-                                {userName}
-                              </span>
-                            </div>
+              ) : logs.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className='h-24 text-center text-muted-foreground'
+                  >
+                    No logs found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                logs.map((log: any) => {
+                  const userName = users[log.user_id]
+                  return (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <div className='flex items-center gap-2'>
+                          <Avatar className='h-8 w-8'>
+                            <AvatarFallback>
+                              {userName?.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className='flex flex-col'>
+                            <span className='font-medium text-sm'>
+                              {userName}
+                            </span>
                           </div>
-                        </TableCell>
-                        <TableCell>{getActionBadge(log.action)}</TableCell>
-                        <TableCell>
-                          <Badge variant='secondary' className='font-normal'>
-                            {log.entity}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{getPayloadDisplay(log.payload)}</TableCell>
-                        <TableCell className='text-right whitespace-nowrap text-muted-foreground'>
-                          {log.created_at}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getActionBadge(log.action)}</TableCell>
+                      <TableCell>
+                        <Badge variant='secondary' className='font-normal'>
+                          {log.entity}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant='secondary' className='font-normal'>
+                          {log.entity_id}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{getPayloadDisplay(log.payload)}</TableCell>
+                      <TableCell className='text-right whitespace-nowrap text-muted-foreground'>
+                        {log.created_at}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
         <div className='flex items-center justify-between pt-4 mx-4'>
           <p className='text-sm text-muted-foreground'>
             Showing {logs.length === 0 ? 0 : (currentPage - 1) * 20 + 1}–
@@ -221,7 +226,7 @@ export default function AuditLogs() {
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }

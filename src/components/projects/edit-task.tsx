@@ -248,10 +248,10 @@ export default function EditTaskModal({
 
     if (log.action === 'CREATED') {
       if (keys.length === 0)
-        return <span className='text-zinc-600'>Created the task</span>
+        return <span className=''>Created the task</span>
 
       return (
-        <div className='text-zinc-600'>
+        <div className=''>
           <span>Created the task with details:</span>
           <div className='mt-1 pl-1 border-l-2 border-zinc-200 ml-1 space-y-0.5'>
             {keys.map((key) => {
@@ -275,12 +275,12 @@ export default function EditTaskModal({
               }
 
               return (
-                <div key={key} className='text-[11px] text-zinc-500'>
-                  <span className='text-zinc-400'>↳</span> Set{' '}
-                  <span className='font-medium text-zinc-700 capitalize'>
+                <div key={key} className='text-[11px] '>
+                  <span className=''>↳</span> Set{' '}
+                  <span className='font-medium  capitalize'>
                     {formattedKey}
                   </span>{' '}
-                  to <span className='font-medium text-zinc-700'>{val}</span>
+                  to <span className='font-medium '>{val}</span>
                 </div>
               )
             })}
@@ -291,19 +291,19 @@ export default function EditTaskModal({
 
     if (log.action === 'COMMENTED') {
       return (
-        <span className='text-zinc-600'>
+        <span className=''>
           Added a comment:{' '}
-          <span className='italic text-zinc-800'>"{log.changes?.content}"</span>
+          <span className='italic '>"{log.changes?.content}"</span>
         </span>
       )
     }
 
     if (log.action === 'UPDATED') {
       if (keys.length === 0)
-        return <span className='text-zinc-600'>Updated the task</span>
+        return <span className=''>Updated the task</span>
 
       return (
-        <div className='text-zinc-600'>
+        <div className=''>
           <span>Updated task details:</span>
           <div className='mt-1 pl-1 border-l-2 border-zinc-200 ml-1 space-y-0.5'>
             {keys.map((key) => {
@@ -327,12 +327,12 @@ export default function EditTaskModal({
               }
 
               return (
-                <div key={key} className='text-[11px] text-zinc-500'>
-                  <span className='text-zinc-400'>↳</span> Changed{' '}
-                  <span className='font-medium text-zinc-700 capitalize'>
+                <div key={key} className='text-[11px] '>
+                  <span className=''>↳</span> Changed{' '}
+                  <span className='font-medium  capitalize'>
                     {formattedKey}
                   </span>{' '}
-                  to <span className='font-medium text-zinc-700'>{val}</span>
+                  to <span className='font-medium '>{val}</span>
                 </div>
               )
             })}
@@ -341,7 +341,7 @@ export default function EditTaskModal({
       )
     }
 
-    return <span className='text-zinc-600'>Performed an action</span>
+    return <span className=''>Performed an action</span>
   }
 
   return (
@@ -357,7 +357,7 @@ export default function EditTaskModal({
             Edit Task
           </DialogTitle>
           {task?.created_by && (
-            <p className='text-xs font-medium text-zinc-500 mt-0.5'>
+            <p className='text-xs font-medium  mt-0.5'>
               Created by:{' '}
               {USERS_MAP[String(task.created_by)] || task.created_by}
             </p>
@@ -390,7 +390,7 @@ export default function EditTaskModal({
 
           {/* Attachment Links */}
           <div>
-            <Label className='text-xs font-medium'>Attachment Links</Label>
+            {/* <Label className='text-xs font-medium'>Attachment Links</Label> */}
             <div className='flex gap-2 mt-1'>
               <Input
                 className='h-8 text-sm flex-1'
@@ -423,7 +423,7 @@ export default function EditTaskModal({
                     className='flex items-center justify-between bg-zinc-50 border rounded px-2 py-1.5'
                   >
                     <div className='flex items-center gap-2 overflow-hidden'>
-                      <LinkIcon size={12} className='text-zinc-400 shrink-0' />
+                      <LinkIcon size={12} className=' shrink-0' />
                       <span className='text-xs truncate max-w-[300px] text-blue-600 hover:underline'>
                         <a href={link} target='_blank' rel='noreferrer'>
                           {link}
@@ -433,7 +433,7 @@ export default function EditTaskModal({
                     <button
                       type='button'
                       onClick={() => handleRemoveLink(idx)}
-                      className='text-zinc-400 hover:text-red-500 shrink-0 ml-2'
+                      className=' hover:text-red-500 shrink-0 ml-2'
                     >
                       <X size={12} />
                     </button>
@@ -561,13 +561,13 @@ export default function EditTaskModal({
           <div className='pt-2 border-t mt-4'>
             <div className='flex items-center gap-4 mb-3 border-b pb-2'>
               <button
-                className={`text-xs font-semibold pb-1 ${activeTab === 'comments' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-zinc-500'}`}
+                className={`text-xs font-semibold pb-1 ${activeTab === 'comments' ? 'text-blue-600 border-b-2 border-blue-600' : ''}`}
                 onClick={() => setActiveTab('comments')}
               >
                 Comments
               </button>
               <button
-                className={`text-xs font-semibold pb-1 ${activeTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-zinc-500'}`}
+                className={`text-xs font-semibold pb-1 ${activeTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : ''}`}
                 onClick={() => setActiveTab('history')}
               >
                 Activity History
@@ -579,24 +579,24 @@ export default function EditTaskModal({
               <div className='space-y-3'>
                 <div className='space-y-3 max-h-40 overflow-y-auto pr-1'>
                   {(commentsData?.data ?? []).length === 0 && (
-                    <p className='text-xs text-zinc-400'>No comments yet.</p>
+                    <p className='text-xs '>No comments yet.</p>
                   )}
                   {Array.isArray(commentsData?.data) &&
                     commentsData.data.map((c: any) => (
                       <div key={c.id} className='flex gap-2 text-xs'>
-                        <div className='w-6 h-6 rounded-full bg-zinc-200 text-zinc-600 flex items-center justify-center shrink-0 font-medium uppercase text-[10px]'>
+                        <div className='w-6 h-6 rounded-full bg-zinc-200  flex items-center justify-center shrink-0 font-medium uppercase text-[10px]'>
                           {c.user_name?.charAt(0) ?? '?'}
                         </div>
                         <div className='flex-1'>
                           <div className='flex items-baseline gap-1.5'>
-                            <span className='font-medium text-zinc-700'>
+                            <span className='font-medium '>
                               {c.user_name}
                             </span>
-                            <span className='text-zinc-400 text-[10px]'>
+                            <span className=' text-[10px]'>
                               {c.created_at}
                             </span>
                           </div>
-                          <p className='text-zinc-600 mt-0.5 leading-snug'>
+                          <p className=' mt-0.5 leading-snug'>
                             {c.content}
                           </p>
                         </div>
@@ -628,7 +628,7 @@ export default function EditTaskModal({
             {activeTab === 'history' && (
               <div className='space-y-4 max-h-52 overflow-y-auto pr-1'>
                 {(logsData?.data ?? []).length === 0 && (
-                  <p className='text-xs text-zinc-400'>
+                  <p className='text-xs '>
                     No activity recorded yet.
                   </p>
                 )}
@@ -638,12 +638,12 @@ export default function EditTaskModal({
                       <div className='w-2 h-2 rounded-full bg-zinc-300 mt-1 shrink-0'></div>
                       <div className='flex-1'>
                         <div className='mb-0.5'>
-                          <span className='font-medium text-zinc-800'>
+                          <span className='font-medium '>
                             {USERS_MAP[String(log.user_id)] || 'Unknown User'}
                           </span>{' '}
                         </div>
                         {renderLogDetails(log)}
-                        <div className='text-[10px] text-zinc-400 mt-1'>
+                        <div className='text-[10px]  mt-1'>
                           {new Date(log.created_at).toLocaleString()}
                         </div>
                       </div>
