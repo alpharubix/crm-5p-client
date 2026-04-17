@@ -192,7 +192,7 @@ export default function DateField({
                        Let's do 00, 05, 10... 55. And maybe allow typing? No Shadcn select is rigid. 
                        I will provide 5 minute intervals. 
                    */}
-                  {Array.from({ length: 12 }, (_, i) => i * 5).map((m) => (
+                  {Array.from({ length: 60 }, (_, i) => i).map((m) => (
                     <SelectItem key={m} value={m.toString()}>
                       {m.toString().padStart(2, '0')}
                     </SelectItem>

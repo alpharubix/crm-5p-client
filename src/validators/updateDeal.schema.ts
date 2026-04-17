@@ -34,6 +34,7 @@ export const updateDealSchema = z.object({
 
   lenderCode: z.string().optional(),
   lenderName: z.string().optional(),
+  lenderLoginType: z.string().optional(),
   customerRejectionReason: z.string().optional(),
   customerRejectionStatusExplanation: z.string().optional(),
   lenderRejectionReason: z.string().optional(),

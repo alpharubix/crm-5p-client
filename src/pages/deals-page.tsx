@@ -34,19 +34,9 @@ import Pagination from '@/components/shared/pagination'
 import { useNavigate } from 'react-router-dom'
 import { formatExactDate } from '@/utils/date-formatter'
 import HighlightedText from '@/components/shared/highlighted-text'
-
-const LENDER_NAMES = [
-  'Kotak Mahindra Bank Ltd',
-  'Tyger Capital Private Ltd',
-  'Profectus Capital Private Ltd',
-  'Rupifi Private Ltd',
-  'Niyogin Fintech Ltd',
-  'Mintifi Finserve Private Limited',
-  'Aditya Birla Capital Limited',
-  'Muthoot Fincorp Limited',
-  'FlexiLoans Technologies Pvt Ltd',
-  'Hero Fincorp Ltd',
-]
+import ExportCsvButton from '@/components/shared/export-csv-button'
+import LENDER_NAMES from '@/utils/lenders.json'
+import { SearchableSelect } from '@/components/searchable-select'
 
 const LOAN_TYPES = [
   'SCF',
@@ -101,6 +91,17 @@ const DealsPage = () => {
     typeOfCaseLogin: searchParams.get('typeOfCaseLogin') || '',
     dealOwnerId: searchParams.get('dealOwnerId') || '',
   })
+  const [lenderSearch, setLenderSearch] = useState(
+    searchParams.get('lenderName') || '',
+  )
+  const [lenderOpen, setLenderOpen] = useState(false)
+
+  const filteredLenders =
+    lenderSearch.length > 1
+      ? LENDER_NAMES.filter((l: string) =>
+          l.toLowerCase().includes(lenderSearch.toLowerCase()),
+        ).slice(0, 50) // cap at 50 results
+      : []
 
   const [appliedFilters, setAppliedFilters] = useState(filters)
 
@@ -321,21 +322,37 @@ const DealsPage = () => {
           {/* Lender Name */}
           <div className='space-y-2'>
             <Label>Lender Name</Label>
-            <Select
-              value={filters.lenderName}
-              onValueChange={(val) => handleFilterChange('lenderName', val)}
-            >
-              <SelectTrigger className='w-full'>
-                <SelectValue placeholder='Lender Name' />
-              </SelectTrigger>
-              <SelectContent>
-                {LENDER_NAMES.map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className='relative'>
+              <Input
+                value={lenderSearch}
+                onChange={(e) => {
+                  setLenderSearch(e.target.value)
+                  setLenderOpen(true)
+                  handleFilterChange('lenderName', e.target.value) // Sync with filter state
+                }}
+                onFocus={() => setLenderOpen(true)}
+                onBlur={() => setTimeout(() => setLenderOpen(false), 200)}
+                placeholder='Search Lender...'
+              />
+
+              {lenderOpen && filteredLenders.length > 0 && (
+                <div className='absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto'>
+                  {filteredLenders.map((name: string) => (
+                    <div
+                      key={name}
+                      className='p-2 hover:bg-muted cursor-pointer text-sm'
+                      onMouseDown={() => {
+                        handleFilterChange('lenderName', name) // FIXED HERE
+                        setLenderSearch(name)
+                        setLenderOpen(false)
+                      }}
+                    >
+                      {name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Case Status */}

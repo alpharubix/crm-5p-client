@@ -25,6 +25,7 @@ import {
 import { ENV } from '@/conf'
 import type { Deal } from '@/types'
 import users from '@/utils/users.json'
+import LENDER_NAMES from '@/utils/lenders.json'
 
 import {
   updateDealSchema,
@@ -235,6 +236,15 @@ export default function UpdateDeals() {
       modifiedBy: 'System Driven Field (User)',
     },
   })
+  const [lenderSearch, setLenderSearch] = useState('')
+  const [lenderOpen, setLenderOpen] = useState(false)
+
+  const filteredLenders =
+    lenderSearch.length > 1
+      ? LENDER_NAMES.filter((l: string) =>
+          l.toLowerCase().includes(lenderSearch.toLowerCase()),
+        ).slice(0, 50) // cap at 50 results
+      : []
 
   useBeforeUnload(
     useCallback(
@@ -277,6 +287,7 @@ export default function UpdateDeals() {
   useEffect(() => {
     if (dealData) {
       reset(mapDealToForm(dealData))
+      setLenderSearch(dealData.lender_name || '')
     }
   }, [dealData, reset])
 
@@ -407,6 +418,7 @@ export default function UpdateDeals() {
                 variant='outline'
                 onClick={() => {
                   reset()
+                  setLenderSearch(dealData?.lender_name || '')
                   setIsEdit(false)
                 }}
               >
@@ -555,28 +567,41 @@ export default function UpdateDeals() {
           </div>
           <div>
             <FieldRow label='Lender Name' error={errors.lenderName?.message}>
-              <SelectField
-                isEdit={isEdit}
-                options={[
-                  'Kotak Mahindra Bank Ltd',
-                  'Tyger Capital Private Ltd',
-                  'Profectus Capital Private Ltd',
-                  'Rupifi Private Ltd',
-                  'Niyogin Fintech Ltd',
-                  'Mintifi Finserve Private Limited',
-                  'Aditya Birla Capital Limited',
-                  'Muthoot Fincorp Limited',
-                  'FlexiLoans Technologies Pvt Ltd',
-                  'Hero Fincorp Ltd',
-                ]}
-                value={formValues.lenderName as string}
-                onChange={(value) =>
-                  setValue('lenderName', value, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-              />
+              <div className='relative'>
+                {/* Input must be present */}
+                <Input
+                  disabled={!isEdit}
+                  value={lenderSearch}
+                  onChange={(e) => {
+                    setLenderSearch(e.target.value)
+                    setLenderOpen(true)
+                  }}
+                  onFocus={() => setLenderOpen(true)}
+                  onBlur={() => setTimeout(() => setLenderOpen(false), 200)}
+                  placeholder='Search Lender...'
+                />
+
+                {isEdit && lenderOpen && filteredLenders.length > 0 && (
+                  <div className='absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto'>
+                    {filteredLenders.map((name: string) => (
+                      <div
+                        key={name}
+                        className='p-2 hover:bg-muted cursor-pointer text-sm'
+                        onMouseDown={() => {
+                          setValue('lenderName', name, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          })
+                          setLenderSearch(name)
+                          setLenderOpen(false)
+                        }}
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </FieldRow>
             <FieldRow
               label='Lender Login Type'
@@ -584,18 +609,7 @@ export default function UpdateDeals() {
             >
               <SelectField
                 isEdit={isEdit}
-                options={[
-                  'Kotak Mahindra Bank Ltd',
-                  'Tyger Capital Private Ltd',
-                  'Profectus Capital Private Ltd',
-                  'Rupifi Private Ltd',
-                  'Niyogin Fintech Ltd',
-                  'Mintifi Finserve Private Limited',
-                  'Aditya Birla Capital Limited',
-                  'Muthoot Fincorp Limited',
-                  'FlexiLoans Technologies Pvt Ltd',
-                  'Hero Fincorp Ltd',
-                ]}
+                options={['Direct', 'Partner']}
                 value={formValues.lenderName as string}
                 onChange={(value) =>
                   setValue('lenderName', value, {

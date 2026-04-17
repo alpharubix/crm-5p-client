@@ -38,7 +38,7 @@ export default function AuditLogs() {
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/audit-logs?${params.toString()}`,
-        { credentials: 'include' }
+        { credentials: 'include' },
       )
 
       if (!res.ok) throw new Error('Failed to fetch audit logs')
@@ -128,6 +128,7 @@ export default function AuditLogs() {
                 <TableHead>User</TableHead>
                 <TableHead>Action</TableHead>
                 <TableHead>Entity</TableHead>
+                <TableHead>Entity ID</TableHead>
                 <TableHead>Payload</TableHead>
                 <TableHead className='text-right'>Timestamp</TableHead>
               </TableRow>
@@ -135,7 +136,7 @@ export default function AuditLogs() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className='h-24 text-center'>
+                  <TableCell colSpan={6} className='h-24 text-center'>
                     <div className='flex justify-center flex-col items-center gap-2'>
                       <Spinner className='h-6 w-6' />
                       <span className='text-muted-foreground'>
@@ -147,7 +148,7 @@ export default function AuditLogs() {
               ) : logs.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className='h-24 text-center text-muted-foreground'
                   >
                     No logs found.
@@ -178,6 +179,11 @@ export default function AuditLogs() {
                           {log.entity}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant='secondary' className='font-normal'>
+                          {log.entity_id}
+                        </Badge>
+                      </TableCell>
                       <TableCell>{getPayloadDisplay(log.payload)}</TableCell>
                       <TableCell className='text-right whitespace-nowrap text-muted-foreground'>
                         {log.created_at}
@@ -189,6 +195,7 @@ export default function AuditLogs() {
             </TableBody>
           </Table>
         </div>
+
         <div className='flex items-center justify-between pt-4 mx-4'>
           <p className='text-sm text-muted-foreground'>
             Showing {logs.length === 0 ? 0 : (currentPage - 1) * 20 + 1}–

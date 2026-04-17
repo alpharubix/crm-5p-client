@@ -17,20 +17,21 @@ import { ENV } from '@/conf'
 import users from '@/utils/users.json'
 import { formatExactDate } from '@/utils/date-formatter'
 import { toast } from 'sonner'
+import DateField from '../shared/date-field'
 
-function toDateInputValue(val: string | undefined): string {
-  if (!val) return ''
-  // already YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val
-  // ISO string like 2026-04-10T00:00:00+00:00
-  if (val.includes('T')) return val.split('T')[0]
-  // dd-MM-yy format like "21-03-26"
-  const parts = val.split('-')
-  if (parts.length === 3 && parts[2].length === 2) {
-    return `20${parts[2]}-${parts[1]}-${parts[0]}`
-  }
-  return val
-}
+// function toDateInputValue(val: string | undefined): string {
+//   if (!val) return ''
+//   // already YYYY-MM-DD
+//   if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val
+//   // ISO string like 2026-04-10T00:00:00+00:00
+//   if (val.includes('T')) return val.split('T')[0]
+//   // dd-MM-yy format like "21-03-26"
+//   const parts = val.split('-')
+//   if (parts.length === 3 && parts[2].length === 2) {
+//     return `20${parts[2]}-${parts[1]}-${parts[0]}`
+//   }
+//   return val
+// }
 
 const STATUS_OPTIONS = ['Completed', 'Pending', 'In Progress', 'On Hold']
 const MODULE_OPTIONS = [
@@ -184,9 +185,9 @@ export default function DocumentationSection({ dealId }: { dealId: string }) {
     const newRows = localRows.filter((r) => r._isNew)
     const allRows = [...docs.map((d) => editedRows[d.id!] || d), ...newRows]
 
-    const invalid = allRows.some((r) => !r.module || !r.from_date || !r.to_date)
+    const invalid = allRows.some((r) => !r.module)
     if (invalid) {
-      toast.error('Module, From date and To date are required for all rows')
+      toast.error('Module is required for all rows')
       return
     }
 
@@ -265,10 +266,10 @@ export default function DocumentationSection({ dealId }: { dealId: string }) {
                   Description
                 </TableHead>
                 <TableHead className='px-3 py-2 border-b whitespace-nowrap'>
-                  From *
+                  From
                 </TableHead>
                 <TableHead className='px-3 py-2 border-b whitespace-nowrap'>
-                  To *
+                  To
                 </TableHead>
                 <TableHead className='px-3 py-2 border-b'>Status</TableHead>
                 <TableHead className='px-3 py-2 border-b'>Link</TableHead>
@@ -346,46 +347,56 @@ export default function DocumentationSection({ dealId }: { dealId: string }) {
                         </TableCell>
                         <TableCell className='px-3 py-2'>
                           {isEdit ? (
-                            <Input
-                              value={toDateInputValue(row.from_date)}
-                              type='date'
-                              onChange={(e) =>
+                            <DateField
+                              isEdit={isEdit}
+                              showTime={true}
+                              value={
+                                row.from_date
+                                  ? new Date(row.from_date)
+                                  : undefined
+                              }
+                              onChange={(date) =>
                                 updateExistingCell(
                                   doc.id!,
                                   'from_date',
-                                  e.target.value,
+                                  date ? date.toISOString() : '',
                                 )
                               }
-                              className='h-7 text-sm min-w-[90px]'
-                              placeholder='dd-mmm-yy'
                             />
                           ) : (
                             <span>
                               {row.from_date
-                                ? toDateInputValue(row.from_date)
+                                ? formatExactDate(
+                                    row.from_date,
+                                    'dd MMM yyyy, hh:mm a',
+                                  )
                                 : '—'}
                             </span>
                           )}
                         </TableCell>
                         <TableCell className='px-3 py-2'>
                           {isEdit ? (
-                            <Input
-                              value={toDateInputValue(row.to_date)}
-                              type='date'
-                              onChange={(e) =>
+                            <DateField
+                              isEdit={isEdit}
+                              showTime={true}
+                              value={
+                                row.to_date ? new Date(row.to_date) : undefined
+                              }
+                              onChange={(date) =>
                                 updateExistingCell(
                                   doc.id!,
                                   'to_date',
-                                  e.target.value,
+                                  date ? date.toISOString() : '',
                                 )
                               }
-                              className='h-7 text-sm min-w-[90px]'
-                              placeholder='dd-mmm-yy'
                             />
                           ) : (
                             <span>
                               {row.to_date
-                                ? toDateInputValue(row.to_date)
+                                ? formatExactDate(
+                                    row.to_date,
+                                    'dd MMM yyyy, hh:mm a',
+                                  )
                                 : '—'}
                             </span>
                           )}
@@ -490,23 +501,37 @@ export default function DocumentationSection({ dealId }: { dealId: string }) {
                           />
                         </TableCell>
                         <TableCell className='px-3 py-2'>
-                          <Input
-                            value={toDateInputValue(row.from_date)}
-                            type='date'
-                            onChange={(e) =>
-                              updateNewCell(i, 'from_date', e.target.value)
+                          <DateField
+                            isEdit={true}
+                            showTime={true}
+                            value={
+                              row.from_date
+                                ? new Date(row.from_date)
+                                : undefined
                             }
-                            className='h-7 text-sm min-w-[130px]'
+                            onChange={(date) =>
+                              updateNewCell(
+                                i,
+                                'from_date',
+                                date ? date.toISOString() : '',
+                              )
+                            }
                           />
                         </TableCell>
                         <TableCell className='px-3 py-2'>
-                          <Input
-                            value={toDateInputValue(row.to_date)}
-                            type='date'
-                            onChange={(e) =>
-                              updateNewCell(i, 'to_date', e.target.value)
+                          <DateField
+                            isEdit={true}
+                            showTime={true}
+                            value={
+                              row.to_date ? new Date(row.to_date) : undefined
                             }
-                            className='h-7 text-sm min-w-[130px]'
+                            onChange={(date) =>
+                              updateNewCell(
+                                i,
+                                'to_date',
+                                date ? date.toISOString() : '',
+                              )
+                            }
                           />
                         </TableCell>
                         <TableCell className='px-3 py-2'>
