@@ -24,6 +24,9 @@ export type Lead = {
 }
 
 export type Deal = {
+  deal_name: string
+  deal_status: string
+  deal_stage: string
   loan_type: string
   approved_amount: string
   deal_call_back_datetime: string

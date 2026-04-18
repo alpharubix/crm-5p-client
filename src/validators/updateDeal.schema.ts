@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const updateDealSchema = z.object({
   accountId: z.union([z.string(), z.number()]).optional(),
   accountName: z.string().optional(),
+  dealName: z.string().optional(),
   ticketId: z.union([z.string(), z.number()]).optional(),
   ticketNumber: z.union([z.string(), z.number()]).optional(),
   dealType: z.string().optional(),
@@ -10,9 +11,9 @@ export const updateDealSchema = z.object({
   typeOfLogin: z.string().optional(),
   typeOfCaseLogin: z.string().optional(),
   ticketLogin: z.string().optional(),
-  caseStage: z.string().optional(),
-  caseStatus: z.string().optional(),
-  
+  dealStage: z.string().optional(),
+  dealStatus: z.string().optional(),
+
   disbursedAmount: z.union([z.string(), z.number()]).optional(),
   sanctionAmount: z.union([z.string(), z.number()]).optional(),
   approvedAmount: z.union([z.string(), z.number()]).optional(),
@@ -41,6 +42,7 @@ export const updateDealSchema = z.object({
   lenderRejectionStatusExplanation: z.string().optional(),
 
   paymentReceipt: z.string().optional(),
+  partnerCode: z.string().optional(),
   potential: z.string().optional(),
   product: z.string().optional(),
 
