@@ -1,8 +1,9 @@
 import { z } from 'zod'
 
 export const createDealSchema = z.object({
-  accountId: z.union([z.string().min(1, "Account is required"), z.number()]),
+  accountId: z.union([z.string().min(1, 'Account is required'), z.number()]),
   accountName: z.string().optional(),
+  dealName: z.string().optional(),
   ticketId: z.union([z.string(), z.number()]).optional(),
   ticketNumber: z.union([z.string(), z.number()]).optional(),
   dealType: z.string().optional(),
@@ -10,9 +11,9 @@ export const createDealSchema = z.object({
   typeOfLogin: z.string().optional(),
   typeOfCaseLogin: z.string().optional(),
   ticketLogin: z.string().optional(),
-  caseStage: z.string().optional(),
-  caseStatus: z.string().optional(),
-  
+  dealStage: z.string().optional(),
+  dealStatus: z.string().optional(),
+
   disbursedAmount: z.string().optional(),
   sanctionAmount: z.string().optional(),
   approvedAmount: z.string().optional(),
@@ -27,6 +28,7 @@ export const createDealSchema = z.object({
   dealCallBackDatetime: z.string().optional(),
   disbursementDate: z.string().optional(),
   lenderLoginDate: z.string().optional(),
+  lenderLoginType: z.string().optional(),
   loanStartDate: z.string().optional(),
   loanEndDate: z.string().optional(),
   targetedDisbursementDate: z.string().optional(),
@@ -38,10 +40,10 @@ export const createDealSchema = z.object({
   customerRejectionStatusExplanation: z.string().optional(),
   lenderRejectionReason: z.string().optional(),
   lenderRejectionStatusExplanation: z.string().optional(),
-
+  partnerCode: z.string().optional(),
   paymentReceipt: z.string().optional(),
   potential: z.string().optional(),
-  product: z.string().optional()
+  product: z.string().optional(),
 })
 
 export type CreateDealFormValues = z.infer<typeof createDealSchema>
