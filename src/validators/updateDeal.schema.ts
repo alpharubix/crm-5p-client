@@ -40,6 +40,8 @@ export const updateDealSchema = z.object({
   customerRejectionStatusExplanation: z.string().optional(),
   lenderRejectionReason: z.string().optional(),
   lenderRejectionStatusExplanation: z.string().optional(),
+  dealExpectedClosing: z.string().optional(),
+  dealStatusClosing: z.string().optional(),
 
   paymentReceipt: z.string().optional(),
   partnerCode: z.string().optional(),
