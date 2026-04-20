@@ -19,6 +19,8 @@ export const createDealSchema = z.object({
   approvedAmount: z.string().optional(),
   amountRequired: z.string().optional(),
   processingFees: z.string().optional(),
+  dealExpectedClosing: z.string().optional(),
+  dealStatusClosing: z.string().optional(),
   mmCharges: z.string().optional(),
   insuranceAmount: z.string().optional(),
   pfPercentage: z.string().optional(),

@@ -19,6 +19,10 @@ interface LocalFilters {
   assignee_id: string
   created_from: string
   created_to: string
+  expected_from: string
+  expected_to: string
+  status_closing_from: string
+  status_closing_to: string
 }
 
 const defaultFilters: LocalFilters = {
@@ -28,6 +32,10 @@ const defaultFilters: LocalFilters = {
   assignee_id: 'all',
   created_from: '',
   created_to: '',
+  expected_from: '',
+  expected_to: '',
+  status_closing_from: '',
+  status_closing_to: '',
 }
 
 function getDefaultDates() {
@@ -63,6 +71,14 @@ export default function DealsKanban() {
     if (localFilters.status !== 'all') f.deal_status = localFilters.status
     if (localFilters.created_from) f.created_from = localFilters.created_from
     if (localFilters.created_to) f.created_to = localFilters.created_to
+    if (localFilters.expected_from)
+      f.expected_closing_from = localFilters.expected_from
+    if (localFilters.expected_to)
+      f.expected_closing_to = localFilters.expected_to
+    if (localFilters.status_closing_from)
+      f.status_closing_from = localFilters.status_closing_from
+    if (localFilters.status_closing_to)
+      f.status_closing_to = localFilters.status_closing_to
     setAppliedFilters(f)
     setHasApplied(true)
   }
@@ -83,17 +99,17 @@ export default function DealsKanban() {
   const hasActiveFilters = true
 
   return (
-    <div className='w-full h-full p-4 flex flex-col max-w-[1240px] mx-auto'>
-      <div className='flex flex-col flex-1 min-h-0'>
-        <div className='flex items-center justify-between mb-6 shrink-0'>
-          <h1 className='text-lg font-semibold'>Deals Kanban</h1>
+    <div className="w-full h-full p-4 flex flex-col max-w-[1240px] mx-auto">
+      <div className="flex flex-col flex-1 min-h-0">
+        <div className="flex items-center justify-between mb-6 shrink-0">
+          <h1 className="text-lg font-semibold">Deals Kanban</h1>
           {/* <Button>Create +</Button> */}
         </div>
 
-        <div className='flex flex-wrap items-center gap-3 mb-4 p-3 border rounded-md shadow-sm shrink-0'>
+        <div className="flex flex-wrap items-center gap-3 mb-4 p-3 border rounded-md shadow-sm shrink-0">
           <Input
-            placeholder='Account name...'
-            className='h-8 text-xs w-[180px]'
+            placeholder="Account name..."
+            className="h-8 text-xs w-[180px]"
             value={localFilters.search}
             onChange={(e) => setFilter('search', e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
@@ -103,82 +119,109 @@ export default function DealsKanban() {
             value={localFilters.project_type}
             onValueChange={(v) => setFilter('project_type', v)}
           >
-            <SelectTrigger className='h-8 text-xs w-40'>
-              <SelectValue placeholder='Type of Loan' />
+            <SelectTrigger className="h-8 text-xs w-40">
+              <SelectValue placeholder="Type of Loan" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>--Type of Loan--</SelectItem>
-              <SelectItem value='SCF'>SCF</SelectItem>
-              <SelectItem value='SCF Renewal'>SCF Renewal</SelectItem>
-              <SelectItem value='SCF Enhancement'>SCF Enhancement</SelectItem>
-              <SelectItem value='SCF (Renewal and Enhancement)'>
+              <SelectItem value="all">--Type of Loan--</SelectItem>
+              <SelectItem value="SCF">SCF</SelectItem>
+              <SelectItem value="SCF Renewal">SCF Renewal</SelectItem>
+              <SelectItem value="SCF Enhancement">SCF Enhancement</SelectItem>
+              <SelectItem value="SCF (Renewal and Enhancement)">
                 SCF (Renewal and Enhancement)
               </SelectItem>
-              <SelectItem value='Open SCF'>Open SCF</SelectItem>
-              <SelectItem value='BT-SCF'>BT-SCF</SelectItem>
-              <SelectItem value='Unsecured OD'>Unsecured OD</SelectItem>
-              <SelectItem value='Unsecured Term Loan'>
+              <SelectItem value="Open SCF">Open SCF</SelectItem>
+              <SelectItem value="BT-SCF">BT-SCF</SelectItem>
+              <SelectItem value="Unsecured OD">Unsecured OD</SelectItem>
+              <SelectItem value="Unsecured Term Loan">
                 Unsecured Term Loan
               </SelectItem>
-              <SelectItem value='Secured Loan'>Secured Loan</SelectItem>
-              <SelectItem value='Vehicle Loan'>Vehicle Loan</SelectItem>
+              <SelectItem value="Secured Loan">Secured Loan</SelectItem>
+              <SelectItem value="Vehicle Loan">Vehicle Loan</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select
+          {/*<Select
             value={localFilters.status}
             onValueChange={(v) => setFilter('status', v)}
           >
-            <SelectTrigger className='h-8 text-xs w-[140px]'>
-              <SelectValue placeholder='Case Status' />
+            <SelectTrigger className="h-8 text-xs w-[140px]">
+              <SelectValue placeholder="Case Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>--Case Status--</SelectItem>
-              <SelectItem value='Active'>Active</SelectItem>
-              <SelectItem value='Disbursed'>Disbursed</SelectItem>
-              <SelectItem value='Rejected'>Rejected</SelectItem>
-              <SelectItem value='Closed'>Closed</SelectItem>
+              <SelectItem value="all">--Case Status--</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Disbursed">Disbursed</SelectItem>
+              <SelectItem value="Rejected">Rejected</SelectItem>
+              <SelectItem value="Closed">Closed</SelectItem>
             </SelectContent>
-          </Select>
-          <Label htmlFor='from_date'>From -</Label>
+          </Select>*/}
+          <Label htmlFor="from_date">Created At: From -</Label>
           <Input
-            id='from_date'
-            type='date'
-            className='h-8 text-xs w-[140px]'
+            id="from_date"
+            type="date"
+            className="h-8 text-xs w-[140px]"
             value={localFilters.created_from}
             onChange={(e) => setFilter('created_from', e.target.value)}
           />
-          <Label htmlFor='to_date'>To -</Label>
+          <Label htmlFor="to_date">Created At: To -</Label>
           <Input
-            id='to_date'
-            type='date'
-            className='h-8 text-xs w-[140px]'
+            id="to_date"
+            type="date"
+            className="h-8 text-xs w-[140px]"
             value={localFilters.created_to}
             onChange={(e) => setFilter('created_to', e.target.value)}
           />
-          <div className='flex items-center gap-2 ml-auto'>
+          <Label>Expected Closing Range:</Label>
+          <Input
+            type="date"
+            className="h-8 w-[140px]"
+            value={localFilters.expected_from}
+            onChange={(e) => setFilter('expected_from', e.target.value)}
+          />
+          <Input
+            type="date"
+            className="h-8 w-[140px]"
+            value={localFilters.expected_to}
+            onChange={(e) => setFilter('expected_to', e.target.value)}
+          />
+
+          <Label>Status Closing Range:</Label>
+          <Input
+            type="date"
+            className="h-8 w-[140px]"
+            value={localFilters.status_closing_from}
+            onChange={(e) => setFilter('status_closing_from', e.target.value)}
+          />
+          <Input
+            type="date"
+            className="h-8 w-[140px]"
+            value={localFilters.status_closing_to}
+            onChange={(e) => setFilter('status_closing_to', e.target.value)}
+          />
+          <div className="flex items-center gap-2 ml-auto">
             <Button
-              size='sm'
+              size="sm"
               onClick={applyFilters}
-              className='h-8 text-xs px-3 bg-blue-600 hover:bg-blue-700 text-white'
+              className="h-8 text-xs px-3 bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Search size={14} className='mr-1.5' /> Apply
+              <Search size={14} className="mr-1.5" /> Apply
             </Button>
 
             {hasActiveFilters && (
               <Button
-                variant='ghost'
-                size='sm'
+                variant="ghost"
+                size="sm"
                 onClick={clearFilters}
-                className='h-8 text-xs text-zinc-500 hover:text-zinc-800 px-2'
+                className="h-8 text-xs text-zinc-500 hover:text-zinc-800 px-2"
               >
-                <FilterX size={14} className='mr-1' /> Clear
+                <FilterX size={14} className="mr-1" /> Clear
               </Button>
             )}
           </div>
         </div>
 
-        <div className='flex-1 overflow-hidden'>
+        <div className="flex-1 overflow-hidden">
           <DealsKanbanView filters={appliedFilters} enabled={hasApplied} />
         </div>
       </div>

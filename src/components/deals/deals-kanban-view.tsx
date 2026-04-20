@@ -22,6 +22,10 @@ export interface KanbanFilters {
   loan_type?: string
   created_from?: string
   created_to?: string
+  expected_from: string
+  expected_to: string
+  status_closing_from: string
+  status_closing_to: string
 }
 
 export interface DealData {
@@ -82,29 +86,29 @@ function DraggableTicketCard({ deal }: { deal: DealData }) {
       className={isDragging ? 'opacity-50' : ''}
     >
       <Card
-        className='transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30'
+        className="transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30"
         onClick={() => navigate(`/deals/${deal.id}`)}
       >
-        <CardContent className='p-3 text-sm grid gap-1'>
-          <p className='font-semibold text-base leading-tight'>
+        <CardContent className="p-3 text-sm grid gap-1">
+          <p className="font-semibold text-base leading-tight">
             {deal.dealName}
           </p>
-          <div className='grid grid-cols-[110px_1fr] gap-x-2 gap-y-1 mt-2 items-start text-xs'>
-            <span className='text-muted-foreground font-medium'>Deal ID</span>
-            <span className='font-medium line-clamp-1'>
+          <div className="grid grid-cols-[110px_1fr] gap-x-2 gap-y-1 mt-2 items-start text-xs">
+            <span className="text-muted-foreground font-medium">Deal ID</span>
+            <span className="font-medium line-clamp-1">
               {deal.dealId || '-'}
             </span>
-            <span className='text-muted-foreground font-medium'>
+            <span className="text-muted-foreground font-medium">
               Deal Owner
             </span>
-            <span className='font-medium'>
+            <span className="font-medium">
               {(users as Record<string, string>)[deal.dealOwner] ||
                 `#${deal.dealOwner}`}
             </span>
-            <span className='text-muted-foreground font-medium'>
+            <span className="text-muted-foreground font-medium">
               Lender Name
             </span>
-            <span className='font-medium'>{deal.lenderName || '-'}</span>
+            <span className="font-medium">{deal.lenderName || '-'}</span>
           </div>
         </CardContent>
       </Card>
@@ -136,12 +140,12 @@ function DroppableTicketColumn({
         className={`flex items-center gap-2 pb-2 border-b mb-1 ${style.header}`}
       >
         <span className={`w-2 h-2 rounded shrink-0 ${style.dot}`} />
-        <span className='text-xs font-semibold uppercase tracking-wide'>
+        <span className="text-xs font-semibold uppercase tracking-wide">
           {status}
         </span>
-        <span className='ml-auto text-xs font-mono'>{tickets.length}</span>
+        <span className="ml-auto text-xs font-mono">{tickets.length}</span>
       </div>
-      <div className='flex flex-col gap-3 flex-1 overflow-y-auto pr-1 pb-2'>
+      <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1 pb-2">
         {tickets.map((t) => (
           <DraggableTicketCard key={t.id} deal={t} />
         ))}
@@ -225,7 +229,7 @@ export default function DealsKanbanView({
 
   if (!enabled) {
     return (
-      <div className='flex items-center justify-center h-full text-sm text-muted-foreground'>
+      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
         Apply filters to load deals
       </div>
     )
@@ -233,7 +237,7 @@ export default function DealsKanbanView({
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center h-full text-sm text-muted-foreground'>
+      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
         Loading...
       </div>
     )
@@ -246,7 +250,7 @@ export default function DealsKanbanView({
     onDragStart={onDragStart}
     onDragEnd={onDragEnd}
     > */}
-      <div className='flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0'>
+      <div className="flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0">
         {COLUMNS.map((col) => (
           <DroppableTicketColumn
             key={col}
@@ -257,9 +261,9 @@ export default function DealsKanbanView({
       </div>
       {/* <DragOverlay> */}
       {activeTicket && (
-        <Card className='cursor-grabbing shadow-lg opacity-90 border-l-4 border-l-primary/50 py-0'>
-          <CardContent className='p-3 text-sm'>
-            <p className='font-semibold'>{activeTicket.dealName}</p>
+        <Card className="cursor-grabbing shadow-lg opacity-90 border-l-4 border-l-primary/50 py-0">
+          <CardContent className="p-3 text-sm">
+            <p className="font-semibold">{activeTicket.dealName}</p>
           </CardContent>
         </Card>
       )}
