@@ -11,8 +11,8 @@ export const updateDealSchema = z.object({
   typeOfLogin: z.string().optional(),
   typeOfCaseLogin: z.string().optional(),
   ticketLogin: z.string().optional(),
-  caseStage: z.string().optional(),
-  caseStatus: z.string().optional(),
+  dealStage: z.string().optional(),
+  dealStatus: z.string().optional(),
 
   disbursedAmount: z.union([z.string(), z.number()]).optional(),
   sanctionAmount: z.union([z.string(), z.number()]).optional(),

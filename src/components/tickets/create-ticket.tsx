@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ENV } from '@/conf'
@@ -109,6 +109,25 @@ export default function CreateTicket() {
 
   const formValues = watch()
 
+  // Inside CreateTicket component
+  const { data: dealResponse, isLoading: isLoadingDeal } = useQuery({
+    queryKey: ['deal', dealId],
+    queryFn: async () => {
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${dealId}`,
+        { credentials: 'include' },
+      )
+      if (!res.ok) throw new Error('Failed to fetch deal details')
+      return res.json()
+    },
+    enabled: !!dealId,
+  })
+
+  // Extract data from the response
+  const dealData = dealResponse?.data?.[0]
+  const accountName = dealData?.account_name || '—'
+  const dealName = dealData?.account_name || '—'
+
   const createMutation = useMutation({
     mutationFn: async (values: CreateTicketFormValues) => {
       const payload: any = {
@@ -182,7 +201,21 @@ export default function CreateTicket() {
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
           <h1 className='text-2xl font-bold'>Create Ticket</h1>
-          <p className='text-sm text-muted-foreground'>Deal ID: #{dealId}</p>
+          {/* Display Account Name here */}
+          {isLoadingDeal ? (
+            <Spinner className='h-4 w-4' />
+          ) : (
+            <>
+              <div className='flex flex-col'>
+                <span className='text-sm font-semibold text-primary uppercase'>
+                  Account: {accountName}
+                </span>
+                <span className='text-sm font-medium text-muted-foreground'>
+                  Deal Name: {dealName} #{dealId}
+                </span>
+              </div>
+            </>
+          )}
         </div>
         <div className='flex gap-2'>
           <Button

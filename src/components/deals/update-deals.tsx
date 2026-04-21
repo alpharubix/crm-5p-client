@@ -750,7 +750,6 @@ export default function UpdateDeals() {
                     { shouldDirty: true },
                   )
                 }
-                disablePast={true}
               />
             </FieldRow>
           </div>
