@@ -52,6 +52,8 @@ function mapDealToForm(apiData: any): UpdateDealFormValues {
     dealStatus: apiData.deal_status || '',
     dealExpectedClosing: apiData.deal_expected_closing || '',
     dealStatusClosing: apiData.deal_status_closing || '',
+    lenderLoginType: apiData.lender_login_type || '',
+    partnerCode: apiData.partner_code || '',
     disbursedAmount:
       apiData.disbursed_amount !== null &&
       apiData.disbursed_amount !== undefined
@@ -113,8 +115,9 @@ function mapDealToForm(apiData: any): UpdateDealFormValues {
     paymentReceipt: apiData.payment_receipt || '',
     potential: apiData.potential || '',
     product: apiData.product || '',
-    createdBy: apiData.created_by || 'System Driven Field (User)',
-    modifiedBy: apiData.modified_by || 'System Driven Field (User)',
+    createdBy: apiData.created_by || 'System Driven Field',
+    createdAt: apiData.created_at || 'System Driven Field',
+    modifiedBy: apiData.modified_by || 'System Driven Field',
   }
 }
 
@@ -138,6 +141,11 @@ function mapFormToApi(
     },
     deal_type: { value: formData.dealType, key: 'dealType' },
     loan_type: { value: formData.loanType, key: 'loanType' },
+    lender_login_type: {
+      value: formData.lenderLoginType,
+      key: 'lenderLoginType',
+    },
+    partner_code: { value: formData.partnerCode, key: 'partnerCode' },
     deal_expected_closing: {
       value: formData.dealExpectedClosing,
       key: 'dealExpectedClosing',
@@ -213,6 +221,7 @@ function mapFormToApi(
     payment_receipt: { value: formData.paymentReceipt, key: 'paymentReceipt' },
     potential: { value: formData.potential, key: 'potential' },
     product: { value: formData.product, key: 'product' },
+    created_at: { value: formData.createdAt, key: 'createdAt' },
   }
 
   const payload: any = {}
@@ -362,16 +371,16 @@ export default function UpdateDeals() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner className="h-8 w-8 text-primary" />
+      <div className='flex items-center justify-center min-h-screen'>
+        <Spinner className='h-8 w-8 text-primary' />
       </div>
     )
   }
 
   if (error || !dealData) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-muted-foreground">Deal not found</p>
+      <div className='flex items-center justify-center min-h-screen'>
+        <p className='text-muted-foreground'>Deal not found</p>
       </div>
     )
   }
@@ -383,52 +392,52 @@ export default function UpdateDeals() {
     : sortedNotes
 
   return (
-    <div className="space-y-6 bg-background min-h-screen mb-10">
+    <div className='space-y-6 bg-background min-h-screen mb-10'>
       {/* HEADER */}
-      <div className="flex justify-between items-center border p-4 rounded-xl bg-card">
+      <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
-          <h1 className="text-lg font-semibold">
+          <h1 className='text-lg font-semibold'>
             Deal Name:{' '}
-            <span className="text-primary font-bold ">
+            <span className='text-primary font-bold '>
               {dealData.account_name || `#${dealData.id}`}
             </span>{' '}
-            <span className="text-primary font-bold ">{`#${dealData.id}`}</span>
+            <span className='text-primary font-bold '>{`#${dealData.id}`}</span>
           </h1>
-          <h1 className="text-lg font-semibold">
+          <h1 className='text-lg font-semibold'>
             Deal Owner Name:{' '}
-            <span className="text-primary font-bold ">
+            <span className='text-primary font-bold '>
               {(users as Record<string, string>)[dealData.deal_owner_id] ||
                 `#${dealData.id}`}
             </span>
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           {!isEdit ? (
             <Button
-              size="sm"
-              className="cursor-pointer"
+              size='sm'
+              className='cursor-pointer'
               onClick={() => setIsEdit(true)}
             >
               Update
             </Button>
           ) : (
-            <div className="flex gap-2">
+            <div className='flex gap-2'>
               <Button
-                size="sm"
-                className="cursor-pointer"
+                size='sm'
+                className='cursor-pointer'
                 disabled={!isDirty || updateMutation.isPending}
                 onClick={handleSubmit(onSave)}
               >
                 {updateMutation.isPending ? (
-                  <Spinner className="mr-2 h-4 w-4" />
+                  <Spinner className='mr-2 h-4 w-4' />
                 ) : (
                   'Save'
                 )}
               </Button>
               <Button
-                size="sm"
-                className="cursor-pointer"
-                variant="outline"
+                size='sm'
+                className='cursor-pointer'
+                variant='outline'
                 onClick={() => {
                   reset()
                   setLenderSearch(dealData?.lender_name || '')
@@ -440,21 +449,21 @@ export default function UpdateDeals() {
             </div>
           )}
           <Button
-            variant="default"
+            variant='default'
             onClick={() => navigate(`/accounts/${dealData.account_id}`)}
-            className="ml-2"
+            className='ml-2'
           >
             Go to Accounts
           </Button>
         </div>
       </div>
 
-      <Card className="overflow-hidden space-y-1">
+      <Card className='overflow-hidden space-y-1'>
         {/* ================= Lender Login Information ================= */}
-        <SectionHeader title="Lender Login Information" />
-        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 border-b">
-          <div className="md:border-r">
-            <FieldRow label="Deal Type" error={errors.dealType?.message}>
+        <SectionHeader title='Lender Login Information' />
+        <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
+          <div className='md:border-r'>
+            <FieldRow label='Deal Type' error={errors.dealType?.message}>
               <SelectField
                 isEdit={isEdit}
                 options={[
@@ -476,7 +485,7 @@ export default function UpdateDeals() {
               />
             </FieldRow>
             <FieldRow
-              label="Deal Call Back Date/Time"
+              label='Deal Call Back Date/Time'
               error={errors.dealCallBackDatetime?.message}
             >
               {isEdit ? (
@@ -512,16 +521,16 @@ export default function UpdateDeals() {
               )}
             </FieldRow>
             <FieldRow
-              label="Amount Required"
+              label='Amount Required'
               error={errors.amountRequired?.message}
             >
               {isEdit ? (
                 <Input
                   {...register('amountRequired')}
-                  placeholder="Amount Required"
-                  type="number"
-                  step="0.01"
-                  className="h-8"
+                  placeholder='Amount Required'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
                 />
               ) : (
                 <span>
@@ -529,7 +538,7 @@ export default function UpdateDeals() {
                 </span>
               )}
             </FieldRow>
-            <FieldRow label="Type of Loan" error={errors.loanType?.message}>
+            <FieldRow label='Type of Loan' error={errors.loanType?.message}>
               <SelectField
                 isEdit={isEdit}
                 options={[
@@ -558,7 +567,7 @@ export default function UpdateDeals() {
                 }
               />
             </FieldRow>
-            <FieldRow label="Created By">
+            <FieldRow label='Created By'>
               <span>
                 {(users as Record<string, string>)[
                   formValues.createdBy as string
@@ -567,7 +576,7 @@ export default function UpdateDeals() {
                   '—'}
               </span>
             </FieldRow>
-            <FieldRow label="Modified By">
+            <FieldRow label='Modified By'>
               <span>
                 {(users as Record<string, string>)[
                   formValues.modifiedBy as string
@@ -576,15 +585,25 @@ export default function UpdateDeals() {
                   '—'}
               </span>
             </FieldRow>
+            <FieldRow label='Created At'>
+              <span>
+                {formValues.createdAt
+                  ? formatExactDate(
+                      formValues.createdAt,
+                      'dd MMM yyyy, hh:mm a',
+                    )
+                  : '—'}
+              </span>
+            </FieldRow>
           </div>
           <div>
-            <FieldRow label="Account Name">
+            <FieldRow label='Account Name'>
               <span>{dealData.account_name || '—'}</span>
             </FieldRow>
-            <FieldRow label="Deal Name">
+            <FieldRow label='Deal Name'>
               <span>{dealData.account_name || '—'}</span>
             </FieldRow>
-            <FieldRow label="Deal Status" error={errors.dealStatus?.message}>
+            <FieldRow label='Deal Status' error={errors.dealStatus?.message}>
               <SelectField
                 isEdit={isEdit}
                 options={[
@@ -609,7 +628,7 @@ export default function UpdateDeals() {
                 }}
               />
             </FieldRow>
-            <FieldRow label="Deal Stage" error={errors.dealStage?.message}>
+            <FieldRow label='Deal Stage' error={errors.dealStage?.message}>
               <SelectField
                 isEdit={isEdit}
                 options={[
@@ -639,23 +658,83 @@ export default function UpdateDeals() {
                 }
               />
             </FieldRow>
-            <FieldRow label="Lender Name" error={errors.lenderName?.message}>
-              <span>{formValues.lenderName || '—'}</span>
+            <FieldRow label='Lender Name' error={errors.lenderName?.message}>
+              <div className='relative'>
+                {isEdit ? (
+                  <Input
+                    value={lenderSearch}
+                    onChange={(e) => {
+                      setLenderSearch(e.target.value)
+                      setLenderOpen(true)
+                    }}
+                    onFocus={() => setLenderOpen(true)}
+                    onBlur={() => setTimeout(() => setLenderOpen(false), 200)}
+                    placeholder='Search Lender...'
+                  />
+                ) : (
+                  <span>{formValues.lenderName || '—'}</span>
+                )}
+                {lenderOpen && filteredLenders.length > 0 && (
+                  <div className='absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto'>
+                    {filteredLenders.map((name: string) => (
+                      <div
+                        key={name}
+                        className='p-2 hover:bg-muted cursor-pointer text-sm'
+                        onMouseDown={() => {
+                          setValue('lenderName', name, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          })
+                          setLenderSearch(name)
+                          setLenderOpen(false)
+                        }}
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </FieldRow>
             <FieldRow
-              label="Lender Login Type"
+              label='Lender Login Type'
               error={errors.lenderLoginType?.message}
             >
-              <span>{formValues.lenderLoginType || '—'}</span>
+              <SelectField
+                isEdit={isEdit}
+                options={['Direct', 'Partner']}
+                value={(formValues.lenderLoginType as string) || '—'}
+                onChange={(value) =>
+                  setValue('lenderLoginType', value, {
+                    // Update lenderLoginType
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+              />
             </FieldRow>
-            <FieldRow label="Deal Status Closing">
-              <span className="text-sm font-medium text-muted-foreground">
+            <FieldRow label='Partner Code' error={errors.partnerCode?.message}>
+              {isEdit ? (
+                <Input
+                  {...register('partnerCode')}
+                  placeholder='Partner Code'
+                  className='h-8'
+                  // Field is editable ONLY if lenderLoginType is Partner
+                  disabled={formValues.lenderLoginType !== 'Partner'}
+                />
+              ) : (
+                /* This span displays the value in Read-Only mode */
+                <span>{formValues.partnerCode || '—'}</span>
+              )}
+            </FieldRow>
+            <FieldRow label='Deal Status Closing'>
+              <span className='text-sm font-medium text-muted-foreground'>
                 {formValues.dealStatusClosing
                   ? formatExactDate(formValues.dealStatusClosing, 'dd MMM yyyy')
                   : 'No change recorded'}
               </span>
             </FieldRow>
-            <FieldRow label="Expected Closing Date">
+            <FieldRow label='Expected Closing Date'>
               <DateField
                 isEdit={isEdit}
                 showTime={false}
@@ -671,22 +750,23 @@ export default function UpdateDeals() {
                     { shouldDirty: true },
                   )
                 }
+                disablePast={true}
               />
             </FieldRow>
           </div>
         </CardContent>
 
-        <SectionHeader title="Funding & Commercials" />
-        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 border-b">
-          <div className="md:border-r">
-            <FieldRow label="MM Charges" error={errors.mmCharges?.message}>
+        <SectionHeader title='Funding & Commercials' />
+        <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
+          <div className='md:border-r'>
+            <FieldRow label='MM Charges' error={errors.mmCharges?.message}>
               {isEdit ? (
                 <Input
                   {...register('mmCharges')}
-                  placeholder="MM Charges"
-                  type="number"
-                  step="0.01"
-                  className="h-8"
+                  placeholder='MM Charges'
+                  type='number'
+                  step='0.01'
+                  className='h-8'
                 />
               ) : (
                 <span>{formatAmount(Number(formValues.mmCharges)) || '—'}</span>
@@ -694,20 +774,20 @@ export default function UpdateDeals() {
             </FieldRow>
           </div>
           <div>
-            <FieldRow label="Sanction Letter">
+            <FieldRow label='Sanction Letter'>
               <a
                 href={dealData.sanction_letter}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary text-xs truncate block hover:underline"
+                target='_blank'
+                rel='noopener noreferrer'
+                className='text-primary text-xs truncate block hover:underline'
               >
-                <span className="text-sm text-blue-600">
+                <span className='text-sm text-blue-600'>
                   {dealData.sanction_letter || '—'}
                 </span>
               </a>
             </FieldRow>
             <FieldRow
-              label="Payment Receipt"
+              label='Payment Receipt'
               error={errors.paymentReceipt?.message}
             >
               <span>—</span>
@@ -716,11 +796,11 @@ export default function UpdateDeals() {
         </CardContent>
 
         {/* ================= Rejection Status ================= */}
-        <SectionHeader title="Rejection Status" />
-        <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2">
-          <div className="md:border-r">
+        <SectionHeader title='Rejection Status' />
+        <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
+          <div className='md:border-r'>
             <FieldRow
-              label="Lender Rejection Reason"
+              label='Lender Rejection Reason'
               error={errors.lenderRejectionReason?.message}
             >
               <SelectField
@@ -744,14 +824,14 @@ export default function UpdateDeals() {
           </div>
           <div>
             <FieldRow
-              label="Lender Rejection Status Explanation"
+              label='Lender Rejection Status Explanation'
               error={errors.lenderRejectionStatusExplanation?.message}
             >
               {isEdit ? (
                 <Input
                   {...register('lenderRejectionStatusExplanation')}
-                  placeholder="Lender Rejection Explanation"
-                  className="h-8"
+                  placeholder='Lender Rejection Explanation'
+                  className='h-8'
                 />
               ) : (
                 <span>
@@ -762,40 +842,40 @@ export default function UpdateDeals() {
           </div>
         </CardContent>
         {/* ================= Linked Tickets ================= */}
-        <SectionHeader title="Linked Tickets" />
-        <CardContent className="p-4 space-y-3 border-b">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-muted-foreground">
+        <SectionHeader title='Linked Tickets' />
+        <CardContent className='p-4 space-y-3 border-b'>
+          <div className='flex items-center justify-between mb-2'>
+            <p className='text-sm text-muted-foreground'>
               Total Tickets:{' '}
-              <span className="font-semibold">
+              <span className='font-semibold'>
                 {(dealData as any)?.tickets?.length || 0}
               </span>
             </p>
             <Button
-              size="sm"
-              variant="outline"
-              className="cursor-pointer"
+              size='sm'
+              variant='outline'
+              className='cursor-pointer'
               onClick={() => navigate(`/deals/${id}/tickets/create`)}
             >
-              <Plus className="h-4 w-4 mr-1" /> Add Ticket
+              <Plus className='h-4 w-4 mr-1' /> Add Ticket
             </Button>
           </div>
 
           {!(dealData as any)?.tickets ||
           (dealData as any).tickets.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className='text-sm text-muted-foreground'>
               No tickets associated with this deal.
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
               {(dealData as any).tickets.map((ticket: any) => (
                 <div
                   key={ticket.id}
                   onClick={() => navigate(`/tickets/${ticket.id}`)}
-                  className="bg-muted/30 p-3 rounded-lg border hover:border-primary hover:bg-muted/50 transition-all cursor-pointer group"
+                  className='bg-muted/30 p-3 rounded-lg border hover:border-primary hover:bg-muted/50 transition-all cursor-pointer group'
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-xs font-bold text-primary">
+                  <div className='flex justify-between items-start mb-2'>
+                    <span className='text-xs font-bold text-primary'>
                       #{ticket.id}
                     </span>
                     <span
@@ -808,10 +888,10 @@ export default function UpdateDeals() {
                       {ticket.ticket_status || 'N/A'}
                     </span>
                   </div>
-                  <p className="text-sm font-semibold truncate">
+                  <p className='text-sm font-semibold truncate'>
                     {ticket.lender_name || 'No Lender'}
                   </p>
-                  <div className="flex flex-col mt-2 gap-1 text-[11px] text-muted-foreground uppercase">
+                  <div className='flex flex-col mt-2 gap-1 text-[11px] text-muted-foreground uppercase'>
                     <span>Type: {ticket.type_of_loan || '—'}</span>
                     <span>Stage: {ticket.ticket_stage || '—'}</span>
                   </div>
@@ -821,44 +901,44 @@ export default function UpdateDeals() {
           )}
         </CardContent>
         {/* ================= Notes ================= */}
-        <SectionHeader title="Notes" />
+        <SectionHeader title='Notes' />
 
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+        <CardContent className='p-4 space-y-3'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground'>
               Total Notes:{' '}
-              <span className="font-semibold">{sortedNotes.length}</span>
+              <span className='font-semibold'>{sortedNotes.length}</span>
             </p>
 
-            <div className="flex gap-2 items-center">
+            <div className='flex gap-2 items-center'>
               {showViewMore && (
                 <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
                   <DialogTrigger asChild>
                     <Button
-                      size="sm"
-                      className="cursor-pointer"
-                      variant="outline"
+                      size='sm'
+                      className='cursor-pointer'
+                      variant='outline'
                     >
                       View More
                     </Button>
                   </DialogTrigger>
 
-                  <DialogContent className="min-w-4xl">
+                  <DialogContent className='min-w-4xl'>
                     <DialogHeader>
                       <DialogTitle>
                         All Notes ({sortedNotes.length})
                       </DialogTitle>
                     </DialogHeader>
 
-                    <div className="max-h-[70vh] overflow-y-auto space-y-3 pr-2">
+                    <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
                       {sortedNotes.map((note: any, i: number) => (
                         <div
                           key={note.parent_id || i}
-                          className="bg-muted/30 p-3 rounded-lg border"
+                          className='bg-muted/30 p-3 rounded-lg border'
                         >
-                          <p className="text-sm">{note.Note_Content}</p>
+                          <p className='text-sm'>{note.Note_Content}</p>
 
-                          <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2">
+                          <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
                             <span>
                               Created By: {note.Created_By?.name || '—'}
                             </span>
@@ -869,7 +949,7 @@ export default function UpdateDeals() {
                                 'dd MMM yyyy, hh:mm a',
                               ) || '—'}
                             </span>
-                            <div className="font-bold">
+                            <div className='font-bold'>
                               Module : {note.module}
                             </div>
                           </div>
@@ -883,16 +963,16 @@ export default function UpdateDeals() {
           </div>
 
           {notes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No notes available</p>
+            <p className='text-sm text-muted-foreground'>No notes available</p>
           ) : (
             visibleNotes.map((note: any, i: number) => (
               <div
                 key={note.parent_id || i}
-                className="bg-muted/30 p-3 rounded-lg border"
+                className='bg-muted/30 p-3 rounded-lg border'
               >
-                <p className="text-sm">{note.Note_Content}</p>
+                <p className='text-sm'>{note.Note_Content}</p>
 
-                <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2">
+                <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
                   <span>Created By: {note.Created_By?.name || '—'}</span>
                   <span>
                     Created Date:{' '}
@@ -901,7 +981,7 @@ export default function UpdateDeals() {
                       'dd MMM yyyy, hh:mm a',
                     ) || '—'}
                   </span>
-                  <div className="font-bold">Module : {note.module}</div>
+                  <div className='font-bold'>Module : {note.module}</div>
                 </div>
               </div>
             ))

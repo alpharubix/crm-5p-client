@@ -42,12 +42,12 @@ function mapDealToForm(apiData: any): UpdateDealFormValues {
     ticketId: apiData.ticket_id ? String(apiData.ticket_id) : '',
     ticketNumber: apiData.ticket_number ? String(apiData.ticket_number) : '',
     dealType: apiData.deal_type || '',
-    loanType: apiData.loan_type || '',
+    loanType: apiData.type_of_loan || '',
     typeOfLogin: apiData.type_of_login || '',
     typeOfCaseLogin: apiData.type_of_case_login || '',
     ticketLogin: apiData.ticket_login || '',
-    caseStage: apiData.case_stage || '',
-    caseStatus: apiData.case_status || '',
+    caseStage: apiData.ticket_stage || '',
+    caseStatus: apiData.ticket_status || '',
     disbursedAmount:
       apiData.disbursed_amount !== null &&
       apiData.disbursed_amount !== undefined
@@ -89,6 +89,7 @@ function mapDealToForm(apiData: any): UpdateDealFormValues {
         : '',
     interestType: apiData.interest_type || '',
     dealCallBackDatetime: apiData.deal_call_back_datetime || '',
+    lenderLoginType: apiData.lender_login_type || '',
     disbursementDate: apiData.disbursement_date || '',
     lenderLoginDate: apiData.lender_login_date || '',
     loanStartDate: apiData.loan_start_date || '',
@@ -109,6 +110,7 @@ function mapDealToForm(apiData: any): UpdateDealFormValues {
     paymentReceipt: apiData.payment_receipt || '',
     potential: apiData.potential || '',
     product: apiData.product || '',
+    partnerCode: apiData.partner_code || '',
     createdBy: apiData.created_by || 'System Driven Field (User)',
     modifiedBy: apiData.modified_by || 'System Driven Field (User)',
   }
@@ -140,13 +142,19 @@ function mapFormToApi(
       key: 'typeOfCaseLogin',
     },
     ticket_login: { value: formData.ticketLogin, key: 'ticketLogin' },
-    case_stage: { value: formData.caseStage, key: 'caseStage' },
-    case_status: { value: formData.caseStatus, key: 'caseStatus' },
+    ticket_stage: { value: formData.caseStage, key: 'caseStage' },
+    type_of_loan: { value: formData.loanType, key: 'loanType' },
+    ticket_status: { value: formData.caseStatus, key: 'caseStatus' },
     disbursed_amount: {
       value: formData.disbursedAmount,
       key: 'disbursedAmount',
     },
+    partner_code: { value: formData.partnerCode, key: 'partnerCode' }, // Remove parseInt
     sanction_amount: { value: formData.sanctionAmount, key: 'sanctionAmount' },
+    lender_login_type: {
+      value: formData.lenderLoginType,
+      key: 'lenderLoginType',
+    },
     approved_amount: { value: formData.approvedAmount, key: 'approvedAmount' },
     amount_required: { value: formData.amountRequired, key: 'amountRequired' },
     processing_fees: { value: formData.processingFees, key: 'processingFees' },
@@ -605,22 +613,33 @@ export default function UpdateDeals() {
             </FieldRow>
             <FieldRow
               label='Lender Login Type'
-              error={errors.lenderName?.message}
+              error={errors.lenderLoginType?.message}
             >
               <SelectField
                 isEdit={isEdit}
                 options={['Direct', 'Partner']}
-                value={formValues.lenderName as string}
+                value={formValues.lenderLoginType as string}
                 onChange={(value) =>
-                  setValue('lenderName', value, {
+                  setValue('lenderLoginType', value, {
+                    // Update lenderLoginType
                     shouldValidate: true,
                     shouldDirty: true,
                   })
                 }
               />
             </FieldRow>
-            <FieldRow label='Partner Code'>
-              <span>{dealData.partner_code || '—'}</span>
+            <FieldRow label='Partner Code' error={errors.partnerCode?.message}>
+              {isEdit ? (
+                <Input
+                  {...register('partnerCode')}
+                  placeholder='Enter Partner Code'
+                  className='h-8'
+                  // ENABLE only if 'Partner' is selected, otherwise DISABLE
+                  disabled={formValues.lenderLoginType !== 'Partner'}
+                />
+              ) : (
+                <span>{formValues.partnerCode || '—'}</span>
+              )}
             </FieldRow>
             <FieldRow label='Type of Loan' error={errors.loanType?.message}>
               <SelectField
@@ -663,9 +682,9 @@ export default function UpdateDeals() {
                   'Rejected',
                   'Not Interested',
                 ]}
-                value={formValues.loanType as string}
+                value={formValues.caseStatus as string}
                 onChange={(value) =>
-                  setValue('loanType', value, {
+                  setValue('caseStatus', value, {
                     shouldValidate: true,
                     shouldDirty: true,
                   })
@@ -698,9 +717,9 @@ export default function UpdateDeals() {
                   'Rejected',
                   'Not Interested',
                 ]}
-                value={formValues.loanType as string}
+                value={formValues.caseStage as string}
                 onChange={(value) =>
-                  setValue('loanType', value, {
+                  setValue('caseStage', value, {
                     shouldValidate: true,
                     shouldDirty: true,
                   })

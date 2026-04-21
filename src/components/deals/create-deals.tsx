@@ -109,9 +109,7 @@ export default function CreateDeal() {
         deal_stage: values.dealStage || undefined,
         lender_name: values.lenderName || undefined,
         lender_login_type: values.lenderLoginType || undefined,
-        partner_code: values.partnerCode
-          ? Number(values.partnerCode)
-          : undefined,
+        partner_code: values.partnerCode || undefined,
         mm_charges: values.mmCharges || undefined,
         customer_rejection_reason: values.customerRejectionReason || undefined,
         customer_rejection_status_explanation:
