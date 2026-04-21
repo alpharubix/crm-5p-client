@@ -440,12 +440,12 @@ export default function DocumentationSection({ dealId }: { dealId: string }) {
                         </TableCell>
                         <TableCell className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap'>
                           {doc.created_at
-                            ? formatExactDate(doc.created_at, 'dd MMM yyyy')
+                            ? formatExactDate(doc.created_at, 'dd MMM yyyy, hh:mm a')
                             : '—'}
                         </TableCell>
                         <TableCell className='px-3 py-2 text-xs text-muted-foreground whitespace-nowrap'>
                           {doc.updated_at
-                            ? formatExactDate(doc.updated_at, 'dd MMM yyyy')
+                            ? formatExactDate(doc.updated_at, 'dd MMM yyyy, hh:mm a')
                             : '—'}
                         </TableCell>
                         <TableCell className='px-3 py-2 text-xs text-muted-foreground'>
