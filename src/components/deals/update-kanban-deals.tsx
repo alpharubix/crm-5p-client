@@ -677,8 +677,18 @@ export default function UpdateDeals() {
                 }
               />
             </FieldRow>
-            <FieldRow label='Partner Code'>
-              <span>{dealData.partner_code || '—'}</span>
+            <FieldRow label='Partner Code' error={errors.partnerCode?.message}>
+              {isEdit ? (
+                <Input
+                  {...register('partnerCode')}
+                  placeholder='Enter Partner Code'
+                  className='h-8'
+                  // ENABLE only if 'Partner' is selected, otherwise DISABLE
+                  disabled={formValues.lenderLoginType !== 'Partner'}
+                />
+              ) : (
+                <span>{formValues.partnerCode || '—'}</span>
+              )}
             </FieldRow>
           </div>
         </CardContent>
