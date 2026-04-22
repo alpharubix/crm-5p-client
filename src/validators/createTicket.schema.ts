@@ -25,6 +25,7 @@ export const createTicketSchema = z.object({
   loanAccountStatus: z.string().optional(),
   lenderRejectionReason: z.string().optional(),
   lenderRejectionStatusExplanation: z.string().optional(),
+  partnerCode: z.string().optional()
 })
 
 export type CreateTicketFormValues = z.infer<typeof createTicketSchema>
