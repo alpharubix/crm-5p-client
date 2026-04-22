@@ -70,6 +70,8 @@ const TICKET_STAGES = [
   'SL Sign and PSD Initiated',
   'SL Sign and PSD Completed',
   'Disbursed',
+  'Rejected',
+  'Not Interested',
 ]
 
 const LENDER_LOGIN_TYPES = ['Fresh', 'Renewal', 'Enhancement', 'Spillover']
@@ -168,6 +170,7 @@ export default function CreateTicket() {
       if (values.lenderRejectionStatusExplanation)
         payload.lender_rejection_status_explanation =
           values.lenderRejectionStatusExplanation
+      if (values.partnerCode) payload.partner_code = values.partnerCode
 
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/tickets`, {
         method: 'POST',
@@ -240,9 +243,90 @@ export default function CreateTicket() {
       </div>
 
       <Card>
-        <SectionHeader title='Ticket Information' />
+        <SectionHeader title='Loan Account Status' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
           <div className='md:border-r'>
+            <FieldRow
+              label='Ticket Login *'
+              error={errors.ticketLogin?.message}
+            >
+              <SelectField
+                isEdit={true}
+                options={['Approved', 'Disapproved']}
+                value={formValues.ticketLogin ?? ''}
+                onChange={(value) =>
+                  setValue('ticketLogin', value, { shouldValidate: true })
+                }
+              />
+            </FieldRow>
+
+            <FieldRow label='Potential'>
+              <Input
+                {...register('potential')}
+                placeholder='Potential'
+                type='number'
+                step='0.01'
+                className='h-8'
+              />
+            </FieldRow>
+
+            <FieldRow
+              label='Lender Login Date *'
+              error={errors.lenderLoginDate?.message}
+            >
+              <DateField
+                isEdit={true}
+                value={
+                  formValues.lenderLoginDate
+                    ? new Date(formValues.lenderLoginDate)
+                    : undefined
+                }
+                onChange={(date) =>
+                  setValue(
+                    'lenderLoginDate',
+                    date ? format(date, 'yyyy-MM-dd') : '',
+                    { shouldValidate: true },
+                  )
+                }
+              />
+            </FieldRow>
+
+            <FieldRow label='Targeted Disbursement Date'>
+              <DateField
+                isEdit={true}
+                value={
+                  formValues.targetedDisbursementDate
+                    ? new Date(formValues.targetedDisbursementDate)
+                    : undefined
+                }
+                onChange={(date) =>
+                  setValue(
+                    'targetedDisbursementDate',
+                    date ? format(date, 'yyyy-MM-dd') : '',
+                  )
+                }
+              />
+            </FieldRow>
+
+            <FieldRow label='Disbursement Date'>
+              <DateField
+                isEdit={true}
+                value={
+                  formValues.disbursementDate
+                    ? new Date(formValues.disbursementDate)
+                    : undefined
+                }
+                onChange={(date) =>
+                  setValue(
+                    'disbursementDate',
+                    date ? format(date, 'yyyy-MM-dd') : '',
+                  )
+                }
+              />
+            </FieldRow>
+          </div>
+
+          <div>
             <FieldRow label='Lender Name *' error={errors.lenderName?.message}>
               <div className='relative'>
                 <Input
@@ -275,6 +359,29 @@ export default function CreateTicket() {
                   </div>
                 )}
               </div>
+            </FieldRow>
+
+            <FieldRow
+              label='Lender Login Type *'
+              error={errors.lenderLoginType?.message}
+            >
+              <SelectField
+                isEdit={true}
+                options={['Direct', 'Partner']}
+                value={formValues.lenderLoginType ?? ''}
+                onChange={(value) =>
+                  setValue('lenderLoginType', value, { shouldValidate: true })
+                }
+              />
+            </FieldRow>
+
+            <FieldRow label='Partner Code'>
+              <Input
+                {...register('partnerCode')}
+                placeholder='Enter Partner Code'
+                className='h-8'
+                disabled={formValues.lenderLoginType !== 'Partner'}
+              />
             </FieldRow>
 
             <FieldRow label='Type of Loan *' error={errors.typeOfLoan?.message}>
@@ -315,103 +422,16 @@ export default function CreateTicket() {
                 }
               />
             </FieldRow>
-
-            <FieldRow
-              label='Lender Login Type *'
-              error={errors.lenderLoginType?.message}
-            >
-              <SelectField
-                isEdit={true}
-                options={LENDER_LOGIN_TYPES}
-                value={formValues.lenderLoginType ?? ''}
-                onChange={(value) =>
-                  setValue('lenderLoginType', value, { shouldValidate: true })
-                }
-              />
-            </FieldRow>
-
-            <FieldRow
-              label='Lender Login Date *'
-              error={errors.lenderLoginDate?.message}
-            >
-              <DateField
-                isEdit={true}
-                value={
-                  formValues.lenderLoginDate
-                    ? new Date(formValues.lenderLoginDate)
-                    : undefined
-                }
-                onChange={(date) =>
-                  setValue(
-                    'lenderLoginDate',
-                    date ? format(date, 'yyyy-MM-dd') : '',
-                    {
-                      shouldValidate: true,
-                    },
-                  )
-                }
-              />
-            </FieldRow>
-
-            <FieldRow
-              label='Ticket Login *'
-              error={errors.ticketLogin?.message}
-            >
-              <SelectField
-                isEdit={true}
-                options={TICKET_LOGIN}
-                value={formValues.ticketLogin ?? ''}
-                onChange={(value) =>
-                  setValue('ticketLogin', value, { shouldValidate: true })
-                }
-              />
-            </FieldRow>
-
-            <FieldRow label='Loan Account Status'>
-              <SelectField
-                isEdit={true}
-                options={['Active', 'Closed', 'Pending']}
-                value={formValues.loanAccountStatus ?? ''}
-                onChange={(value) => setValue('loanAccountStatus', value)}
-              />
-            </FieldRow>
           </div>
+        </CardContent>
 
-          <div>
-            <FieldRow label='Potential'>
-              <Input
-                {...register('potential')}
-                placeholder='Potential'
-                type='number'
-                step='0.01'
-                className='h-8'
-              />
-            </FieldRow>
-
+        <SectionHeader title='Funding & Commercials' />
+        <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
+          <div className='md:border-r'>
             <FieldRow label='Approved Amount'>
               <Input
                 {...register('approvedAmount')}
                 placeholder='Approved Amount'
-                type='number'
-                step='0.01'
-                className='h-8'
-              />
-            </FieldRow>
-
-            <FieldRow label='Sanction Amount'>
-              <Input
-                {...register('sanctionAmount')}
-                placeholder='Sanction Amount'
-                type='number'
-                step='0.01'
-                className='h-8'
-              />
-            </FieldRow>
-
-            <FieldRow label='Disbursed Amount'>
-              <Input
-                {...register('disbursedAmount')}
-                placeholder='Disbursed Amount'
                 type='number'
                 step='0.01'
                 className='h-8'
@@ -457,18 +477,35 @@ export default function CreateTicket() {
                 className='h-8'
               />
             </FieldRow>
-          </div>
-        </CardContent>
 
-        <SectionHeader title='Loan Dates & Terms' />
-        <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2 border-b'>
-          <div className='md:border-r'>
             <FieldRow label='Interest Type'>
               <SelectField
                 isEdit={true}
                 options={['Reducing', 'Fixed', 'Floating']}
                 value={formValues.interestType ?? ''}
                 onChange={(value) => setValue('interestType', value)}
+              />
+            </FieldRow>
+          </div>
+
+          <div>
+            <FieldRow label='Sanction Amount'>
+              <Input
+                {...register('sanctionAmount')}
+                placeholder='Sanction Amount'
+                type='number'
+                step='0.01'
+                className='h-8'
+              />
+            </FieldRow>
+
+            <FieldRow label='Disbursed Amount'>
+              <Input
+                {...register('disbursedAmount')}
+                placeholder='Disbursed Amount'
+                type='number'
+                step='0.01'
+                className='h-8'
               />
             </FieldRow>
 
@@ -509,42 +546,6 @@ export default function CreateTicket() {
                 onChange={(date) =>
                   setValue(
                     'loanEndDate',
-                    date ? format(date, 'yyyy-MM-dd') : '',
-                  )
-                }
-              />
-            </FieldRow>
-          </div>
-
-          <div>
-            <FieldRow label='Targeted Disbursement Date'>
-              <DateField
-                isEdit={true}
-                value={
-                  formValues.targetedDisbursementDate
-                    ? new Date(formValues.targetedDisbursementDate)
-                    : undefined
-                }
-                onChange={(date) =>
-                  setValue(
-                    'targetedDisbursementDate',
-                    date ? format(date, 'yyyy-MM-dd') : '',
-                  )
-                }
-              />
-            </FieldRow>
-
-            <FieldRow label='Disbursement Date'>
-              <DateField
-                isEdit={true}
-                value={
-                  formValues.disbursementDate
-                    ? new Date(formValues.disbursementDate)
-                    : undefined
-                }
-                onChange={(date) =>
-                  setValue(
-                    'disbursementDate',
                     date ? format(date, 'yyyy-MM-dd') : '',
                   )
                 }

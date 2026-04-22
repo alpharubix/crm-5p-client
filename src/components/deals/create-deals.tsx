@@ -223,10 +223,18 @@ export default function CreateDeal() {
               </div>
             </FieldRow>
 
-            <FieldRow label='Deal Type' error={errors.dealType?.message}>
+            <FieldRow label='Deal Type *' error={errors.dealType?.message}>
               <SelectField
                 isEdit={true}
-                options={['New', 'Renewal', 'Enhancement']}
+                options={[
+                  'NTB',
+                  'NTC',
+                  'NTL',
+                  'Adhoc',
+                  'Renewal',
+                  'Renewal & Enhancement',
+                  'Existing',
+                ]}
                 value={formValues.dealType as string}
                 onChange={(value) =>
                   setValue('dealType', value, {
@@ -261,7 +269,7 @@ export default function CreateDeal() {
             </FieldRow>
 
             <FieldRow
-              label='Amount Required'
+              label='Amount Required *'
               error={errors.amountRequired?.message}
             >
               <Input
@@ -273,16 +281,24 @@ export default function CreateDeal() {
               />
             </FieldRow>
 
-            <FieldRow label='Type of Loan' error={errors.loanType?.message}>
+            <FieldRow label='Type of Loan *' error={errors.loanType?.message}>
               <SelectField
                 isEdit={true}
                 options={[
                   'SCF',
                   'SCF Renewal',
+                  'SCF Enhancement',
+                  'SCF (Renewal and Enhancement)',
                   'Open SCF',
+                  'Open SCF Renewal',
+                  'Open SCF Enhancement',
+                  'Open SCF (Renewal and Enhancement)',
                   'BT-SCF',
+                  'BT-Open SCF',
                   'Unsecured OD',
+                  'Unsecured Term Loan',
                   'Secured Loan',
+                  'Secured BT',
                   'Vehicle Loan',
                 ]}
                 value={formValues.loanType as string}
@@ -305,16 +321,15 @@ export default function CreateDeal() {
               />
             </FieldRow>
 
-            <FieldRow label='Deal Status' error={errors.dealStatus?.message}>
+            <FieldRow label='Deal Status *' error={errors.dealStatus?.message}>
               <SelectField
                 isEdit={true}
                 options={[
-                  'Yet to Lender Login',
+                  'Deal Created',
                   'Lender Review',
-                  'In Credit',
-                  'Approved',
-                  'Disbursed',
-                  'Rejected',
+                  'Lender Rejected',
+                  'Achievement',
+                  'Not Interested',
                 ]}
                 value={formValues.dealStatus as string}
                 onChange={(value) =>
@@ -326,10 +341,27 @@ export default function CreateDeal() {
               />
             </FieldRow>
 
-            <FieldRow label='Deal Stage' error={errors.dealStage?.message}>
+            <FieldRow label='Deal Stage *' error={errors.dealStage?.message}>
               <SelectField
                 isEdit={true}
-                options={['Lead', 'Evaluation', 'Negotiation', 'Closed']}
+                options={[
+                  'Yet to Lender Login',
+                  'Ticket to be raised',
+                  'Docs Incomplete',
+                  'Lender Review',
+                  'Pendency Raised by Lender',
+                  'Pendency Resolved',
+                  'In Credit',
+                  'Approved',
+                  'Commerical Shared with Cust',
+                  'Cust Accpt Loan Offer',
+                  'Commercial Closed',
+                  'Commercials NI',
+                  'Disbursement Pending',
+                  'Disbursed',
+                  'Rejected',
+                  'Not Interested',
+                ]}
                 value={formValues.dealStage as string}
                 onChange={(value) =>
                   setValue('dealStage', value, {
@@ -340,7 +372,7 @@ export default function CreateDeal() {
               />
             </FieldRow>
 
-            <FieldRow label='Lender Name' error={errors.lenderName?.message}>
+            <FieldRow label='Lender Name *' error={errors.lenderName?.message}>
               <div className='relative'>
                 <Input
                   value={lenderSearch}
@@ -373,12 +405,12 @@ export default function CreateDeal() {
             </FieldRow>
 
             <FieldRow
-              label='Lender Login Type'
+              label='Lender Login Type *'
               error={errors.lenderLoginType?.message}
             >
               <SelectField
                 isEdit={true}
-                options={['Direct', 'Channel']}
+                options={['Direct', 'Partner']}
                 value={formValues.lenderLoginType as string}
                 onChange={(value) =>
                   setValue('lenderLoginType', value, {
@@ -392,9 +424,9 @@ export default function CreateDeal() {
             <FieldRow label='Partner Code' error={errors.partnerCode?.message}>
               <Input
                 {...register('partnerCode')}
-                placeholder='Partner Code'
-                type='number'
+                placeholder='Enter Partner Code'
                 className='h-8'
+                disabled={formValues.lenderLoginType !== 'Partner'}
               />
             </FieldRow>
           </div>
