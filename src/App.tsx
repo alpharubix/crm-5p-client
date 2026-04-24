@@ -70,22 +70,22 @@ export default function App() {
               <Route path='/deals-create' element={<CreateDeal />} />
               {/* /deals/:id */}
               <Route path='/deals/:id' element={<UpdateDeals />} />
-              <Route path='/kanban-deals' element={<DealsKanban />} />
+              {/*<Route path='/kanban-deals' element={<DealsKanban />} />*/}
 
-              <Route path='/kanban-tickets' element={<TicketsKanban />} />
-              <Route path='/tickets/:id' element={<UpdateTicketsKanban />} />
-              <Route
+              {/*<Route path='/kanban-tickets' element={<TicketsKanban />} />
+              <Route path='/tickets/:id' element={<UpdateTicketsKanban />} />*/}
+              {/*<Route
                 path='/deals/:dealId/tickets/create'
                 element={<CreateTicket />}
-              />
+              />*/}
 
-              <Route element={<ProtectedLogRoute />}>
+              {/*<Route element={<ProtectedLogRoute />}>
                 <Route path='/audit-logs' element={<AuditLogs />} />
               </Route>
 
               <Route path='/projects' element={<Project />} />
               <Route path='/projects/:id' element={<Task />} />
-              <Route path='/exports' element={<Export />} />
+              <Route path='/exports' element={<Export />} />*/}
               <Route path='*' element={<NotFoundPage />} />
             </Route>
           </Routes>

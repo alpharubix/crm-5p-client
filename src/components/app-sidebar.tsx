@@ -51,14 +51,14 @@ const data = {
           title: 'Deals',
           url: '/deals',
         },
-        {
-          title: 'Deals Kanban',
-          url: '/kanban-deals',
-        },
-        {
-          title: 'Tickets Kanban',
-          url: '/kanban-tickets',
-        }
+        // {
+        //   title: 'Deals Kanban',
+        //   url: '/kanban-deals',
+        // },
+        // {
+        //   title: 'Tickets Kanban',
+        //   url: '/kanban-tickets',
+        // }
         // {
         //   title: 'Deals',
         //   url: '/deals',
@@ -72,43 +72,43 @@ const data = {
         // }
       ],
     },
-    {
-      title: 'Export',
-      url: '#',
-      icon: FolderDown,
-      items: [
-        {
-          title: 'All Exports',
-          url: '/exports',
-        },
-      ],
-    },
-    {
-      title: 'Logs',
-      url: '#',
-      icon: Logs,
-      items: [
-        {
-          title: 'Audit Log',
-          url: '/audit-logs',
-        },
-      ],
-    },
-    {
-      title: 'Projects',
-      url: '#',
-      icon: FolderOpenDot,
-      items: [
-        {
-          title: 'All Projects',
-          url: '/projects',
-        },
-        // {
-        //   title: 'All Tasks',
-        //   url: '/tasks',
-        // },
-      ],
-    },
+    // {
+    //   title: 'Export',
+    //   url: '#',
+    //   icon: FolderDown,
+    //   items: [
+    //     {
+    //       title: 'All Exports',
+    //       url: '/exports',
+    //     },
+    //   ],
+    // },
+    // {
+    //   title: 'Logs',
+    //   url: '#',
+    //   icon: Logs,
+    //   items: [
+    //     {
+    //       title: 'Audit Log',
+    //       url: '/audit-logs',
+    //     },
+    //   ],
+    // },
+    // {
+    //   title: 'Projects',
+    //   url: '#',
+    //   icon: FolderOpenDot,
+    //   items: [
+    //     {
+    //       title: 'All Projects',
+    //       url: '/projects',
+    //     },
+    //     // {
+    //     //   title: 'All Tasks',
+    //     //   url: '/tasks',
+    //     // },
+    //   ],
+    // },
   ],
 }
 
