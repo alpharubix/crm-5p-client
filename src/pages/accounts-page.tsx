@@ -87,7 +87,7 @@ export default function AccountsPage() {
   const showOwnerFilter = isSuccess && !ownerResponse?.forbidden
 
   const owners = ownerResponse?.data ?? []
-
+  const isAllowToCreate = true
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['accounts', currentPage, appliedFilters],
     queryFn: async () => {
@@ -109,7 +109,7 @@ export default function AccountsPage() {
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`,
-        { credentials: 'include' }
+        { credentials: 'include' },
       )
 
       if (!res.ok) throw new Error('Failed to fetch')
@@ -187,7 +187,7 @@ export default function AccountsPage() {
         queryFn: async () => {
           const res = await fetch(
             `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${id}`,
-            { credentials: 'include' }
+            { credentials: 'include' },
           )
           if (!res.ok) throw new Error('Failed to fetch account')
           return res.json()
@@ -220,6 +220,11 @@ export default function AccountsPage() {
         )}
 
         <div className='flex gap-2 items-center'>
+          {isAllowToCreate && (
+            <Button onClick={() => navigate('/accounts/create')}>
+              + Create Account
+            </Button>
+          )}
           <UploadCsv isLoading={isLoading} refetch={refetch} />
         </div>
       </div>
@@ -491,7 +496,7 @@ export default function AccountsPage() {
                             {acc.call_back_date_time
                               ? formatExactDate(
                                   acc.call_back_date_time,
-                                  'dd MMM yyyy, hh:mm a'
+                                  'dd MMM yyyy, hh:mm a',
                                 )
                               : '—'}
                           </TableCell>

@@ -12,10 +12,10 @@ import DealsKanban from './components/deals/deals-kanban'
 const AccountPage = lazy(() => import('./pages/accounts-page'))
 const ContactPage = lazy(() => import('./pages/contact-page'))
 const UpdateAccounts = lazy(
-  () => import('./components/accounts/update-accounts')
+  () => import('./components/accounts/update-accounts'),
 )
 const UpdateContacts = lazy(
-  () => import('./components/contacts/update-contacts')
+  () => import('./components/contacts/update-contacts'),
 )
 const NotFoundPage = lazy(() => import('./pages/not-found-page'))
 const CreateContact = lazy(() => import('./components/contacts/create-contact'))
@@ -35,6 +35,7 @@ const UpdateTicketsKanban = lazy(
 const UpdateDealsKanban = lazy(
   () => import('./components/deals/update-kanban-deals'),
 )
+const CreateAccount = lazy(() => import('./components/accounts/create-account'))
 
 export default function App() {
   return (
@@ -63,6 +64,7 @@ export default function App() {
             >
               <Route path='/accounts' element={<AccountPage />} />
               <Route path='/accounts/:id' element={<UpdateAccounts />} />
+              <Route path='/accounts/create' element={<CreateAccount />} />
               <Route path='/contacts' element={<ContactPage />} />
               <Route path='/contacts/:id' element={<UpdateContacts />} />
               <Route path='/contacts-create' element={<CreateContact />} />
@@ -70,14 +72,14 @@ export default function App() {
               <Route path='/deals-create' element={<CreateDeal />} />
               {/* /deals/:id */}
               <Route path='/deals/:id' element={<UpdateDeals />} />
-              {/*<Route path='/kanban-deals' element={<DealsKanban />} />*/}
+              <Route path='/kanban-deals' element={<DealsKanban />} />
 
-              {/*<Route path='/kanban-tickets' element={<TicketsKanban />} />
-              <Route path='/tickets/:id' element={<UpdateTicketsKanban />} />*/}
-              {/*<Route
+              <Route path='/kanban-tickets' element={<TicketsKanban />} />
+              <Route path='/tickets/:id' element={<UpdateTicketsKanban />} />
+              <Route
                 path='/deals/:dealId/tickets/create'
                 element={<CreateTicket />}
-              />*/}
+              />
 
               {/*<Route element={<ProtectedLogRoute />}>
                 <Route path='/audit-logs' element={<AuditLogs />} />
