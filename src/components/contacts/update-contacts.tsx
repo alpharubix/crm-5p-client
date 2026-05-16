@@ -197,7 +197,7 @@ export default function UpdateContacts() {
         body: JSON.stringify({
           id: id,
           note: note.description,
-          module: 'Contacts',
+          module: 'Contacts_5pc',
         }),
       })
 

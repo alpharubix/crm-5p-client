@@ -150,6 +150,14 @@ export default function TicketsKanban() {
               <SelectItem value='Disbursed'>Disbursed</SelectItem>
               <SelectItem value='Rejected'>Rejected</SelectItem>
               <SelectItem value='Not Interested'>Not Interested</SelectItem>
+              <SelectItem value='RM - Doc QC'>RM - Doc QC</SelectItem>
+              <SelectItem value='CPI Analysis'>CPI Analysis</SelectItem>
+              <SelectItem value='Pendency Raised by Lender'>
+                Pendency Raised by Lender
+              </SelectItem>
+              <SelectItem value='Pendency Resolved'>
+                Pendency Resolved
+              </SelectItem>
             </SelectContent>
           </Select>
           <Label htmlFor='from_date'>From -</Label>
