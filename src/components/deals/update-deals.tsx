@@ -36,6 +36,7 @@ import { format } from 'date-fns'
 import DocumentationSection from './deals-documentation'
 import { Plus } from 'lucide-react'
 import LENDER_NAMES from '@/utils/lenders.json'
+import { useAuth } from '@/context/auth-context'
 
 function mapDealToForm(apiData: any): UpdateDealFormValues {
   return {
@@ -242,7 +243,16 @@ export default function UpdateDeals() {
   const navigate = useNavigate()
   const [isEdit, setIsEdit] = useState(false)
   const [openAllNotes, setOpenAllNotes] = useState(false)
+  const { user } = useAuth()
+  const allowedEmails = [
+    'prathap@r1xchange.com',
+    'pranay.kumar@r1xchange.com',
+    'sutapa.roy@r1xchange.com',
+    'namrata.srivastava@r1xchange.com',
+    'subhasini.ts@r1xchange.com',
+  ]
 
+  const isEmailAuthorized = allowedEmails.includes(user?.email!)
   const {
     register,
     handleSubmit,
@@ -300,6 +310,9 @@ export default function UpdateDeals() {
 
   const notes = (dealData as any)?.notes || []
 
+  const revenues = (dealData as any)?.revenue || []
+  console.log(revenues, 'revenues')
+
   const sortedNotes = [...notes].sort((a: any, b: any) => {
     return (
       new Date(b.Created_Time).getTime() - new Date(a.Created_Time).getTime()
@@ -354,7 +367,7 @@ export default function UpdateDeals() {
         body: JSON.stringify({
           id: id,
           note: note.description,
-          module: 'Deals_5pc',
+          module: 'Deals',
         }),
       })
 
@@ -743,13 +756,20 @@ export default function UpdateDeals() {
                     ? new Date(formValues.dealExpectedClosing)
                     : undefined
                 }
-                onChange={(date) =>
-                  setValue(
-                    'dealExpectedClosing',
-                    date ? date.toISOString().split('T')[0] : '',
-                    { shouldDirty: true },
-                  )
-                }
+                onChange={(date) => {
+                  if (!date) {
+                    setValue('dealExpectedClosing', '')
+                    return
+                  }
+
+                  const year = date.getFullYear()
+                  const month = String(date.getMonth() + 1).padStart(2, '0')
+                  const day = String(date.getDate()).padStart(2, '0')
+
+                  setValue('dealExpectedClosing', `${year}-${month}-${day}`, {
+                    shouldDirty: true,
+                  })
+                }}
               />
             </FieldRow>
           </div>
@@ -840,6 +860,7 @@ export default function UpdateDeals() {
             </FieldRow>
           </div>
         </CardContent>
+
         {/* ================= Linked Tickets ================= */}
         <SectionHeader title='Linked Tickets' />
         <CardContent className='p-4 space-y-3 border-b'>
@@ -850,14 +871,16 @@ export default function UpdateDeals() {
                 {(dealData as any)?.tickets?.length || 0}
               </span>
             </p>
-            <Button
-              size='sm'
-              variant='outline'
-              className='cursor-pointer'
-              onClick={() => navigate(`/deals/${id}/tickets/create`)}
-            >
-              <Plus className='h-4 w-4 mr-1' /> Add Ticket
-            </Button>
+            {isEmailAuthorized && (
+              <Button
+                size='sm'
+                variant='outline'
+                className='cursor-pointer'
+                onClick={() => navigate(`/deals/${id}/tickets/create`)}
+              >
+                <Plus className='h-4 w-4 mr-1' /> Add Ticket
+              </Button>
+            )}
           </div>
 
           {!(dealData as any)?.tickets ||
@@ -899,6 +922,66 @@ export default function UpdateDeals() {
             </div>
           )}
         </CardContent>
+
+        <SectionHeader title='Revenue' />
+        <CardContent className='p-4 space-y-3 border-b'>
+          <div className='flex items-center justify-between mb-2'>
+            <p className='text-sm text-muted-foreground'>
+              Total Revenue:{' '}
+              <span className='font-semibold'>{revenues.length || 0}</span>
+            </p>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() =>
+                navigate(`/revenue-create`, {
+                  state: {
+                    dealId: id,
+                    accountName: dealData.account_name,
+                    lenderName: dealData.lender_name,
+                  },
+                })
+              }
+            >
+              <Plus className='h-4 w-4 mr-2' />
+              Add Revenue
+            </Button>
+          </div>
+
+          {revenues.length === 0 ? (
+            <p className='text-sm text-muted-foreground'>
+              No revenues associated with this deal.
+            </p>
+          ) : (
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
+              {revenues.map((revenue: any) => (
+                <div
+                  key={revenue.id}
+                  onClick={() => navigate(`/revenue/${revenue.id}`)}
+                  className='bg-muted/30 p-3 rounded-lg border hover:border-primary hover:bg-muted/50 transition-all cursor-pointer group'
+                >
+                  <div className='flex justify-between items-start mb-2'>
+                    <span className='text-[13px] py-0.5 rounded-full uppercase font-bold '>
+                      {revenue.account_name || 'N/A'}
+                    </span>
+                  </div>
+                  <div className='flex flex-col mt-2 gap-1 text-[11px] text-muted-foreground uppercase'>
+                    <span>
+                      Owner:{' '}
+                      {(users as Record<string, string>)[revenue.owner_id] ||
+                        '—'}
+                    </span>
+                    <span>Lender Name: {revenue.lender_name || '—'}</span>
+                    <span>
+                      Type of revenue: {revenue.type_of_revenue || '—'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+
         {/* ================= Notes ================= */}
         <SectionHeader title='Notes' />
 

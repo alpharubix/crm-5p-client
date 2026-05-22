@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '../ui/card'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   DndContext,
   DragOverlay,
@@ -22,6 +22,13 @@ export interface KanbanFilters {
   type_of_loan?: string
   created_from?: string
   created_to?: string
+  lender_login_from?: string
+  lender_login_to?: string
+  deal_owner_id?: string
+  targeted_disbursement_from: string
+  targeted_disbursement_to: string
+  disbursement_from: string
+  disbursement_to: string
 }
 
 export interface TicketData {
@@ -88,33 +95,37 @@ function DraggableTicketCard({ ticket }: { ticket: TicketData }) {
       {...attributes}
       className={isDragging ? 'opacity-50' : ''}
     >
-      <Card
-        className='transition-colors py-0 gap-0 overflow-hidden cursor-grab hover:bg-muted/30'
-        onClick={() => navigate(`/tickets/${ticket.id}`)}
-      >
-        <CardContent className='p-3 text-sm grid gap-1'>
-          <p className='font-semibold text-base leading-tight'>
-            {ticket.dealName}
-          </p>
-          <div className='grid grid-cols-[110px_1fr] gap-x-2 gap-y-1 mt-2 items-start text-xs'>
-            <span className='text-muted-foreground font-medium'>Ticket ID</span>
-            <span className='font-medium line-clamp-1'>
-              {ticket.ticketId || '-'}
-            </span>
-            <span className='text-muted-foreground font-medium'>
-              Deal Owner
-            </span>
-            <span className='font-medium'>
-              {(users as Record<string, string>)[ticket.dealOwner] ||
-                `#${ticket.dealOwner}`}
-            </span>
-            <span className='text-muted-foreground font-medium'>
-              Lender Name
-            </span>
-            <span className='font-medium'>{ticket.lenderName || '-'}</span>
-          </div>
-        </CardContent>
-      </Card>
+      <Link to={`/tickets/${ticket.id}`} target='_blank'>
+        <Card
+          className='transition-colors py-0 gap-0 overflow-hidden hover:bg-muted/30'
+          // onClick={() => navigate(`/tickets/${ticket.id}`)}
+        >
+          <CardContent className='p-3 text-sm grid gap-1'>
+            <p className='font-semibold text-base leading-tight'>
+              {ticket.dealName}
+            </p>
+            <div className='grid grid-cols-[110px_1fr] gap-x-2 gap-y-1 mt-2 items-start text-xs'>
+              <span className='text-muted-foreground font-medium'>
+                Ticket ID
+              </span>
+              <span className='font-medium line-clamp-1'>
+                {ticket.ticketId || '-'}
+              </span>
+              <span className='text-muted-foreground font-medium'>
+                Deal Owner
+              </span>
+              <span className='font-medium'>
+                {(users as Record<string, string>)[ticket.dealOwner] ||
+                  `#${ticket.dealOwner}`}
+              </span>
+              <span className='text-muted-foreground font-medium'>
+                Lender Name
+              </span>
+              <span className='font-medium'>{ticket.lenderName || '-'}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   )
 }
@@ -171,18 +182,20 @@ function DroppableTicketColumn({
 export default function TicketsKanbanView({
   filters,
   enabled,
+  onTotalFetched,
 }: {
   filters: KanbanFilters
   enabled: boolean
+  onTotalFetched?: (total: number) => void
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
-
+  const [totalTickets, setTotalTickets] = useState(0)
   const [ticketsList, setTicketsList] = useState<TicketData[]>([])
   const [activeTicket, setActiveTicket] = useState<TicketData | null>(null)
 
-  const { data: grouped = {}, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['tickets-kanban', filters],
     queryFn: async () => {
       const params = new URLSearchParams({ kanban: 'true' })
@@ -191,17 +204,21 @@ export default function TicketsKanbanView({
       })
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/tickets?${params}`,
-        {
-          credentials: 'include',
-        },
+        { credentials: 'include' },
       )
       if (!res.ok) throw new Error('Failed')
-      const json = await res.json()
-      return (json.data ?? {}) as Record<string, any[]>
+      return await res.json() // RETURN FULL JSON
     },
     enabled,
     retry: false,
   })
+  const grouped = data?.data ?? {}
+  console.log({ grouped })
+  // useEffect(() => {
+  //   if (data?.page_info?.total !== undefined) {
+  //     onTotalFetched?.(data.page_info.total)
+  //   }
+  // }, [data?.page_info?.total, onTotalFetched])
 
   useEffect(() => {
     const flat: TicketData[] = Object.entries(grouped).flatMap(
@@ -256,7 +273,17 @@ export default function TicketsKanbanView({
     onDragStart={onDragStart}
     onDragEnd={onDragEnd}
     > */}
-      <div className='flex gap-4 pb-4 overflow-x-auto items-start h-full min-h-0'>
+      <span className='text-sm font-bold text-indigo-600'>
+        {/* If you have the data from the hook: */}
+        Total - {data?.page_info?.total || 0}
+      </span>
+      {data?.page_info?.total > 200 && (
+        <span className='text-[11px] text-amber-600 font-medium italic'>
+          * Limit reached (200). Filter by date or owner to see specific
+          tickets.
+        </span>
+      )}
+      <div className='flex gap-5 pb-6 overflow-x-auto items-start h-[calc(92vh-140px)] min-h-0 px-1'>
         {COLUMNS.map((col) => (
           <DroppableTicketColumn
             key={col}
