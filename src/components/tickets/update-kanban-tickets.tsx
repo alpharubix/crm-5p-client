@@ -383,6 +383,15 @@ export default function UpdateDeals() {
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
           <h1 className='text-lg font-semibold'>
+            Account:{' '}
+            <span className='text-primary font-bold '>
+              {dealData.account_name}
+            </span>{' '}
+            <span className='text-primary font-bold '>
+              #{dealData.account_id}
+            </span>
+          </h1>
+          <h1 className='text-lg font-semibold'>
             Deal Owner Name:{' '}
             <span className='text-primary font-bold '>
               {(users as Record<string, string>)[dealData.created_by] || `NA`}

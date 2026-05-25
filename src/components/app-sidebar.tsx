@@ -59,10 +59,10 @@ const data = {
           title: 'Tickets Kanban',
           url: '/kanban-tickets',
         },
-        // {
-        //   title: 'Revenue',
-        //   url: '/revenue',
-        // },
+        {
+          title: 'Revenue',
+          url: '/revenue',
+        },
         // {
         //   title: 'Deals Kanban',
         //   url: '/kanban-deals',

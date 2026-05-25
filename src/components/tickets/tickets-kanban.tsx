@@ -108,21 +108,21 @@ export default function TicketsKanban() {
       f.ticket_status = localFilters.ticket_status
     if (localFilters.created_from) f.created_from = localFilters.created_from
     if (localFilters.created_to) f.created_to = localFilters.created_to
-    // if (localFilters.deal_owner_id !== 'all')
-    //   f.deal_owner_id = localFilters.deal_owner_id
+    if (localFilters.deal_owner_id !== 'all')
+      f.deal_owner_id = localFilters.deal_owner_id
 
-    // if (localFilters.lender_login_from)
-    //   f.lender_login_from = localFilters.lender_login_from
-    // if (localFilters.lender_login_to)
-    //   f.lender_login_to = localFilters.lender_login_to
-    // if (localFilters.targeted_disbursement_from)
-    //   f.targeted_disbursement_from = localFilters.targeted_disbursement_from
-    // if (localFilters.targeted_disbursement_to)
-    //   f.targeted_disbursement_to = localFilters.targeted_disbursement_to
-    // if (localFilters.disbursement_from)
-    //   f.disbursement_from = localFilters.disbursement_from
-    // if (localFilters.disbursement_to)
-    //   f.disbursement_to = localFilters.disbursement_to
+    if (localFilters.lender_login_from)
+      f.lender_login_from = localFilters.lender_login_from
+    if (localFilters.lender_login_to)
+      f.lender_login_to = localFilters.lender_login_to
+    if (localFilters.targeted_disbursement_from)
+      f.targeted_disbursement_from = localFilters.targeted_disbursement_from
+    if (localFilters.targeted_disbursement_to)
+      f.targeted_disbursement_to = localFilters.targeted_disbursement_to
+    if (localFilters.disbursement_from)
+      f.disbursement_from = localFilters.disbursement_from
+    if (localFilters.disbursement_to)
+      f.disbursement_to = localFilters.disbursement_to
 
     setAppliedFilters(f)
     setHasApplied(true)

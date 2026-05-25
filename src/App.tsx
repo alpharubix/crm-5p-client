@@ -36,6 +36,9 @@ const UpdateDealsKanban = lazy(
   () => import('./components/deals/update-kanban-deals'),
 )
 const CreateAccount = lazy(() => import('./components/accounts/create-account'))
+const Revenue = lazy(() => import('./pages/revenue'))
+const CreateRevenue = lazy(() => import('./components/revenue/create-revenue'))
+const UpdateRevenue = lazy(() => import('./components/revenue/update-revenue'))
 
 export default function App() {
   return (
@@ -68,6 +71,7 @@ export default function App() {
               <Route path='/contacts' element={<ContactPage />} />
               <Route path='/contacts/:id' element={<UpdateContacts />} />
               <Route path='/contacts-create' element={<CreateContact />} />
+
               <Route path='/deals' element={<DealsPage />} />
               <Route path='/deals-create' element={<CreateDeal />} />
               {/* /deals/:id */}
@@ -80,6 +84,9 @@ export default function App() {
                 path='/deals/:dealId/tickets/create'
                 element={<CreateTicket />}
               />
+              <Route path='/revenue' element={<Revenue />} />
+              <Route path='/revenue-create' element={<CreateRevenue />} />
+              <Route path='/revenue/:id' element={<UpdateRevenue />} />
 
               {/*<Route element={<ProtectedLogRoute />}>
                 <Route path='/audit-logs' element={<AuditLogs />} />

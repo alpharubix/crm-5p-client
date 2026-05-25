@@ -245,11 +245,11 @@ export default function UpdateDeals() {
   const [openAllNotes, setOpenAllNotes] = useState(false)
   const { user } = useAuth()
   const allowedEmails = [
-    'prathap@r1xchange.com',
-    'pranay.kumar@r1xchange.com',
-    'sutapa.roy@r1xchange.com',
-    'namrata.srivastava@r1xchange.com',
-    'subhasini.ts@r1xchange.com',
+    'prathap@5pointcredit.com',
+    'pranay.kumar@5pointcredit.com',
+    'sutapa.roy@5pointcredit.com',
+    'namrata.srivastava@5pointcredit.com',
+    'subhasini.ts@5pointcredit.com',
   ]
 
   const isEmailAuthorized = allowedEmails.includes(user?.email!)
@@ -410,9 +410,18 @@ export default function UpdateDeals() {
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
           <h1 className='text-lg font-semibold'>
+            Account :{' '}
+            <span className='text-primary font-bold '>
+              {dealData.account_name || `NA`}
+            </span>{' '}
+            <span className='text-primary font-bold '>
+              #{dealData.account_id || `NA`}
+            </span>
+          </h1>
+          <h1 className='text-lg font-semibold'>
             Deal Name:{' '}
             <span className='text-primary font-bold '>
-              {dealData.account_name || `#${dealData.id}`}
+              {dealData.account_name || `NA`}
             </span>{' '}
             <span className='text-primary font-bold '>{`#${dealData.id}`}</span>
           </h1>
