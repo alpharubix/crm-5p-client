@@ -367,7 +367,7 @@ export default function UpdateDeals() {
         body: JSON.stringify({
           id: id,
           note: note.description,
-          module: 'Deals',
+          module: 'Deals_5pc',
         }),
       })
 
