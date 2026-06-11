@@ -19,13 +19,14 @@ import users from '@/utils/users.json'
 export interface KanbanFilters {
   account_name?: string
   deal_status?: string
-  loan_type?: string
+  loan_type?: string[]
   created_from?: string
   created_to?: string
-  expected_from: string
-  expected_to: string
-  status_closing_from: string
-  status_closing_to: string
+  expected_from?: string
+  expected_to?: string
+  status_closing_from?: string
+  status_closing_to?: string
+  deal_owner_id?: string[]
 }
 
 export interface DealData {
@@ -206,7 +207,11 @@ export default function DealsKanbanView({
     queryFn: async () => {
       const params = new URLSearchParams({ kanban: 'true' })
       Object.entries(filters).forEach(([k, v]) => {
-        if (v) params.set(k, v)
+        if (Array.isArray(v)) {
+          v.forEach((val) => params.append(k, val))
+        } else if (v) {
+          params.set(k, v as string)
+        }
       })
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/deals?${params}`, {
         credentials: 'include',

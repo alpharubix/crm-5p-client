@@ -1,6 +1,6 @@
 import { Plus, RefreshCw } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,6 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -23,20 +22,21 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   useQuery,
   useQueryClient,
   keepPreviousData,
 } from '@tanstack/react-query'
-import type { Deal } from '@/types'
 import { ENV } from '@/conf'
 import users from '@/utils/users.json'
 import Pagination from '@/components/shared/pagination'
-import { useNavigate } from 'react-router-dom'
 import { formatExactDate } from '@/utils/date-formatter'
 import HighlightedText from '@/components/shared/highlighted-text'
-import ExportCsvButton from '@/components/shared/export-csv-button'
-import LENDER_NAMES from '@/utils/lenders.json'
-import { SearchableSelect } from '@/components/searchable-select'
 import { MultiSelect, type Option } from '@/components/ui/multi-select'
 
 const LOAN_TYPES = [
@@ -57,7 +57,7 @@ const LOAN_TYPES = [
   'Vehicle Loan',
 ]
 
-const CASE_STATUSES = [
+const TICKET_STATUSES = [
   'Yet to Lender Login',
   'Lender Review',
   'In Credit',
@@ -67,42 +67,41 @@ const CASE_STATUSES = [
   'Not Interested',
 ]
 
-const TYPE_OF_CASE_LOGIN = ['Fresh', 'Spillover']
-
-const TICKET_LOGIN = [
-  'Approved',
-  'Disapproved',
-  'L1 Pendency',
-  'L2 Pendency',
-  'L3 Pendency',
-  'Rejected',
-]
-
 const LOAN_TYPE_OPTIONS: Option[] = LOAN_TYPES.map((val) => ({ value: val, label: val }))
-const CASE_STATUS_OPTIONS: Option[] = CASE_STATUSES.map((val) => ({ value: val, label: val }))
-const TYPE_OF_CASE_LOGIN_OPTIONS: Option[] = TYPE_OF_CASE_LOGIN.map((val) => ({ value: val, label: val }))
-const TICKET_LOGIN_OPTIONS: Option[] = TICKET_LOGIN.map((val) => ({ value: val, label: val }))
-const LENDER_OPTIONS: Option[] = LENDER_NAMES.map((val) => ({ value: val, label: val }))
+const TICKET_STATUS_OPTIONS: Option[] = TICKET_STATUSES.map((val) => ({ value: val, label: val }))
 
-const DealsPage = () => {
+function getDefaultDates() {
+  const to = new Date()
+  const from = new Date()
+  from.setDate(from.getDate() - 30)
+  return {
+    // createdFrom: from.toISOString().split('T')[0],
+    // createdTo: to.toISOString().split('T')[0],
+  }
+}
+
+const TicketsPage = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const [filters, setFilters] = useState({
-    accountName: searchParams.get('accountName') || '',
-    lenderName: [] as Option[],
-    caseStatus: [] as Option[],
-    ticketLogin: [] as Option[],
-    loanType: [] as Option[],
-    typeOfCaseLogin: [] as Option[],
-    dealOwnerId: [] as Option[],
-    createdFrom: searchParams.get('createdFrom') || '',
-    createdTo: searchParams.get('createdTo') || '',
-    expectedClosingFrom: searchParams.get('expectedClosingFrom') || '',
-    expectedClosingTo: searchParams.get('expectedClosingTo') || '',
-    statusClosingFrom: searchParams.get('statusClosingFrom') || '',
-    statusClosingTo: searchParams.get('statusClosingTo') || '',
+  const [filters, setFilters] = useState(() => {
+    const defaultDates = getDefaultDates()
+    return {
+      accountName: searchParams.get('accountName') || '',
+      typeOfLoan: [] as Option[],
+      ticketStatus: [] as Option[],
+      dealOwnerId: [] as Option[],
+      // createdFrom: searchParams.get('createdFrom') || defaultDates.createdFrom,
+      // createdTo: searchParams.get('createdTo') || defaultDates.createdTo,
+      lenderLoginFrom: searchParams.get('lenderLoginFrom') || '',
+      lenderLoginTo: searchParams.get('lenderLoginTo') || '',
+      targetedDisbursementFrom:
+        searchParams.get('targetedDisbursementFrom') || '',
+      targetedDisbursementTo: searchParams.get('targetedDisbursementTo') || '',
+      disbursementFrom: searchParams.get('disbursementFrom') || '',
+      disbursementTo: searchParams.get('disbursementTo') || '',
+    }
   })
 
   const [appliedFilters, setAppliedFilters] = useState(filters)
@@ -110,6 +109,33 @@ const DealsPage = () => {
   const [currentPage, setCurrentPage] = useState(() => {
     const page = searchParams.get('page')
     return page ? parseInt(page) : 1
+  })
+
+  // Modal State for Create Ticket
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [dealSearch, setDealSearch] = useState('')
+  const [debouncedDealSearch, setDebouncedDealSearch] = useState('')
+  const [isDealOpen, setIsDealOpen] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedDealSearch(dealSearch), 500)
+    return () => clearTimeout(timer)
+  }, [dealSearch])
+
+  const { data: dealsData, isLoading: isLoadingDeals } = useQuery({
+    queryKey: ['deal-lookup', debouncedDealSearch],
+    queryFn: async () => {
+      if (!debouncedDealSearch) return { data: [] }
+      const res = await fetch(
+        `${
+          ENV.VITE_BACKEND_BASE_URL
+        }/deals/hot-lookup?deal_name=${encodeURIComponent(debouncedDealSearch)}`,
+        { credentials: 'include' },
+      )
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+    enabled: debouncedDealSearch.length > 0,
   })
 
   const { data: ownerResponse, isSuccess } = useQuery({
@@ -139,42 +165,18 @@ const DealsPage = () => {
       })
     }
 
-    const statuses = searchParams.getAll('caseStatus')
-    if (statuses.length > 0) {
-      loadedFilters.caseStatus = statuses.map((val) => {
-        const matched = CASE_STATUS_OPTIONS.find((o) => o.value === val)
-        return { value: val, label: matched ? matched.label : val }
-      })
-    }
-
-    const logins = searchParams.getAll('ticketLogin')
-    if (logins.length > 0) {
-      loadedFilters.ticketLogin = logins.map((val) => {
-        const matched = TICKET_LOGIN_OPTIONS.find((o) => o.value === val)
-        return { value: val, label: matched ? matched.label : val }
-      })
-    }
-
-    const loans = searchParams.getAll('loanType')
+    const loans = searchParams.getAll('typeOfLoan')
     if (loans.length > 0) {
-      loadedFilters.loanType = loans.map((val) => {
+      loadedFilters.typeOfLoan = loans.map((val) => {
         const matched = LOAN_TYPE_OPTIONS.find((o) => o.value === val)
         return { value: val, label: matched ? matched.label : val }
       })
     }
 
-    const cases = searchParams.getAll('typeOfCaseLogin')
-    if (cases.length > 0) {
-      loadedFilters.typeOfCaseLogin = cases.map((val) => {
-        const matched = TYPE_OF_CASE_LOGIN_OPTIONS.find((o) => o.value === val)
-        return { value: val, label: matched ? matched.label : val }
-      })
-    }
-
-    const lenders = searchParams.getAll('lenderName')
-    if (lenders.length > 0) {
-      loadedFilters.lenderName = lenders.map((val) => {
-        const matched = LENDER_OPTIONS.find((o) => o.value === val)
+    const statuses = searchParams.getAll('ticketStatus')
+    if (statuses.length > 0) {
+      loadedFilters.ticketStatus = statuses.map((val) => {
+        const matched = TICKET_STATUS_OPTIONS.find((o) => o.value === val)
         return { value: val, label: matched ? matched.label : val }
       })
     }
@@ -186,36 +188,21 @@ const DealsPage = () => {
   }, [isSuccess, owners, searchParams])
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['deals', currentPage, appliedFilters],
+    queryKey: ['tickets-list', currentPage, appliedFilters],
     queryFn: async () => {
       const params = new URLSearchParams()
       params.set('page', currentPage.toString())
 
       if (appliedFilters.accountName)
         params.set('account_name', appliedFilters.accountName)
-      if (appliedFilters.lenderName && appliedFilters.lenderName.length > 0) {
-        appliedFilters.lenderName.forEach((o: Option) =>
-          params.append('lender_name', o.value),
+      if (appliedFilters.typeOfLoan && appliedFilters.typeOfLoan.length > 0) {
+        appliedFilters.typeOfLoan.forEach((o: Option) =>
+          params.append('type_of_loan', o.value),
         )
       }
-      if (appliedFilters.caseStatus && appliedFilters.caseStatus.length > 0) {
-        appliedFilters.caseStatus.forEach((o: Option) =>
-          params.append('case_status', o.value),
-        )
-      }
-      if (appliedFilters.ticketLogin && appliedFilters.ticketLogin.length > 0) {
-        appliedFilters.ticketLogin.forEach((o: Option) =>
-          params.append('ticket_login', o.value),
-        )
-      }
-      if (appliedFilters.loanType && appliedFilters.loanType.length > 0) {
-        appliedFilters.loanType.forEach((o: Option) =>
-          params.append('loan_type', o.value),
-        )
-      }
-      if (appliedFilters.typeOfCaseLogin && appliedFilters.typeOfCaseLogin.length > 0) {
-        appliedFilters.typeOfCaseLogin.forEach((o: Option) =>
-          params.append('type_of_case_login', o.value),
+      if (appliedFilters.ticketStatus && appliedFilters.ticketStatus.length > 0) {
+        appliedFilters.ticketStatus.forEach((o: Option) =>
+          params.append('ticket_status', o.value),
         )
       }
       if (appliedFilters.dealOwnerId && appliedFilters.dealOwnerId.length > 0) {
@@ -223,32 +210,42 @@ const DealsPage = () => {
           params.append('deal_owner_id', o.value),
         )
       }
-      // 2. Map local hooks to match exact native backend endpoint keys
-      if (appliedFilters.createdFrom)
-        params.set('created_from', appliedFilters.createdFrom)
-      if (appliedFilters.createdTo)
-        params.set('created_to', appliedFilters.createdTo)
-      if (appliedFilters.expectedClosingFrom)
-        params.set('expected_closing_from', appliedFilters.expectedClosingFrom)
-      if (appliedFilters.expectedClosingTo)
-        params.set('expected_closing_to', appliedFilters.expectedClosingTo)
-      if (appliedFilters.statusClosingFrom)
-        params.set('status_closing_from', appliedFilters.statusClosingFrom)
-      if (appliedFilters.statusClosingTo)
-        params.set('status_closing_to', appliedFilters.statusClosingTo)
+
+      // if (appliedFilters.createdFrom)
+      //   params.set('created_from', appliedFilters.createdFrom)
+      // if (appliedFilters.createdTo)
+      //   params.set('created_to', appliedFilters.createdTo)
+      if (appliedFilters.lenderLoginFrom)
+        params.set('lender_login_from', appliedFilters.lenderLoginFrom)
+      if (appliedFilters.lenderLoginTo)
+        params.set('lender_login_to', appliedFilters.lenderLoginTo)
+      if (appliedFilters.targetedDisbursementFrom)
+        params.set(
+          'targeted_disbursement_from',
+          appliedFilters.targetedDisbursementFrom,
+        )
+      if (appliedFilters.targetedDisbursementTo)
+        params.set(
+          'targeted_disbursement_to',
+          appliedFilters.targetedDisbursementTo,
+        )
+      if (appliedFilters.disbursementFrom)
+        params.set('disbursement_from', appliedFilters.disbursementFrom)
+      if (appliedFilters.disbursementTo)
+        params.set('disbursement_to', appliedFilters.disbursementTo)
 
       const res = await fetch(
-        `${ENV.VITE_BACKEND_BASE_URL}/deals?${params.toString()}`,
+        `${ENV.VITE_BACKEND_BASE_URL}/tickets?${params.toString()}`,
         { credentials: 'include' },
       )
-      if (!res.ok) throw new Error('Failed to fetch deals')
+      if (!res.ok) throw new Error('Failed to fetch tickets')
       return res.json()
     },
     placeholderData: keepPreviousData,
   })
 
-  const DealsData: Deal[] = data?.data || []
-  const pageInfo = data?.page_info || { page: 1, total_pages: 1 }
+  const TicketsData: any[] = data?.data || []
+  const pageInfo = data?.page_info || { page: 1, total_pages: 1, data_size: 0 }
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
@@ -262,7 +259,7 @@ const DealsPage = () => {
         value.forEach((item: Option) => {
           params.append(key, item.value)
         })
-      } else if (value) {
+      } else if (value && value !== 'all') {
         params.set(key, String(value))
       }
     })
@@ -274,18 +271,15 @@ const DealsPage = () => {
   const handleClear = () => {
     const emptyFilters = {
       accountName: '',
-      lenderName: [] as Option[],
-      caseStatus: [] as Option[],
-      ticketLogin: [] as Option[],
-      loanType: [] as Option[],
-      typeOfCaseLogin: [] as Option[],
+      typeOfLoan: [] as Option[],
+      ticketStatus: [] as Option[],
       dealOwnerId: [] as Option[],
-      createdFrom: '',
-      createdTo: '',
-      expectedClosingFrom: '',
-      expectedClosingTo: '',
-      statusClosingFrom: '',
-      statusClosingTo: '',
+      lenderLoginFrom: '',
+      lenderLoginTo: '',
+      targetedDisbursementFrom: '',
+      targetedDisbursementTo: '',
+      disbursementFrom: '',
+      disbursementTo: '',
     }
     setFilters(emptyFilters)
     setAppliedFilters(emptyFilters)
@@ -303,19 +297,19 @@ const DealsPage = () => {
   const handleRowClick = async (id: string) => {
     try {
       await queryClient.ensureQueryData({
-        queryKey: ['deal', id],
+        queryKey: ['ticket', id],
         queryFn: async () => {
           const res = await fetch(
-            `${ENV.VITE_BACKEND_BASE_URL}/deals?deal_id=${id}`,
+            `${ENV.VITE_BACKEND_BASE_URL}/tickets/${id}`,
             { credentials: 'include' },
           )
-          if (!res.ok) throw new Error('Failed to fetch deal')
+          if (!res.ok) throw new Error('Failed to fetch ticket')
           return res.json()
         },
       })
-      window.open(`${window.location.origin}/deals/${id}`, '_blank')
+      window.open(`${window.location.origin}/tickets/${id}`, '_blank')
     } catch (error) {
-      window.open(`${window.location.origin}/deals/${id}`, '_blank')
+      window.open(`${window.location.origin}/tickets/${id}`, '_blank')
     }
   }
 
@@ -323,9 +317,11 @@ const DealsPage = () => {
     <div className='p-4 space-y-4'>
       <div className='flex items-center justify-between'>
         <div>
-          <h1 className='text-2xl font-bold tracking-tight'>Deals Database</h1>
+          <h1 className='text-2xl font-bold tracking-tight'>
+            Tickets Database
+          </h1>
           <p className='text-muted-foreground'>
-            Manage your potential deals here.
+            Manage your individual tickets here.
           </p>
         </div>
 
@@ -334,7 +330,7 @@ const DealsPage = () => {
         ) : (
           <div className='flex gap-2 items-center justify-start'>
             <h3 className='font-semibold text-muted-foreground'>
-              Total Deals :
+              Total Tickets :
             </h3>
             <p className='text-muted-foreground'>{pageInfo.data_size || 0}</p>
           </div>
@@ -344,10 +340,10 @@ const DealsPage = () => {
           <Button
             variant='outline'
             className='cursor-pointer'
-            onClick={() => navigate('/deals-create')}
+            onClick={() => setIsModalOpen(true)}
           >
-            <Plus className='h-4 w-4' />
-            Create Deal
+            <Plus className='h-4 w-4 mr-2' />
+            Create Ticket
           </Button>
           <Button
             variant='outline'
@@ -367,16 +363,37 @@ const DealsPage = () => {
       <div className='grid grid-cols-[280px_1fr] gap-4'>
         {/* Filter sidebar */}
         <div className='border rounded-md p-3 space-y-4 bg-background overflow-y-auto h-[calc(100vh-140px)] pr-2'>
-          <h3 className='font-semibold text-sm'>Filter Deals by</h3>
+          <h3 className='font-semibold text-sm'>Filter Tickets by</h3>
 
           <div className='space-y-2'>
             <Label>Deal Name</Label>
             <Input
-              placeholder='Account Name'
+              placeholder='Deal Name'
               value={filters.accountName}
               onChange={(e) =>
                 handleFilterChange('accountName', e.target.value)
               }
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>Type of Loan</Label>
+            <MultiSelect
+              options={LOAN_TYPE_OPTIONS}
+              value={filters.typeOfLoan}
+              onChange={(val) => handleFilterChange('typeOfLoan', val)}
+              placeholder='Select Types...'
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>Ticket Status</Label>
+            <MultiSelect
+              options={TICKET_STATUS_OPTIONS}
+              value={filters.ticketStatus}
+              onChange={(val) => handleFilterChange('ticketStatus', val)}
+              placeholder='Select Statuses...'
             />
           </div>
 
@@ -395,125 +412,72 @@ const DealsPage = () => {
             </div>
           )}
 
-          <div className='space-y-2'>
-            <Label>Lender Name</Label>
-            <MultiSelect
-              options={LENDER_OPTIONS}
-              value={filters.lenderName}
-              onChange={(val) => handleFilterChange('lenderName', val)}
-              placeholder='Select Lenders...'
-            />
-          </div>
-
-          <div className='space-y-2'>
-            <Label>Case Status</Label>
-            <MultiSelect
-              options={CASE_STATUS_OPTIONS}
-              value={filters.caseStatus}
-              onChange={(val) => handleFilterChange('caseStatus', val)}
-              placeholder='Select Case Status...'
-            />
-          </div>
-
-          <div className='space-y-2'>
-            <Label>Ticket Login</Label>
-            <MultiSelect
-              options={TICKET_LOGIN_OPTIONS}
-              value={filters.ticketLogin}
-              onChange={(val) => handleFilterChange('ticketLogin', val)}
-              placeholder='Select Ticket Login...'
-            />
-          </div>
-
-          <div className='space-y-2'>
-            <Label>Type of Loan</Label>
-            <MultiSelect
-              options={LOAN_TYPE_OPTIONS}
-              value={filters.loanType}
-              onChange={(val) => handleFilterChange('loanType', val)}
-              placeholder='Select Type of Loan...'
-            />
-          </div>
-
-          <div className='space-y-2'>
-            <Label>Type of Case Login</Label>
-            <MultiSelect
-              options={TYPE_OF_CASE_LOGIN_OPTIONS}
-              value={filters.typeOfCaseLogin}
-              onChange={(val) => handleFilterChange('typeOfCaseLogin', val)}
-              placeholder='Select Type of Case Login...'
-            />
-          </div>
-
           <div className='border-t border-dashed border-zinc-400 pt-3 space-y-3'>
-            {/* 3. Created Date Inputs Block */}
-            <div className='space-y-1.5'>
-              <Label className=''>Created From</Label>
+            <div className=' border-dashed border-zinc-400 space-y-1.5 pt-1'>
+              <Label className=''>Lender Login From</Label>
               <Input
                 type='date'
                 className='h-9 text-xs'
-                value={filters.createdFrom || ''}
+                value={filters.lenderLoginFrom || ''}
                 onChange={(e) =>
-                  handleFilterChange('createdFrom', e.target.value)
+                  handleFilterChange('lenderLoginFrom', e.target.value)
                 }
               />
             </div>
             <div className='space-y-1.5'>
-              <Label className=''>Created To</Label>
+              <Label className=''>Lender Login To</Label>
               <Input
                 type='date'
                 className='h-9 text-xs'
-                value={filters.createdTo || ''}
+                value={filters.lenderLoginTo || ''}
                 onChange={(e) =>
-                  handleFilterChange('createdTo', e.target.value)
+                  handleFilterChange('lenderLoginTo', e.target.value)
                 }
               />
             </div>
 
-            {/* 4. Expected Closing Inputs Block */}
             <div className='border-t border-dashed border-zinc-400 space-y-1.5 pt-1'>
-              <Label className=''>Expected From</Label>
+              <Label className=''>Targeted Disb. From</Label>
               <Input
                 type='date'
                 className='h-9 text-xs'
-                value={filters.expectedClosingFrom || ''}
+                value={filters.targetedDisbursementFrom || ''}
                 onChange={(e) =>
-                  handleFilterChange('expectedClosingFrom', e.target.value)
+                  handleFilterChange('targetedDisbursementFrom', e.target.value)
                 }
               />
             </div>
             <div className='space-y-1.5'>
-              <Label className=''>Expected To</Label>
+              <Label className=''>Targeted Disb. To</Label>
               <Input
                 type='date'
                 className='h-9 text-xs'
-                value={filters.expectedClosingTo || ''}
+                value={filters.targetedDisbursementTo || ''}
                 onChange={(e) =>
-                  handleFilterChange('expectedClosingTo', e.target.value)
+                  handleFilterChange('targetedDisbursementTo', e.target.value)
                 }
               />
             </div>
 
-            {/* 5. Status Closing Inputs Block */}
             <div className='border-t border-dashed border-zinc-400 space-y-1.5 pt-1'>
-              <Label className=''>Status Closing From</Label>
+              <Label className=''>Disbursement From</Label>
               <Input
                 type='date'
                 className='h-9 text-xs'
-                value={filters.statusClosingFrom || ''}
+                value={filters.disbursementFrom || ''}
                 onChange={(e) =>
-                  handleFilterChange('statusClosingFrom', e.target.value)
+                  handleFilterChange('disbursementFrom', e.target.value)
                 }
               />
             </div>
             <div className='space-y-1.5'>
-              <Label className=''>Status Closing To</Label>
+              <Label className=''>Disbursement To</Label>
               <Input
                 type='date'
                 className='h-9 text-xs'
-                value={filters.statusClosingTo || ''}
+                value={filters.disbursementTo || ''}
                 onChange={(e) =>
-                  handleFilterChange('statusClosingTo', e.target.value)
+                  handleFilterChange('disbursementTo', e.target.value)
                 }
               />
             </div>
@@ -547,60 +511,61 @@ const DealsPage = () => {
                     <TableRow className='sticky top-0 z-10 bg-background hover:bg-accent'>
                       <TableHead>Deal Name</TableHead>
                       <TableHead>Deal Owner</TableHead>
-                      <TableHead>Lender Name</TableHead>
-                      <TableHead>Case Status</TableHead>
                       <TableHead>Ticket Login</TableHead>
-                      <TableHead>Type of Loan</TableHead>
-                      <TableHead>Type of Case Login</TableHead>
-                      <TableHead>Call Back Date/Time</TableHead>
+                      <TableHead>Lender Name</TableHead>
+                      <TableHead>Lender Login Type</TableHead>
+                      <TableHead>Lender login date</TableHead>
+                      <TableHead>Ticket Status</TableHead>
+                      <TableHead>Ticket Stage</TableHead>
                     </TableRow>
                   </TableHeader>
 
                   <TableBody>
-                    {DealsData.length === 0 ? (
+                    {TicketsData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={8} className='text-center h-24'>
-                          No deals found.
+                          No tickets found.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      DealsData.map((deal) => (
+                      TicketsData.map((ticket) => (
                         <TableRow
-                          key={deal.id}
-                          className='cursor-pointer hover:bg-accent'
-                          onClick={() => handleRowClick(deal.id)}
+                           key={ticket.id}
+                           className='cursor-pointer hover:bg-accent'
+                           onClick={() => handleRowClick(ticket.id)}
                         >
                           <TableCell className='font-medium'>
                             <HighlightedText
-                              text={deal.account_name}
+                              text={ticket.account_name || '-'}
                               highlight={appliedFilters.accountName}
                             />
                           </TableCell>
 
                           <TableCell>
-                            {(users as Record<string, string>)[
-                              deal.deal_owner_id
-                            ] || '-'}
+                            {ticket.deal_owner_id
+                              ? (users as Record<string, string>)[
+                                  ticket.deal_owner_id
+                                ] || '-'
+                              : '-'}
                           </TableCell>
 
-                          <TableCell className=''>
-                            {deal.lender_name || '-'}
-                          </TableCell>
-                          <TableCell>{deal.case_status || '-'}</TableCell>
-                          <TableCell>{deal.ticket_login || '-'}</TableCell>
-                          <TableCell>{deal.loan_type || '-'}</TableCell>
+                          <TableCell>{ticket.ticket_login || '-'}</TableCell>
+                          <TableCell>{ticket.lender_name || '-'}</TableCell>
                           <TableCell>
-                            {deal.type_of_case_login || '-'}
+                            {ticket.lender_login_type || '-'}
                           </TableCell>
 
                           <TableCell>
-                            {deal.deal_call_back_datetime
+                            {ticket.lender_login_date
                               ? formatExactDate(
-                                  deal.deal_call_back_datetime,
-                                  'dd MMM yyyy, hh:mm a',
+                                  ticket.lender_login_date,
+                                  'dd MMM yyyy',
                                 )
                               : '—'}
                           </TableCell>
+
+                          <TableCell>{ticket.ticket_status || '-'}</TableCell>
+                          <TableCell>{ticket.ticket_stage || '-'}</TableCell>
                         </TableRow>
                       ))
                     )}
@@ -617,8 +582,60 @@ const DealsPage = () => {
           )}
         </div>
       </div>
+
+      {/* Select Deal Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle>Select Deal</DialogTitle>
+          </DialogHeader>
+          <div className='flex flex-col gap-4 py-4'>
+            <div className='space-y-2 relative'>
+              <Label>Search Deal Name</Label>
+              <Input
+                placeholder='Search by Deal Name...'
+                value={dealSearch}
+                onChange={(e) => {
+                  setDealSearch(e.target.value)
+                  setIsDealOpen(true)
+                }}
+                onFocus={() => setIsDealOpen(true)}
+                onBlur={() => {
+                  setTimeout(() => setIsDealOpen(false), 200)
+                }}
+              />
+              {isDealOpen && dealSearch.length > 0 && (
+                <div className='absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto'>
+                  {isLoadingDeals ? (
+                    <div className='p-2 flex justify-center'>
+                      <Spinner className='h-4 w-4' />
+                    </div>
+                  ) : dealsData?.data?.length > 0 ? (
+                    dealsData.data.map((deal: any) => (
+                      <div
+                        key={deal.id}
+                        className='p-2 hover:bg-muted cursor-pointer text-sm'
+                        onMouseDown={() => {
+                          navigate(`/deals/${deal.id}/tickets/create`)
+                          setIsModalOpen(false)
+                        }}
+                      >
+                        {deal.account_name}
+                      </div>
+                    ))
+                  ) : (
+                    <div className='p-2 text-sm text-muted-foreground'>
+                      No deals found.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
-export default DealsPage
+export default TicketsPage

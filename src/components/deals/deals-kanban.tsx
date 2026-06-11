@@ -11,10 +11,26 @@ import {
 } from '../ui/select'
 import DealsKanbanView, { type KanbanFilters } from './deals-kanban-view'
 import { Label } from '../ui/label'
+import { MultiSelect, type Option } from '../ui/multi-select'
+import users from '../../utils/users.json'
+
+const LOAN_TYPE_OPTIONS: Option[] = [
+  { value: 'SCF', label: 'SCF' },
+  { value: 'SCF Renewal', label: 'SCF Renewal' },
+  { value: 'SCF Enhancement', label: 'SCF Enhancement' },
+  { value: 'SCF (Renewal and Enhancement)', label: 'SCF (Renewal & Enhancement)' },
+  { value: 'Open SCF', label: 'Open SCF' },
+  { value: 'BT-SCF', label: 'BT-SCF' },
+  { value: 'Unsecured OD', label: 'Unsecured OD' },
+  { value: 'Unsecured Term Loan', label: 'Unsecured Term Loan' },
+  { value: 'Secured Loan', label: 'Secured Loan' },
+  { value: 'Vehicle Loan', label: 'Vehicle Loan' },
+]
 
 interface LocalFilters {
   search: string
-  project_type: string
+  project_type: Option[]
+  deal_owner_id: Option[]
   status: string
   assignee_id: string
   created_from: string
@@ -27,7 +43,8 @@ interface LocalFilters {
 
 const defaultFilters: LocalFilters = {
   search: '',
-  project_type: 'all',
+  project_type: [],
+  deal_owner_id: [],
   status: 'all',
   assignee_id: 'all',
   created_from: '',
@@ -59,15 +76,20 @@ export default function DealsKanban() {
     useState<KanbanFilters>(defaultDates)
   const [hasApplied, setHasApplied] = useState(true)
 
-  function setFilter(key: keyof LocalFilters, value: string) {
+  function setFilter<K extends keyof LocalFilters>(
+    key: K,
+    value: LocalFilters[K],
+  ) {
     setLocalFilters((prev) => ({ ...prev, [key]: value }))
   }
 
   function applyFilters() {
     const f: KanbanFilters = {}
     if (localFilters.search) f.account_name = localFilters.search
-    if (localFilters.project_type !== 'all')
-      f.loan_type = localFilters.project_type
+    if (localFilters.project_type.length > 0)
+      f.loan_type = localFilters.project_type.map((p) => p.value)
+    if (localFilters.deal_owner_id.length > 0)
+      f.deal_owner_id = localFilters.deal_owner_id.map((p) => p.value)
     if (localFilters.status !== 'all') f.deal_status = localFilters.status
     if (localFilters.created_from) f.created_from = localFilters.created_from
     if (localFilters.created_to) f.created_to = localFilters.created_to
@@ -86,7 +108,8 @@ export default function DealsKanban() {
   function clearFilters() {
     const cleared: LocalFilters = {
       search: '',
-      project_type: 'all',
+      project_type: [],
+      deal_owner_id: [],
       status: 'all',
       assignee_id: 'all',
       created_from: '',
@@ -112,7 +135,7 @@ export default function DealsKanban() {
 
         <div className='bg-white dark:bg-zinc-950 border rounded-xl shadow-sm p-5 space-y-5'>
           {/* Top Row: Search & Dropdowns */}
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full'>
             <div className='space-y-1'>
               <Label
                 htmlFor='search'
@@ -130,59 +153,31 @@ export default function DealsKanban() {
               />
             </div>
 
-            <div className='space-y-1'>
+            <div className='space-y-1 md:col-span-2'>
               <Label className='text-[11px] font-bold tracking-wider text-zinc-400 uppercase'>
                 Loan Type
               </Label>
-              <Select
+              <MultiSelect
+                options={LOAN_TYPE_OPTIONS}
                 value={localFilters.project_type}
-                onValueChange={(v) => setFilter('project_type', v)}
-              >
-                <SelectTrigger className='h-9 text-xs rounded-lg border-zinc-200 text-zinc-700'>
-                  <SelectValue placeholder='All Types' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Types</SelectItem>
-                  <SelectItem value='SCF'>SCF</SelectItem>
-                  <SelectItem value='SCF Renewal'>SCF Renewal</SelectItem>
-                  <SelectItem value='SCF Enhancement'>
-                    SCF Enhancement
-                  </SelectItem>
-                  <SelectItem value='SCF (Renewal and Enhancement)'>
-                    SCF (Renewal & Enhancement)
-                  </SelectItem>
-                  <SelectItem value='Open SCF'>Open SCF</SelectItem>
-                  <SelectItem value='BT-SCF'>BT-SCF</SelectItem>
-                  <SelectItem value='Unsecured OD'>Unsecured OD</SelectItem>
-                  <SelectItem value='Unsecured Term Loan'>
-                    Unsecured Term Loan
-                  </SelectItem>
-                  <SelectItem value='Secured Loan'>Secured Loan</SelectItem>
-                  <SelectItem value='Vehicle Loan'>Vehicle Loan</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(val) => setFilter('project_type', val)}
+                placeholder='Select Types...'
+              />
             </div>
 
-            {/* Note: Kept status commented back in since your image shows a Status dropdown */}
-            <div className='space-y-1'>
+            <div className='space-y-1 md:col-span-2'>
               <Label className='text-[11px] font-bold tracking-wider text-zinc-400 uppercase'>
-                Status
+                Deal Owner
               </Label>
-              <Select
-                value={localFilters.status}
-                onValueChange={(v) => setFilter('status', v)}
-              >
-                <SelectTrigger className='h-9 text-xs rounded-lg border-zinc-200 text-zinc-700'>
-                  <SelectValue placeholder='All Statuses' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Statuses</SelectItem>
-                  <SelectItem value='Active'>Active</SelectItem>
-                  <SelectItem value='Disbursed'>Disbursed</SelectItem>
-                  <SelectItem value='Rejected'>Rejected</SelectItem>
-                  <SelectItem value='Closed'>Closed</SelectItem>
-                </SelectContent>
-              </Select>
+              <MultiSelect
+                options={Object.entries(users).map(([key, value]) => ({
+                  label: value,
+                  value: key,
+                }))}
+                value={localFilters.deal_owner_id || []}
+                onChange={(val) => setFilter('deal_owner_id', val)}
+                placeholder='Select Owners...'
+              />
             </div>
           </div>
 

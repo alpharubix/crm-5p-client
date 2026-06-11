@@ -13,17 +13,44 @@ import TicketsKanbanView, { type KanbanFilters } from './tickets-kanban-view'
 import { Label } from '../ui/label'
 import { useQuery } from '@tanstack/react-query'
 import { ENV } from '@/conf'
+import { MultiSelect, type Option } from '../ui/multi-select'
+
+const LOAN_TYPE_OPTIONS: Option[] = [
+  { value: 'SCF', label: 'SCF' },
+  { value: 'SCF Renewal', label: 'SCF Renewal' },
+  { value: 'SCF Enhancement', label: 'SCF Enhancement' },
+  { value: 'SCF (Renewal and Enhancement)', label: 'SCF (Renewal & Enhancement)' },
+  { value: 'Open SCF', label: 'Open SCF' },
+  { value: 'Open SCF Renewal', label: 'Open SCF Renewal' },
+  { value: 'Open SCF Enhancement', label: 'Open SCF Enhancement' },
+  { value: 'Open SCF (Renewal and Enhancement)', label: 'Open SCF (Renewal & Enhancement)' },
+  { value: 'BT-SCF', label: 'BT-SCF' },
+  { value: 'BT-Open SCF', label: 'BT-Open SCF' },
+  { value: 'Unsecured OD', label: 'Unsecured OD' },
+  { value: 'Unsecured Term Loan', label: 'Unsecured Term Loan' },
+  { value: 'Secured Loan', label: 'Secured Loan' },
+  { value: 'Secured BT', label: 'Secured BT' },
+  { value: 'Vehicle Loan', label: 'Vehicle Loan' },
+]
+
+const TICKET_STATUS_OPTIONS: Option[] = [
+  { value: 'Yet to Lender Login', label: 'Yet to Lender Login' },
+  { value: 'Lender Review', label: 'Lender Review' },
+  { value: 'In Credit', label: 'In Credit' },
+  { value: 'Approved', label: 'Approved' },
+  { value: 'Disbursed', label: 'Disbursed' },
+]
 
 interface LocalFilters {
   search: string
-  type_of_loan: string
-  ticket_status: string
+  type_of_loan: Option[]
+  ticket_status: Option[]
   assignee_id: string
   created_from: string
   created_to: string
   lender_login_from: string
   lender_login_to: string
-  deal_owner_id: string
+  deal_owner_id: Option[]
   targeted_disbursement_from: string
   targeted_disbursement_to: string
   disbursement_from: string
@@ -32,14 +59,14 @@ interface LocalFilters {
 
 const defaultFilters: LocalFilters = {
   search: '',
-  type_of_loan: 'all',
-  ticket_status: 'all',
+  type_of_loan: [],
+  ticket_status: [],
   assignee_id: 'all',
   created_from: '',
   created_to: '',
   lender_login_from: '',
   lender_login_to: '',
-  deal_owner_id: 'all',
+  deal_owner_id: [],
   targeted_disbursement_from: '',
   targeted_disbursement_to: '',
   disbursement_from: '',
@@ -77,7 +104,10 @@ export default function TicketsKanban() {
   const [hasApplied, setHasApplied] = useState(true)
   const [totalTickets, setTotalTickets] = useState(0)
 
-  function setFilter(key: keyof LocalFilters, value: string) {
+  function setFilter<K extends keyof LocalFilters>(
+    key: K,
+    value: LocalFilters[K],
+  ) {
     setLocalFilters((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -102,14 +132,14 @@ export default function TicketsKanban() {
     }
 
     if (localFilters.search) f.account_name = localFilters.search
-    if (localFilters.type_of_loan !== 'all')
-      f.type_of_loan = localFilters.type_of_loan
-    if (localFilters.ticket_status !== 'all')
-      f.ticket_status = localFilters.ticket_status
+    if (localFilters.type_of_loan.length > 0)
+      f.type_of_loan = localFilters.type_of_loan.map((o) => o.value)
+    if (localFilters.ticket_status.length > 0)
+      f.ticket_status = localFilters.ticket_status.map((o) => o.value)
     if (localFilters.created_from) f.created_from = localFilters.created_from
     if (localFilters.created_to) f.created_to = localFilters.created_to
-    if (localFilters.deal_owner_id !== 'all')
-      f.deal_owner_id = localFilters.deal_owner_id
+    if (localFilters.deal_owner_id.length > 0)
+      f.deal_owner_id = localFilters.deal_owner_id.map((o) => o.value)
 
     if (localFilters.lender_login_from)
       f.lender_login_from = localFilters.lender_login_from
@@ -169,69 +199,43 @@ export default function TicketsKanban() {
               />
             </div>
 
-            <div className='space-y-1.5'>
+            <div className='space-y-1.5 w-56'>
               <Label className='text-[11px] uppercase tracking-wider text-muted-foreground'>
                 Loan Type
               </Label>
-              <Select
+              <MultiSelect
+                options={LOAN_TYPE_OPTIONS}
                 value={localFilters.type_of_loan}
-                onValueChange={(v) => setFilter('type_of_loan', v)}
-              >
-                <SelectTrigger className='h-9 text-sm w-44'>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Types</SelectItem>
-                  <SelectItem value='SCF'>SCF</SelectItem>
-                  <SelectItem value='SCF Renewal'>SCF Renewal</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(val) => setFilter('type_of_loan', val)}
+                placeholder='Select Types...'
+              />
             </div>
 
-            <div className='space-y-1.5'>
+            <div className='space-y-1.5 w-56'>
               <Label className='text-[11px] uppercase tracking-wider text-muted-foreground'>
                 Status
               </Label>
-              <Select
+              <MultiSelect
+                options={TICKET_STATUS_OPTIONS}
                 value={localFilters.ticket_status}
-                onValueChange={(v) => setFilter('ticket_status', v)}
-              >
-                <SelectTrigger className='h-9 text-sm w-44'>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Statuses</SelectItem>
-                  <SelectItem value='Yet to Lender Login'>
-                    Yet to Lender Login
-                  </SelectItem>
-                  <SelectItem value='Lender Review'>Lender Review</SelectItem>
-                  <SelectItem value='In Credit'>In Credit</SelectItem>
-                  <SelectItem value='Approved'>Approved</SelectItem>
-                  <SelectItem value='Disbursed'>Disbursed</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(val) => setFilter('ticket_status', val)}
+                placeholder='Select Statuses...'
+              />
             </div>
 
-            <div className='space-y-1.5'>
+            <div className='space-y-1.5 w-56'>
               <Label className='text-[11px] uppercase tracking-wider text-muted-foreground'>
                 Deal Owner
               </Label>
-              <Select
-                value={localFilters.deal_owner_id}
-                onValueChange={(v) => setFilter('deal_owner_id', v)}
-              >
-                <SelectTrigger className='h-9 text-sm w-44'>
-                  <SelectValue placeholder='All Owners' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All Owners</SelectItem>
-                  {owners.map((owner: any) => (
-                    <SelectItem key={owner.id} value={owner.id.toString()}>
-                      {owner.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MultiSelect
+                options={owners.map((owner: any) => ({
+                  label: owner.full_name,
+                  value: owner.id.toString(),
+                }))}
+                value={localFilters.deal_owner_id || []}
+                onChange={(val) => setFilter('deal_owner_id', val)}
+                placeholder='Select Owners...'
+              />
             </div>
           </div>
 

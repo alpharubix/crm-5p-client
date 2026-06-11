@@ -28,6 +28,7 @@ const CreateDeal = lazy(() => import('./components/deals/create-deals'))
 const SignInPage = lazy(() => import('./pages/signin-page'))
 const Export = lazy(() => import('./components/export/export'))
 const TicketsKanban = lazy(() => import('./components/tickets/tickets-kanban'))
+const TicketsPage = lazy(() => import('./pages/tickets-page'))
 const CreateTicket = lazy(() => import('./components/tickets/create-ticket'))
 const UpdateTicketsKanban = lazy(
   () => import('./components/tickets/update-kanban-tickets'),
@@ -79,6 +80,7 @@ export default function App() {
               <Route path='/kanban-deals' element={<DealsKanban />} />
 
               <Route path='/kanban-tickets' element={<TicketsKanban />} />
+              <Route path='/tickets' element={<TicketsPage />} />
               <Route path='/tickets/:id' element={<UpdateTicketsKanban />} />
               <Route
                 path='/deals/:dealId/tickets/create'
