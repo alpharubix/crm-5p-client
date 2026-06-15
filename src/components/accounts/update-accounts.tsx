@@ -171,6 +171,8 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
       : '',
     sourceType: apiData.source_type ?? '',
     sourceOther: apiData.source_other ?? '',
+    sourceDate: apiData.source_date ? new Date(apiData.source_date) : undefined,
+    sourceDescription: apiData.source_description ?? '',
     distributorCode: apiData.distributor_code ?? '',
     wabaInterested: apiData.waba_interested ?? false,
     callBackDate: apiData.call_back_date_time
@@ -283,6 +285,12 @@ function mapFormToApi(
   if (dirtyFields.accountName) payload.account_name = formData.accountName
   if (dirtyFields.sourceType) payload.source_type = formData.sourceType
   if (dirtyFields.sourceOther) payload.source_other = formData.sourceOther
+  if (dirtyFields.sourceDate)
+    payload.source_date = formData.sourceDate
+      ? formData.sourceDate.toISOString().split('T')[0]
+      : null
+  if (dirtyFields.sourceDescription)
+    payload.source_description = formData.sourceDescription
   if (dirtyFields.accountOwnerId)
     payload.account_owner_id = formData.accountOwnerId
   if (dirtyFields.distributorCode)
@@ -783,6 +791,7 @@ export default function UpdateAccounts() {
                       'Vibhava Marketing',
                       'R1X Website',
                       '5pointcredit',
+                      'Event',
                     ]}
                     onChange={field.onChange}
                   />
@@ -820,6 +829,34 @@ export default function UpdateAccounts() {
                 )}
               </FieldRow>
             )}
+
+            <FieldRow label='Source Date' error={errors.sourceDate?.message}>
+              <Controller
+                control={control}
+                name='sourceDate'
+                render={({ field }) => (
+                  <DateField
+                    value={field.value}
+                    isEdit={isEdit}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </FieldRow>
+
+            <FieldRow
+              label='Source Description'
+              error={errors.sourceDescription?.message}
+            >
+              {isEdit ? (
+                <textarea
+                  {...register('sourceDescription')}
+                  className='w-full h-20 px-2 border rounded-md text-sm'
+                />
+              ) : (
+                <span>{display(data.sourceDescription)}</span>
+              )}
+            </FieldRow>
 
             <FieldRow
               label='Distributor Code'
@@ -1385,7 +1422,7 @@ export default function UpdateAccounts() {
             {/* <FieldRow label='Pincode'> */}
             <Controller
               control={control}
-              name='applicantCode'
+              name='applicantPincode'
               render={({ field }) => (
                 <PincodeSelector
                   label='Pincode'
@@ -1398,9 +1435,12 @@ export default function UpdateAccounts() {
             {/* </FieldRow> */}
             <FieldRow label='No of Years residing in current residence'>
               {isEdit ? (
-                <Input {...register('noOfYears')} className='h-8' />
+                <Input
+                  {...register('applicantYearsResiding')}
+                  className='h-8'
+                />
               ) : (
-                <span>{display(data.noOfYears)}</span>
+                <span>{display(data.applicantYearsResiding)}</span>
               )}
             </FieldRow>
             <FieldRow label='Residence Ownership'>
@@ -1491,7 +1531,7 @@ export default function UpdateAccounts() {
             {/* <FieldRow label='Pincode'> */}
             <Controller
               control={control}
-              name='coApplicantCode'
+              name='coApplicantPincode'
               render={({ field }) => (
                 <PincodeSelector
                   label='Pincode'
@@ -1504,9 +1544,12 @@ export default function UpdateAccounts() {
             {/* </FieldRow> */}
             <FieldRow label='No of Years residing in current residence'>
               {isEdit ? (
-                <Input {...register('coApplicantYears')} className='h-8' />
+                <Input
+                  {...register('coApplicantYearsResiding')}
+                  className='h-8'
+                />
               ) : (
-                <span>{display(data.coApplicantYears)}</span>
+                <span>{display(data.coApplicantYearsResiding)}</span>
               )}
             </FieldRow>
             <FieldRow label='Residence Ownership'>

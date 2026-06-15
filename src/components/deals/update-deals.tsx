@@ -337,7 +337,10 @@ export default function UpdateDeals() {
       })
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.message || 'Failed to update deal')
+        const detailMsg = typeof errData.detail === 'object' && errData.detail?.message
+          ? errData.detail.message
+          : errData.detail;
+        throw new Error(detailMsg || errData.message || 'Failed to update deal')
       }
       return res.json()
     },
@@ -421,9 +424,8 @@ export default function UpdateDeals() {
           <h1 className='text-lg font-semibold'>
             Deal Name:{' '}
             <span className='text-primary font-bold '>
-              {dealData.account_name || `NA`}
-            </span>{' '}
-            <span className='text-primary font-bold '>{`#${dealData.id}`}</span>
+              {dealData.deal_name || `#${dealData.id}`}
+            </span>
           </h1>
           <h1 className='text-lg font-semibold'>
             Deal Owner Name:{' '}
@@ -623,7 +625,7 @@ export default function UpdateDeals() {
               <span>{dealData.account_name || '—'}</span>
             </FieldRow>
             <FieldRow label='Deal Name'>
-              <span>{dealData.account_name || '—'}</span>
+              <span>{dealData.deal_name || '—'}</span>
             </FieldRow>
             <FieldRow label='Deal Status' error={errors.dealStatus?.message}>
               <SelectField

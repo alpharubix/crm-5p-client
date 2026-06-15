@@ -310,7 +310,10 @@ export default function UpdateDeals() {
       })
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.message || 'Failed to update deal')
+        const detailMsg = typeof errData.detail === 'object' && errData.detail?.message
+          ? errData.detail.message
+          : errData.detail;
+        throw new Error(detailMsg || errData.message || 'Failed to update ticket')
       }
       return res.json()
     },
@@ -583,6 +586,11 @@ export default function UpdateDeals() {
             </FieldRow>
           </div>
           <div>
+            <FieldRow label='Ticket Name'>
+              <span className='font-medium'>
+                {(dealData as any).ticket_name || dealData.deal_name || '—'}
+              </span>
+            </FieldRow>
             <FieldRow label='Lender Name' error={errors.lenderName?.message}>
               <div className='relative'>
                 {/* Input must be present */}
