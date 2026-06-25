@@ -69,7 +69,8 @@ export const USERS_MAP: Record<string, string> = {
   '3899927000000615348': 'Ashok M',
   '3899927000000964875': 'Suraj Gupta',
   '3899927000000882594': 'Myisa Beiucy',
-  '3899927000000723465': 'Kaveri Metri',
   '3899927000000201013': 'Anslem Prathap',
   '3899927000005965002': 'Subhasini TS',
+  '3899927000000503894': 'Saran D',
+  '3899927000000135140': 'Prathamesh Prakash',
 }
