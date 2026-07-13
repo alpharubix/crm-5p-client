@@ -7,6 +7,10 @@ import SidebarComponent from './components/sidebar-component'
 import { GlobalProgressBar } from './components/global-progress-bar'
 import { Spinner } from './components/ui/spinner'
 import DealsKanban from './components/deals/deals-kanban'
+import BsaAnalysisPage from './pages/bsa-analysis-page'
+import ItrAnalysisPage from './pages/itr-page'
+import GstHistoryPage from './pages/gst-page'
+import GstReportPage from './components/gst-reports/GstReportPage'
 
 // Lazy loaded pages and heavy route components
 const AccountPage = lazy(() => import('./pages/accounts-page'))
@@ -69,6 +73,13 @@ export default function App() {
               <Route path='/accounts' element={<AccountPage />} />
               <Route path='/accounts/:id' element={<UpdateAccounts />} />
               <Route path='/accounts/create' element={<CreateAccount />} />
+              <Route path='/accounts/:id/bsa' element={<BsaAnalysisPage />} />
+              <Route path='/accounts/:id/itr' element={<ItrAnalysisPage />} />
+              <Route path='/accounts/:id/gst' element={<GstHistoryPage />} />
+              <Route
+                path='/accounts/:id/gst/:gstReferenceId/reports'
+                element={<GstReportPage />}
+              />
               <Route path='/contacts' element={<ContactPage />} />
               <Route path='/contacts/:id' element={<UpdateContacts />} />
               <Route path='/contacts-create' element={<CreateContact />} />

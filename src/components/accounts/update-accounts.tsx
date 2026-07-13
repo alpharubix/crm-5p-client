@@ -500,11 +500,85 @@ export default function UpdateAccounts() {
   const [businessCitySearch, setBusinessCitySearch] = useState('')
   const [businessCityOpen, setBusinessCityOpen] = useState(false)
   const [businessPincodeSearch, setBusinessPincodeSearch] = useState('')
+  const [isBsaLoading, setIsBsaLoading] = useState(false)
+  const [isItrLoading, setIsItrLoading] = useState(false)
+  const [isGstLoading, setIsGstLoading] = useState(false)
   const [businessPincodeOpen, setBusinessPincodeOpen] = useState(false)
   const { user } = useAuth()
 
   const isAllow = user?.role === 'super_admin' || user?.role === 'admin'
+  const handleViewBsaAnalysis = async () => {
+    try {
+      setIsBsaLoading(true)
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/accounts/r1xcrm-report-date-range/${id}`,
+        { credentials: 'include' },
+      )
+      if (!res.ok) {
+        toast('Data not found , pls upload the file')
+        return
+      }
+      const data = await res.json()
+      if (data.data?.from_date && data.data?.to_date) {
+        navigate(`/accounts/${id}/bsa`)
+      } else {
+        toast('Please upload the data')
+      }
+    } catch (error) {
+      toast('Please upload the data')
+    } finally {
+      setIsBsaLoading(false)
+    }
+  }
+  const handleViewItrAnalysis = async () => {
+    try {
+      setIsItrLoading(true)
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/accounts/check-r1xchange-account/${id}`,
+        { credentials: 'include' },
+      )
+      if (!res.ok) {
+        toast('Data not found , pls upload the file')
+        return
+      }
+      const data = await res.json()
+      
+      if (data.data) {
+        
+        navigate(`/accounts/${id}/itr`)
+      } else {
+        toast('Please upload the data')
+      }
 
+    } catch (error) {
+      toast('Please upload the data')
+    } finally {
+      setIsItrLoading(false)
+    }
+  }
+  const handleViewGstAnalysis = async () => {
+    try {
+      setIsGstLoading(true)
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/accounts/check-r1xchange-account/${id}`,
+        { credentials: 'include' },
+      )
+      if (!res.ok) {
+        toast('Data not found , pls upload the file')
+        return
+      }
+      const data = await res.json()
+      if (data.data) {
+        navigate(`/accounts/${id}/gst`)
+      } else {
+        toast('Please upload the data')
+      }
+    } catch (error) {
+      toast('Please upload the data')
+    } finally {
+      setIsGstLoading(false)
+    }
+  }
   const form = useForm<UpdateAccountFormValues>({
     resolver: zodResolver(updateAccountSchema),
   })
@@ -1749,7 +1823,40 @@ export default function UpdateAccounts() {
           )}
           <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
-
+        {/* ========================= Analysis ===================== */}
+        <SectionHeader title='Analysis' />
+        <div className='flex gap-4 mx-4'>
+          <Button
+            size='lg'
+            variant='outline'
+            onClick={handleViewBsaAnalysis}
+            disabled={isBsaLoading}
+            className='cursor-pointer border-red-500'
+          >
+            {isBsaLoading ? <Spinner className='mr-2 h-4 w-4' /> : null}
+            BSA Analysis
+          </Button>
+          <Button
+            size='lg'
+            variant='outline'
+            onClick={handleViewItrAnalysis}
+            className='cursor-pointer border-blue-500'
+            disabled={isItrLoading}
+          >
+            {isItrLoading ? <Spinner className='mr-2 h-4 w-4' /> : null}
+            ITR Analysis
+          </Button>
+          <Button
+            size='lg'
+            variant='outline'
+            onClick={handleViewGstAnalysis}
+            className='cursor-pointer border-green-500'
+            disabled={isGstLoading}
+          >
+            {isGstLoading ? <Spinner className='mr-2 h-4 w-4' /> : null}
+            GST Analysis
+          </Button>
+        </div>
         {/* ================= Deals ================= */}
         <SectionHeader title='Deals' />
         <div className='space-y-4 mx-2'>
