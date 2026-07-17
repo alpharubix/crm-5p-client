@@ -11,6 +11,8 @@ import BsaAnalysisPage from './pages/bsa-analysis-page'
 import ItrAnalysisPage from './pages/itr-page'
 import GstHistoryPage from './pages/gst-page'
 import GstReportPage from './components/gst-reports/GstReportPage'
+import ExistingReports from './pages/cibil/ExistingReports'
+import ViewReport from './pages/cibil/ViewReport'
 
 // Lazy loaded pages and heavy route components
 const AccountPage = lazy(() => import('./pages/accounts-page'))
@@ -76,6 +78,11 @@ export default function App() {
               <Route path='/accounts/:id/bsa' element={<BsaAnalysisPage />} />
               <Route path='/accounts/:id/itr' element={<ItrAnalysisPage />} />
               <Route path='/accounts/:id/gst' element={<GstHistoryPage />} />
+              <Route path='/accounts/:id/cibil' element={<ExistingReports />} />
+              <Route
+                path='/accounts/:id/cibil/:cibilRefId/reports'
+                element={<ViewReport />}
+              />
               <Route
                 path='/accounts/:id/gst/:gstReferenceId/reports'
                 element={<GstReportPage />}
