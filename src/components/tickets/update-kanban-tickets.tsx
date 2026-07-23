@@ -584,6 +584,18 @@ export default function UpdateDeals() {
                 </span>
               )}
             </FieldRow>
+
+            <FieldRow label='Created By'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                {(users as Record<string, string>)[dealData.created_by]}
+              </span>
+            </FieldRow>
+
+            <FieldRow label='Modified By'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                {(users as Record<string, string>)[dealData.modified_by] || '—'}
+              </span>
+            </FieldRow>
           </div>
           <div>
             <FieldRow label='Ticket Name'>
@@ -742,6 +754,22 @@ export default function UpdateDeals() {
                   })
                 }
               />
+            </FieldRow>
+
+            <FieldRow label='Created At'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                {dealData.created_at
+                  ? formatExactDate(dealData.created_at, 'dd MMM yyyy, hh:mm a')
+                  : '—'}
+              </span>
+            </FieldRow>
+
+            <FieldRow label='Modified At'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                {dealData.updated_at
+                  ? formatExactDate(dealData.updated_at, 'dd MMM yyyy, hh:mm a')
+                  : '—'}
+              </span>
             </FieldRow>
           </div>
         </CardContent>
@@ -1060,9 +1088,9 @@ export default function UpdateDeals() {
                                 'dd MMM yyyy, hh:mm a',
                               ) || '—'}
                             </span>
-                            <div className='font-bold'>
-                              Module : {note.module}
-                            </div>
+                            <span className='font-bold'>
+                              Module: {note.module}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -1082,7 +1110,6 @@ export default function UpdateDeals() {
                 className='bg-muted/30 p-3 rounded-lg border'
               >
                 <p className='text-sm'>{note.Note_Content}</p>
-
                 <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
                   <span>Created By: {note.Created_By?.name || '—'}</span>
                   <span>
@@ -1092,7 +1119,7 @@ export default function UpdateDeals() {
                       'dd MMM yyyy, hh:mm a',
                     ) || '—'}
                   </span>
-                  <div className='font-bold'>Module : {note.module}</div>
+                  <span className='font-bold'>Module: {note.module}</span>
                 </div>
               </div>
             ))

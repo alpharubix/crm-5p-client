@@ -7,6 +7,7 @@ interface CitySelectorProps {
   onChange: (city: string) => void
   isEdit?: boolean
   placeholder?: string
+  error?: string
 }
 
 export function CitySelector({
@@ -15,17 +16,19 @@ export function CitySelector({
   onChange,
   isEdit = true,
   placeholder = 'Select City',
+  error,
 }: CitySelectorProps) {
   const { cities, searchCities } = useLocationData()
 
   return (
-    <AutocompleteInput
-      value={value}
-      onValueChange={onChange}
-      options={cities}
-      placeholder={placeholder}
-      label={label}
-      isEdit={isEdit}
-    />
+      <AutocompleteInput
+        value={value}
+        onValueChange={onChange}
+        options={cities}
+        placeholder={placeholder}
+        label={label}
+        isEdit={isEdit}
+        error={error}
+      />
   )
 }
