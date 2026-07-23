@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Label } from '@/components/ui/label'
 import Pagination from '@/components/shared/pagination'
@@ -26,6 +26,16 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Plus } from 'lucide-react'
 
+const DEFAULT_COLUMNS = [
+  { id: 'account_name', label: 'Account Name' },
+  { id: 'lender_name', label: 'Lender Name' },
+  { id: 'reference_number', label: 'Reference Number' },
+  { id: 'income_booking_date', label: 'Income Booking Date' },
+  { id: 'type_of_revenue', label: 'Type of Revenue' },
+  { id: 'amount', label: 'Amount' },
+  { id: 'gst_amount', label: 'GST Amount' },
+]
+
 export default function RevenuePage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -41,7 +51,31 @@ export default function RevenuePage() {
     gstAmount: searchParams.get('gstAmount') || '',
   })
 
-  // console.log(filters.incomeBookingDate);
+  const [columns, setColumns] = useState(() => {
+    const saved = localStorage.getItem('revenue_table_columns')
+    return saved ? JSON.parse(saved) : DEFAULT_COLUMNS
+  })
+
+  useEffect(() => {
+    localStorage.setItem('revenue_table_columns', JSON.stringify(columns))
+  }, [columns])
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData('colIndex', index.toString())
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    const dragIndex = parseInt(e.dataTransfer.getData('colIndex'))
+    if (dragIndex === dropIndex) return
+    const newCols = [...columns]
+    const [draggedCol] = newCols.splice(dragIndex, 1)
+    newCols.splice(dropIndex, 0, draggedCol)
+    setColumns(newCols)
+  }
 
   const [appliedFilters, setAppliedFilters] = useState(filters)
 
@@ -56,23 +90,17 @@ export default function RevenuePage() {
       const params = new URLSearchParams()
       params.set('page', currentPage.toString())
 
-      if (appliedFilters.accountName)
-        params.set('account_name', appliedFilters.accountName)
-      if (appliedFilters.lenderName)
-        params.set('lender_name', appliedFilters.lenderName)
-      if (appliedFilters.referenceNumber)
-        params.set('reference_number', appliedFilters.referenceNumber)
-      if (appliedFilters.incomeBookingDate)
-        params.set('income_booking_date', appliedFilters.incomeBookingDate)
-      if (appliedFilters.typeOfRevenue)
-        params.set('type_of_revenue', appliedFilters.typeOfRevenue)
+      if (appliedFilters.accountName) params.set('account_name', appliedFilters.accountName)
+      if (appliedFilters.lenderName) params.set('lender_name', appliedFilters.lenderName)
+      if (appliedFilters.referenceNumber) params.set('reference_number', appliedFilters.referenceNumber)
+      if (appliedFilters.incomeBookingDate) params.set('income_booking_date', appliedFilters.incomeBookingDate)
+      if (appliedFilters.typeOfRevenue) params.set('type_of_revenue', appliedFilters.typeOfRevenue)
       if (appliedFilters.amount) params.set('amount', appliedFilters.amount)
-      if (appliedFilters.gstAmount)
-        params.set('gst_amount', appliedFilters.gstAmount)
+      if (appliedFilters.gstAmount) params.set('gst_amount', appliedFilters.gstAmount)
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/revenue?${params.toString()}`,
-        { credentials: 'include' },
+        { credentials: 'include' }
       )
 
       if (!res.ok) throw new Error('Failed to fetch')
@@ -132,13 +160,12 @@ export default function RevenuePage() {
         queryFn: async () => {
           const res = await fetch(
             `${ENV.VITE_BACKEND_BASE_URL}/revenue?revenue_id=${id}`,
-            { credentials: 'include' },
+            { credentials: 'include' }
           )
           if (!res.ok) throw new Error('Failed to fetch revenue')
           return res.json()
         },
       })
-
       navigate(`/revenue/${id}`, {
         state: {
           lenderName: revenues.lender_name || '',
@@ -154,9 +181,7 @@ export default function RevenuePage() {
       <div className='flex items-center justify-between'>
         <div>
           <h1 className='text-2xl font-bold'>Revenue Database</h1>
-          <p className='text-muted-foreground'>
-            Manage your revenue entries here.
-          </p>
+          <p className='text-muted-foreground'>Manage your revenue entries here.</p>
         </div>
 
         {isLoading ? (
@@ -186,9 +211,7 @@ export default function RevenuePage() {
             <Input
               placeholder='Account Name'
               value={filters.accountName}
-              onChange={(e) =>
-                handleFilterChange('accountName', e.target.value)
-              }
+              onChange={(e) => handleFilterChange('accountName', e.target.value)}
             />
           </div>
 
@@ -206,9 +229,7 @@ export default function RevenuePage() {
             <Input
               placeholder='Reference Number'
               value={filters.referenceNumber}
-              onChange={(e) =>
-                handleFilterChange('referenceNumber', e.target.value)
-              }
+              onChange={(e) => handleFilterChange('referenceNumber', e.target.value)}
             />
           </div>
 
@@ -221,15 +242,16 @@ export default function RevenuePage() {
               onChange={(e) => {
                 const parsedDate = parse(
                   e.target.value,
-                  'yyyy-dd-MM',
-                  new Date(),
+                  'yyyy-MM-dd',
+                  new Date()
                 )
 
                 handleFilterChange(
                   'incomeBookingDate',
-                  format(parsedDate, 'yyyy-MM-dd'),
+                  format(parsedDate, 'yyyy-MM-dd')
                 )
               }}
+
             />
           </div>
 
@@ -238,9 +260,7 @@ export default function RevenuePage() {
             <Input
               placeholder='Type of Revenue'
               value={filters.typeOfRevenue}
-              onChange={(e) =>
-                handleFilterChange('typeOfRevenue', e.target.value)
-              }
+              onChange={(e) => handleFilterChange('typeOfRevenue', e.target.value)}
             />
           </div>
 
@@ -268,11 +288,7 @@ export default function RevenuePage() {
             <Button className='flex-1 cursor-pointer' onClick={handleSearch}>
               Search
             </Button>
-            <Button
-              variant='outline'
-              className='cursor-pointer'
-              onClick={handleClear}
-            >
+            <Button variant='outline' className='cursor-pointer' onClick={handleClear}>
               Clear
             </Button>
           </div>
@@ -289,13 +305,18 @@ export default function RevenuePage() {
                 <table className='w-full caption-bottom text-sm'>
                   <TableHeader>
                     <TableRow className='sticky top-0 z-10 bg-background hover:bg-accent'>
-                      <TableHead>Account Name</TableHead>
-                      <TableHead>Lender Name</TableHead>
-                      <TableHead>Reference Number</TableHead>
-                      <TableHead>Income Booking Date</TableHead>
-                      <TableHead>Type of Revenue</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>GST Amount</TableHead>
+                      {columns.map((col: any, index: number) => (
+                        <TableHead
+                          key={col.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, index)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, index)}
+                          className='cursor-move'
+                        >
+                          {col.label}
+                        </TableHead>
+                      ))}
                     </TableRow>
                   </TableHeader>
 
@@ -313,39 +334,66 @@ export default function RevenuePage() {
                           className='cursor-pointer hover:bg-accent'
                           onClick={() => handleRowClick(rev.id)}
                         >
-                          <TableCell className='font-medium text-primary'>
-                            <HighlightedText
-                              text={rev.account_name}
-                              highlight={appliedFilters.accountName}
-                            />
-                          </TableCell>
-                          <TableCell className='text-primary'>
-                            <HighlightedText
-                              text={rev.lender_name}
-                              highlight={appliedFilters.lenderName}
-                            />
-                          </TableCell>
-                          <TableCell className='text-primary'>
-                            <HighlightedText
-                              text={rev.reference_number}
-                              highlight={appliedFilters.referenceNumber}
-                            />
-                          </TableCell>
-                          <TableCell className='text-primary'>
-                            {rev.income_booking_date || '—'}
-                          </TableCell>
-                          <TableCell className='text-primary'>
-                            <HighlightedText
-                              text={rev.type_of_revenue}
-                              highlight={appliedFilters.typeOfRevenue}
-                            />
-                          </TableCell>
-                          <TableCell className='text-primary'>
-                            {rev.amount}
-                          </TableCell>
-                          <TableCell className='text-primary'>
-                            {rev.gst_amount}
-                          </TableCell>
+                          {columns.map((col: any) => {
+                            switch (col.id) {
+                              case 'account_name':
+                                return (
+                                  <TableCell key={col.id} className='font-medium text-primary'>
+                                    <HighlightedText
+                                      text={rev.account_name}
+                                      highlight={appliedFilters.accountName}
+                                    />
+                                  </TableCell>
+                                )
+                              case 'lender_name':
+                                return (
+                                  <TableCell key={col.id} className='text-primary'>
+                                    <HighlightedText
+                                      text={rev.lender_name}
+                                      highlight={appliedFilters.lenderName}
+                                    />
+                                  </TableCell>
+                                )
+                              case 'reference_number':
+                                return (
+                                  <TableCell key={col.id} className='text-primary'>
+                                    <HighlightedText
+                                      text={rev.reference_number}
+                                      highlight={appliedFilters.referenceNumber}
+                                    />
+                                  </TableCell>
+                                )
+                              case 'income_booking_date':
+                                return (
+                                  <TableCell key={col.id} className='text-primary'>
+                                    {rev.income_booking_date || '—'}
+                                  </TableCell>
+                                )
+                              case 'type_of_revenue':
+                                return (
+                                  <TableCell key={col.id} className='text-primary'>
+                                    <HighlightedText
+                                      text={rev.type_of_revenue}
+                                      highlight={appliedFilters.typeOfRevenue}
+                                    />
+                                  </TableCell>
+                                )
+                              case 'amount':
+                                return (
+                                  <TableCell key={col.id} className='text-primary'>
+                                    {rev.amount || '—'}
+                                  </TableCell>
+                                )
+                              case 'gst_amount':
+                                return (
+                                  <TableCell key={col.id} className='text-primary'>
+                                    {rev.gst_amount || '—'}
+                                  </TableCell>
+                                )
+                              default:
+                                return <TableCell key={col.id} />
+                            }
+                          })}
                         </TableRow>
                       ))
                     )}

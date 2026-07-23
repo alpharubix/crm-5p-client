@@ -36,12 +36,13 @@ export const updateDealSchema = z.object({
 
   lenderCode: z.string().optional(),
   lenderName: z.string().optional(),
+  partnerName: z.string().optional(),
   lenderLoginType: z.string().optional(),
   customerRejectionReason: z.string().optional(),
   customerRejectionStatusExplanation: z.string().optional(),
   lenderRejectionReason: z.string().optional(),
   lenderRejectionStatusExplanation: z.string().optional(),
-  dealExpectedClosing: z.string().optional(),
+  dealExpectedClosing: z.string().min(1, 'Expected closing date is required'),
   dealStatusClosing: z.string().optional(),
 
   paymentReceipt: z.string().optional(),
@@ -52,6 +53,7 @@ export const updateDealSchema = z.object({
   createdBy: z.string().optional(),
   createdAt: z.string().optional(),
   modifiedBy: z.string().optional(),
+  modifiedAt: z.string().optional(),
 })
 
 export type UpdateDealFormValues = z.infer<typeof updateDealSchema>

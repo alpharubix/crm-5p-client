@@ -202,6 +202,16 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
       ? apiData.preferred_languages
       : [],
     createdBy: apiData.created_by?.full_name ?? '',
+    createdAt: apiData.created_time ?? '',
+    modifiedBy: apiData.modified_by?.full_name ?? '',
+    modifiedAt: apiData.modified_time ?? '',
+
+    priorityAccount: apiData.priority_account ?? '',
+    profileType: apiData.profile_type ?? '',
+    employmentType: apiData.customer_salary_details?.employment_type ?? '',
+    employerName: apiData.customer_salary_details?.employer_name ?? '',
+    employmentVintage: apiData.customer_salary_details?.employment_vintage?.toString() ?? '',
+    annualIncome: apiData.customer_salary_details?.annual_income?.toString() ?? '',
 
     businessVintage: apiData.business_details?.vintage_years?.toString() ?? '',
     businessRegistrationType: apiData.business_details?.registration_type ?? '',
@@ -268,9 +278,9 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     // applicantGpsLocation:
     //   apiData.applicant_residence_address?.gps_location ?? '',
 
-    coApplicantCode: apiData.co_applicant_residence_address?.pincode ?? '',
-    coApplicantYears:
-      apiData.co_applicant_residence_address?.years_residing?.toString() ?? '',
+    // coApplicantCode: apiData.co_applicant_residence_address?.pincode ?? '',
+    // coApplicantYears:
+    //   apiData.co_applicant_residence_address?.years_residing?.toString() ?? '',
 
     ref1Name: apiData.customer_references?.person1?.name ?? '',
     ref1Phone: apiData.customer_references?.person1?.phone ?? '',
@@ -322,6 +332,10 @@ function mapFormToApi(
   if (dirtyFields.preferredLanguages)
     payload.preferred_languages = formData.preferredLanguages
   if (dirtyFields.parentAccount) payload.parent_account = formData.parentAccount
+
+  if (dirtyFields.priorityAccount)
+    payload.priority_account = formData.priorityAccount
+  if (dirtyFields.profileType) payload.profile_type = formData.profileType
 
   // 2. Business Details Object Block
   if (
@@ -437,6 +451,20 @@ function mapFormToApi(
     }
   }
 
+  if (
+    dirtyFields.employmentType ||
+    dirtyFields.employerName ||
+    dirtyFields.employmentVintage ||
+    dirtyFields.annualIncome
+  ) {
+    payload.customer_salary_details = {
+      employment_type: formData.employmentType || null,
+      employer_name: formData.employerName || null,
+      employment_vintage: formData.employmentVintage || null,
+      annual_income: formData.annualIncome || null,
+    }
+  }
+
   // 6. Customer References Object Block
   const customerReferences: any = {}
 
@@ -504,21 +532,12 @@ export default function UpdateAccounts() {
   const [openAllNotes, setOpenAllNotes] = useState(false)
   const [openAllContacts, setOpenAllContacts] = useState(false)
   const [openAllDeals, setOpenAllDeals] = useState(false)
-
-  const navigate = useNavigate()
-  const [businessStateSearch, setBusinessStateSearch] = useState('')
-  const [businessStateOpen, setBusinessStateOpen] = useState(false)
-  const [businessCitySearch, setBusinessCitySearch] = useState('')
-  const [businessCityOpen, setBusinessCityOpen] = useState(false)
-  const [businessPincodeSearch, setBusinessPincodeSearch] = useState('')
   const [isBsaLoading, setIsBsaLoading] = useState(false)
   const [isItrLoading, setIsItrLoading] = useState(false)
   const [isGstLoading, setIsGstLoading] = useState(false)
   const [isCibilLoading, setIsCibilLoading] = useState(false)
-  const [businessPincodeOpen, setBusinessPincodeOpen] = useState(false)
-  const { user } = useAuth()
+  const navigate = useNavigate()
 
-  const isAllow = user?.role === 'super_admin' || user?.role === 'admin'
   const handleViewBsaAnalysis = async () => {
     try {
       setIsBsaLoading(true)
@@ -554,7 +573,6 @@ export default function UpdateAccounts() {
         return
       }
       const data = await res.json()
-
       if (data.data) {
         navigate(`/accounts/${id}/itr`)
       } else {
@@ -589,7 +607,6 @@ export default function UpdateAccounts() {
       setIsGstLoading(false)
     }
   }
-
   const handleViewCibilAnalysis = async () => {
     try {
       setIsCibilLoading(true)
@@ -613,6 +630,19 @@ export default function UpdateAccounts() {
       setIsCibilLoading(false)
     }
   }
+
+  const [businessStateSearch, setBusinessStateSearch] = useState('')
+  const [businessStateOpen, setBusinessStateOpen] = useState(false)
+  const [businessCitySearch, setBusinessCitySearch] = useState('')
+  const [businessCityOpen, setBusinessCityOpen] = useState(false)
+  const [businessPincodeSearch, setBusinessPincodeSearch] = useState('')
+  const [businessPincodeOpen, setBusinessPincodeOpen] = useState(false)
+  const { user } = useAuth()
+
+  const isAllow =
+    user?.role === 'super_admin' ||
+    user?.role === 'admin' ||
+    user?.role === 'manager'
 
   const form = useForm<UpdateAccountFormValues>({
     resolver: zodResolver(updateAccountSchema),
@@ -835,9 +865,11 @@ export default function UpdateAccounts() {
         </div>
 
         {!isEdit ? (
+          <div className='flex gap-2'>
           <Button size='sm' onClick={() => setIsEdit(true)}>
             Update
           </Button>
+          </div>
         ) : (
           <div className='flex gap-2'>
             <Button
@@ -1456,30 +1488,28 @@ export default function UpdateAccounts() {
               )}
             </FieldRow>
 
-            <FieldRow
-              label='Distributor Code'
-              error={errors.distributorCode?.message}
-            >
-              {isEdit ? (
-                <Input {...register('distributorCode')} className='h-8' />
-              ) : (
-                <span>{data.distributorCode || '—'}</span>
-              )}
+            <FieldRow label='Created By'>
+              <span>{display(data.createdBy)}</span>
             </FieldRow>
 
-            <FieldRow label='WABA Interested'>
-              <Controller
-                control={control}
-                name='wabaInterested'
-                render={({ field }) => (
-                  <SelectField
-                    value={field.value ? 'Yes' : 'No'}
-                    isEdit={isEdit}
-                    options={['Yes', 'No']}
-                    onChange={(v) => field.onChange(v === 'Yes')}
-                  />
-                )}
-              />
+            <FieldRow label='Created At'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                {data.createdAt
+                  ? formatExactDate(data.createdAt, 'dd MMM yyyy, hh:mm a')
+                  : '—'}
+              </span>
+            </FieldRow>
+
+            <FieldRow label='Modified By'>
+              <span>{display(data.modifiedBy)}</span>
+            </FieldRow>
+
+            <FieldRow label='Modified At'>
+              <span className='text-sm font-medium text-muted-foreground'>
+                {data.modifiedAt
+                  ? formatExactDate(data.modifiedAt, 'dd MMM yyyy, hh:mm a')
+                  : '—'}
+              </span>
             </FieldRow>
           </div>
 
@@ -1576,6 +1606,50 @@ export default function UpdateAccounts() {
                 )}
               />
             </FieldRow>
+
+            <FieldRow
+              label='Distributor Code'
+              error={errors.distributorCode?.message}
+            >
+              {isEdit ? (
+                <Input {...register('distributorCode')} className='h-8' />
+              ) : (
+                <span>{data.distributorCode || '—'}</span>
+              )}
+            </FieldRow>
+
+            <FieldRow label='WABA Interested'>
+              <Controller
+                control={control}
+                name='wabaInterested'
+                render={({ field }) => (
+                  <SelectField
+                    value={field.value ? 'Yes' : 'No'}
+                    isEdit={isEdit}
+                    options={['Yes', 'No']}
+                    onChange={(v) => field.onChange(v === 'Yes')}
+                  />
+                )}
+              />
+            </FieldRow>
+
+            <FieldRow
+              label='Priority Account'
+              error={errors.priorityAccount?.message}
+            >
+              <Controller
+                control={control}
+                name='priorityAccount'
+                render={({ field }) => (
+                  <SelectField
+                    value={field.value}
+                    isEdit={isEdit}
+                    options={['Yes', 'No']}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </FieldRow>
           </div>
         </CardContent>
 
@@ -1603,9 +1677,6 @@ export default function UpdateAccounts() {
               ) : (
                 <span>{display(data.email)}</span>
               )}
-            </FieldRow>
-            <FieldRow label='Created By'>
-              <span>{display(data.createdBy)}</span>
             </FieldRow>
           </div>
 
@@ -1635,6 +1706,20 @@ export default function UpdateAccounts() {
                     isEdit={isEdit}
                     onChange={field.onChange}
                     placeholder='Select languages...'
+                  />
+                )}
+              />
+            </FieldRow>
+            <FieldRow label='Profile Type' error={errors.profileType?.message}>
+              <Controller
+                control={control}
+                name='profileType'
+                render={({ field }) => (
+                  <SelectField
+                    value={field.value}
+                    isEdit={isEdit}
+                    options={['Salaried', 'Self Employed']}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -1771,6 +1856,79 @@ export default function UpdateAccounts() {
           </div>
         </CardContent>
 
+        {/* ================= Customer Salary Details ================= */}
+        {data.profileType == 'Salaried' && (
+          <>
+            <SectionHeader title='Customer Salary Details' />
+            <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
+              <div className='md:border-r'>
+                <FieldRow
+                  label='Employment Type'
+                  error={errors.employmentType?.message}
+                >
+                  <Controller
+                    control={control}
+                    name='employmentType'
+                    render={({ field }) => (
+                      <SelectField
+                        value={field.value}
+                        isEdit={isEdit}
+                        options={[
+                          'Private Employee',
+                          'Government Employee',
+                          'Retired',
+                          'Others',
+                        ]}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                </FieldRow>
+                <FieldRow
+                  label='Employment Vintage'
+                  error={errors.employmentVintage?.message}
+                >
+                  {isEdit ? (
+                    <Input
+                      {...register('employmentVintage')}
+                      className='h-8'
+                      type='number'
+                    />
+                  ) : (
+                    <span>{display(data.employmentVintage)}</span>
+                  )}
+                </FieldRow>
+              </div>
+              <div>
+                <FieldRow
+                  label='Employer / Company Name'
+                  error={errors.employerName?.message}
+                >
+                  {isEdit ? (
+                    <Input {...register('employerName')} className='h-8' />
+                  ) : (
+                    <span>{display(data.employerName)}</span>
+                  )}
+                </FieldRow>
+                <FieldRow
+                  label='Annual Income'
+                  error={errors.annualIncome?.message}
+                >
+                  {isEdit ? (
+                    <Input
+                      {...register('annualIncome')}
+                      className='h-8'
+                      type='number'
+                    />
+                  ) : (
+                    <span>{display(data.annualIncome)}</span>
+                  )}
+                </FieldRow>
+              </div>
+            </CardContent>
+          </>
+        )}
+
         {/* ================= Address Information of Business Premise ================= */}
         <SectionHeader title='Address Information of Business Premise' />
         <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
@@ -1782,7 +1940,7 @@ export default function UpdateAccounts() {
                 <span>{display(data.businessStreet)}</span>
               )}
             </FieldRow>
-            <FieldRow label='State'>
+            <FieldRow label='State' error={errors.businessState?.message}>
               {isEdit ? (
                 <div className='relative'>
                   <Input
@@ -1825,7 +1983,7 @@ export default function UpdateAccounts() {
                 <span>{display(data.businessState)}</span>
               )}
             </FieldRow>
-            <FieldRow label='Pincode'>
+            <FieldRow label='Pincode' error={errors.businessPincode?.message}>
               {isEdit ? (
                 <div className='relative'>
                   <Input
@@ -1878,7 +2036,7 @@ export default function UpdateAccounts() {
             </FieldRow>
           </div>
           <div>
-            <FieldRow label='City'>
+            <FieldRow label='City' error={errors.businessCity?.message}>
               {isEdit ? (
                 <div className='relative'>
                   <Input
@@ -1921,7 +2079,7 @@ export default function UpdateAccounts() {
                 <span>{display(data.businessCity)}</span>
               )}
             </FieldRow>
-            <FieldRow label='Country'>
+            <FieldRow label='Country' error={errors.businessCountry?.message}>
               {isEdit ? (
                 <Input {...register('businessCountry')} className='h-8' />
               ) : (
@@ -1985,6 +2143,7 @@ export default function UpdateAccounts() {
                   value={field.value}
                   onChange={field.onChange}
                   isEdit={isEdit}
+                  error={errors.applicantState?.message}
                 />
               )}
             />
@@ -1999,11 +2158,12 @@ export default function UpdateAccounts() {
                   value={field.value}
                   onChange={field.onChange}
                   isEdit={isEdit}
+                  error={errors.applicantCity?.message}
                 />
               )}
             />
             {/* </FieldRow> */}
-            <FieldRow label='Country'>
+            <FieldRow label='Country' error={errors.applicantCountry?.message}>
               {isEdit ? (
                 <Input
                   {...register('applicantCountry')}
@@ -2027,6 +2187,7 @@ export default function UpdateAccounts() {
                   value={field.value}
                   onChange={field.onChange}
                   isEdit={isEdit}
+                  error={errors.applicantPincode?.message}
                 />
               )}
             />
@@ -2094,6 +2255,7 @@ export default function UpdateAccounts() {
                   value={field.value}
                   onChange={field.onChange}
                   isEdit={isEdit}
+                  error={errors.coApplicantState?.message}
                 />
               )}
             />
@@ -2108,6 +2270,7 @@ export default function UpdateAccounts() {
                   value={field.value}
                   onChange={field.onChange}
                   isEdit={isEdit}
+                  error={errors.coApplicantCity?.message}
                 />
               )}
             />
@@ -2115,7 +2278,10 @@ export default function UpdateAccounts() {
           </div>
 
           <div>
-            <FieldRow label='Country'>
+            <FieldRow
+              label='Country'
+              error={errors.coApplicantCountry?.message}
+            >
               {isEdit ? (
                 <Input
                   {...register('coApplicantCountry')}
@@ -2136,6 +2302,7 @@ export default function UpdateAccounts() {
                   value={field.value}
                   onChange={field.onChange}
                   isEdit={isEdit}
+                  error={errors.coApplicantPincode?.message}
                 />
               )}
             />
@@ -2347,6 +2514,291 @@ export default function UpdateAccounts() {
           )}
           <NoteDialog onAddNote={handleAddNote} />
         </CardContent>
+
+        {/* ========================= Analysis ===================== */}
+        <SectionHeader title='Analysis' />
+        <div className='flex gap-4 mx-4'>
+          <Button
+            size='lg'
+            variant='outline'
+            onClick={handleViewBsaAnalysis}
+            disabled={isBsaLoading}
+            className='cursor-pointer border-red-500'
+          >
+            {isBsaLoading ? <Spinner className='mr-2 h-4 w-4' /> : null}
+            BSA Analysis
+          </Button>
+          <Button
+            size='lg'
+            variant='outline'
+            onClick={handleViewItrAnalysis}
+            className='cursor-pointer border-blue-500'
+            disabled={isItrLoading}
+          >
+            {isItrLoading ? <Spinner className='mr-2 h-4 w-4' /> : null}
+            ITR Analysis
+          </Button>
+          <Button
+            size='lg'
+            variant='outline'
+            onClick={handleViewGstAnalysis}
+            className='cursor-pointer border-green-500'
+            disabled={isGstLoading}
+          >
+            {isGstLoading ? <Spinner className='mr-2 h-4 w-4' /> : null}
+            GST Analysis
+          </Button>
+          <Button
+            size='lg'
+            variant='outline'
+            onClick={handleViewCibilAnalysis}
+            className='cursor-pointer border-green-500'
+            disabled={isCibilLoading}
+          >
+            {isCibilLoading ? <Spinner className='mr-2 h-4 w-4' /> : null}
+            Cibil Analysis
+          </Button>
+        </div>
+
+        {/* ================= Deals ================= */}
+        <SectionHeader title='Deals' />
+        <div className='space-y-4 mx-2'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground'>
+              Total Deals: <span className='font-semibold'>{Deals.length}</span>
+            </p>
+            {Deals.length > 3 && (
+              <Dialog open={openAllDeals} onOpenChange={setOpenAllDeals}>
+                <DialogTrigger asChild>
+                  <Button size='sm' variant='outline'>
+                    View More
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className='min-w-4xl h-1/2'>
+                  <DialogHeader>
+                    <DialogTitle>All Deals ({Deals.length})</DialogTitle>
+                  </DialogHeader>
+                  <div className='overflow-auto'>
+                    <Table>
+                      <TableHeader className='bg-muted sticky top-0 z-10'>
+                        <TableRow>
+                          <TableHead>Owner</TableHead>
+                          <TableHead>Deal Type</TableHead>
+                          <TableHead>Deal Status</TableHead>
+                          <TableHead>Lender Name</TableHead>
+                          <TableHead>Disbursement Amount</TableHead>
+                          <TableHead>Modified Date/Time</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {Deals.map((deal: any) => (
+                          <TableRow
+                            key={deal.id}
+                            onClick={() => {
+                              navigate(`/deals/${deal.id}`)
+                              setOpenAllDeals(false)
+                            }}
+                            className='cursor-pointer'
+                          >
+                            <TableCell>
+                              {uListLookup(deal.deal_owner_id, usersList)}
+                            </TableCell>
+                            <TableCell>{deal.deal_type || '—'}</TableCell>
+                            <TableCell>{deal.deal_status || '—'}</TableCell>
+                            <TableCell>{deal.lender_name || '—'}</TableCell>
+                            <TableCell>
+                              {formatAmount(deal.disbursed_amount) || '—'}
+                            </TableCell>
+                            <TableCell>
+                              {formatExactDate(
+                                deal.updated_at,
+                                'dd MMM yyyy, hh:mm a',
+                              ) || '—'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+          <div className='border rounded-md overflow-hidden'>
+            <Table>
+              <TableHeader className='bg-muted'>
+                <TableRow>
+                  <TableHead>Owner</TableHead>
+                  <TableHead>Deal Type</TableHead>
+                  <TableHead>Deal Status</TableHead>
+                  <TableHead>Lender Name</TableHead>
+                  <TableHead>Disbursement Amount</TableHead>
+                  <TableHead>Modified Date/Time</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Deals.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className='text-center text-muted-foreground'
+                    >
+                      No deals available
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  Deals.slice(0, 3).map((deal: any) => (
+                    <TableRow
+                      key={deal.id}
+                      onClick={() => navigate(`/deals/${deal.id}`)}
+                      className='cursor-pointer'
+                    >
+                      <TableCell>
+                        {uListLookup(deal.deal_owner_id, usersList)}
+                      </TableCell>
+                      <TableCell>{deal.deal_type || '—'}</TableCell>
+                      <TableCell>{deal.deal_status || '—'}</TableCell>
+                      <TableCell>{deal.lender_name || '—'}</TableCell>
+                      <TableCell>
+                        {formatAmount(deal.disbursed_amount) || '—'}
+                      </TableCell>
+                      <TableCell>
+                        {formatExactDate(
+                          deal.updated_at,
+                          'dd MMM yyyy, hh:mm a',
+                        ) || '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className='flex justify-center'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() =>
+                navigate(`/deals-create`, {
+                  state: {
+                    accountId: id,
+                    accountName: accountData?.account_name,
+                  },
+                })
+              }
+            >
+              <Plus className='h-4 w-4 mr-2' /> Add Deal
+            </Button>
+          </div>
+        </div>
+
+        {/* ================= Contacts ================= */}
+        <SectionHeader title='Contacts' />
+        <div className='space-y-4 mx-2'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-muted-foreground'>
+              Total Contacts:{' '}
+              <span className='font-semibold'>{contacts.length}</span>
+            </p>
+            {contacts.length > 3 && (
+              <Dialog open={openAllContacts} onOpenChange={setOpenAllContacts}>
+                <DialogTrigger asChild>
+                  <Button size='sm' variant='outline'>
+                    View More
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className='max-w-4xl max-h-[80vh] flex flex-col'>
+                  <DialogHeader>
+                    <DialogTitle>All Contacts ({contacts.length})</DialogTitle>
+                  </DialogHeader>
+                  <div className='overflow-auto'>
+                    <Table>
+                      <TableHeader className='bg-muted sticky top-0 z-10'>
+                        <TableRow>
+                          <TableHead>Contact Name</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Mobile</TableHead>
+                          <TableHead>Email</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {contacts.map((contact: any) => (
+                          <TableRow
+                            key={contact.id}
+                            onClick={() => {
+                              navigate(`/contacts/${contact.id}`)
+                              setOpenAllContacts(false)
+                            }}
+                            className='cursor-pointer'
+                          >
+                            <TableCell>{contact.last_name || '—'}</TableCell>
+                            <TableCell>{contact.phone || '—'}</TableCell>
+                            <TableCell>{contact.mobile || '—'}</TableCell>
+                            <TableCell>{contact.email || '—'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+          <div className='border rounded-md overflow-hidden'>
+            <Table>
+              <TableHeader className='bg-muted'>
+                <TableRow>
+                  <TableHead>Contact Name</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Email</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {contacts.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className='text-center text-muted-foreground'
+                    >
+                      No contacts available
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  contacts.slice(0, 3).map((contact: any) => (
+                    <TableRow
+                      key={contact.id}
+                      onClick={() => navigate(`/contacts/${contact.id}`)}
+                      className='cursor-pointer'
+                    >
+                      <TableCell>{contact.last_name || '—'}</TableCell>
+                      <TableCell>{contact.phone || '—'}</TableCell>
+                      <TableCell>{contact.mobile || '—'}</TableCell>
+                      <TableCell>{contact.email || '—'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className='flex justify-center'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() =>
+                navigate(`/contacts-create`, {
+                  state: {
+                    accountId: id,
+                    accountName: accountData?.account_name,
+                    leadSource: data.source,
+                  },
+                })
+              }
+            >
+              <Plus className='h-4 w-4 mr-2' /> Add Contact
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   )
