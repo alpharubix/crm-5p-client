@@ -240,20 +240,27 @@ function mapFormToApi(
   return payload
 }
 
-export default function UpdateDeals() {
-  const { id } = useParams()
+export default function UpdateDeals({
+  dealIdProp,
+  onBack,
+}: {
+  dealIdProp?: string | number
+  onBack?: () => void
+} = {}) {
+  const params = useParams()
+  const id = dealIdProp !== undefined ? String(dealIdProp) : params.id
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [isEdit, setIsEdit] = useState(false)
   const [openAllNotes, setOpenAllNotes] = useState(false)
   const { user } = useAuth()
   const allowedEmails = [
-    'prathap@r1xchange.com',
-    'pranay.kumar@r1xchange.com',
-    'sutapa.roy@r1xchange.com',
-    'namrata.srivastava@r1xchange.com',
-    'subhasini.ts@r1xchange.com',
-    'raj.nandini@r1xchange.com',
+    'prathap@5pointcredit.com',
+    'pranay.kumar@5pointcredit.com',
+    'sutapa.roy@5pointcredit.com',
+    'namrata.srivastava@5pointcredit.com',
+    'subhasini.ts@5pointcredit.com',
+    'raj.nandini@5pointcredit.com',
   ]
 
   const isEmailAuthorized = allowedEmails.includes(user?.email!)
@@ -429,6 +436,11 @@ export default function UpdateDeals() {
           </h1>
         </div>
         <div className='flex items-center gap-2'>
+          {onBack && (
+            <Button size='sm' variant='outline' onClick={onBack}>
+              ← Back
+            </Button>
+          )}
           {!isEdit ? (
             <Button
               size='sm'
@@ -1115,7 +1127,78 @@ export default function UpdateDeals() {
           )}
 
           <NoteDialog onAddNote={handleAddNote} />
+        </CardContent>
 
+        {/* ================= Linked Tickets ================= */}
+        <SectionHeader title='Linked Tickets' />
+        <CardContent className='p-4 space-y-3 border-b'>
+          <div className='flex items-center justify-between mb-2'>
+            <p className='text-sm text-muted-foreground'>
+              Total Tickets:{' '}
+              <span className='font-semibold'>
+                {(dealData as any)?.tickets?.length || 0}
+              </span>
+            </p>
+            {isEmailAuthorized && (
+              <Button
+                size='sm'
+                variant='outline'
+                className='cursor-pointer'
+                onClick={() =>
+                  navigate(`/deals/${id}/tickets/create`, {
+                    state: {
+                      accountId: dealData?.account_id,
+                      accountName: dealData?.account_name,
+                    },
+                  })
+                }
+              >
+                <Plus className='h-4 w-4 mr-1' /> Add Ticket
+              </Button>
+            )}
+          </div>
+
+          {!(dealData as any)?.tickets ||
+          (dealData as any).tickets.length === 0 ? (
+            <p className='text-sm text-muted-foreground'>
+              No tickets associated with this deal.
+            </p>
+          ) : (
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
+              {(dealData as any).tickets.map((ticket: any) => (
+                <div
+                  key={ticket.id}
+                  onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  className='bg-muted/30 p-3 rounded-lg border hover:border-primary hover:bg-muted/50 transition-all cursor-pointer group'
+                >
+                  <div className='flex justify-between items-start mb-2'>
+                    <span className='text-xs font-bold text-primary'>
+                      #{ticket.id}
+                    </span>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold ${
+                        ticket.ticket_status === 'Approved'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-zinc-200 text-zinc-700'
+                      }`}
+                    >
+                      {ticket.ticket_status || 'N/A'}
+                    </span>
+                  </div>
+                  <p className='text-sm font-semibold truncate'>
+                    {ticket.lender_name || 'No Lender'}
+                  </p>
+                  <div className='flex flex-col mt-2 gap-1 text-[11px] text-muted-foreground uppercase'>
+                    <span>Type: {ticket.type_of_loan || '—'}</span>
+                    <span>Stage: {ticket.ticket_stage || '—'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+
+        <CardContent className='p-4 space-y-3'>
           <DocumentationSection dealId={id!} />
         </CardContent>
       </Card>
