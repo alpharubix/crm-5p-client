@@ -111,6 +111,7 @@ function mapDealToForm(apiData: any): UpdateDealFormValues {
     potential: apiData.potential || '',
     product: apiData.product || '',
     partnerCode: apiData.partner_code || '',
+    partnerName: apiData.partner_name || '',
     createdBy: apiData.created_by || 'System Driven Field (User)',
     modifiedBy: apiData.modified_by || 'System Driven Field (User)',
   }
@@ -150,6 +151,7 @@ function mapFormToApi(
       key: 'disbursedAmount',
     },
     partner_code: { value: formData.partnerCode, key: 'partnerCode' }, // Remove parseInt
+    partner_name: { value: formData.partnerName || null, key: 'partnerName' },
     sanction_amount: { value: formData.sanctionAmount, key: 'sanctionAmount' },
     lender_login_type: {
       value: formData.lenderLoginType,
