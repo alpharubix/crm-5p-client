@@ -14,6 +14,7 @@ import {
   FolderOpenDot,
   GalleryVerticalEnd,
   Logs,
+  LifeBuoy,
 } from 'lucide-react'
 
 const data = {
@@ -35,10 +36,6 @@ const data = {
       url: '#',
       icon: BookOpen,
       items: [
-        // {
-        //   title: 'Leads',
-        //   url: '/leads',
-        // },
         {
           title: 'Accounts',
           url: '/accounts',
@@ -67,64 +64,19 @@ const data = {
           title: 'Revenue',
           url: '/revenue',
         },
-        // {
-        //   title: 'Deals Kanban',
-        //   url: '/kanban-deals',
-        // },
-        // {
-        //   title: 'Tickets Kanban',
-        //   url: '/kanban-tickets',
-        // }
-        // {
-        //   title: 'Deals',
-        //   url: '/deals',
-        // },
-        // {
-        //   title: 'Tasks',
-        //   url: '#',
-        // }, {
-        //   title: 'Attachments',
-        //   url: '#',
-        // }
       ],
     },
-    // {
-    //   title: 'Export',
-    //   url: '#',
-    //   icon: FolderDown,
-    //   items: [
-    //     {
-    //       title: 'All Exports',
-    //       url: '/exports',
-    //     },
-    //   ],
-    // },
-    // {
-    //   title: 'Logs',
-    //   url: '#',
-    //   icon: Logs,
-    //   items: [
-    //     {
-    //       title: 'Audit Log',
-    //       url: '/audit-logs',
-    //     },
-    //   ],
-    // },
-    // {
-    //   title: 'Projects',
-    //   url: '#',
-    //   icon: FolderOpenDot,
-    //   items: [
-    //     {
-    //       title: 'All Projects',
-    //       url: '/projects',
-    //     },
-    //     // {
-    //     //   title: 'All Tasks',
-    //     //   url: '/tasks',
-    //     // },
-    //   ],
-    // },
+    {
+      title: 'Support',
+      url: '#',
+      icon: LifeBuoy,
+      items: [
+        {
+          title: 'Software Support',
+          url: '/support-tickets',
+        },
+      ],
+    },
   ],
 }
 

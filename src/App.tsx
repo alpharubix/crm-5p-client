@@ -46,6 +46,7 @@ const CreateAccount = lazy(() => import('./components/accounts/create-account'))
 const Revenue = lazy(() => import('./pages/revenue'))
 const CreateRevenue = lazy(() => import('./components/revenue/create-revenue'))
 const UpdateRevenue = lazy(() => import('./components/revenue/update-revenue'))
+const SupportTicketsPage = lazy(() => import('./pages/support-tickets-page'))
 
 export default function App() {
   return (
@@ -107,6 +108,7 @@ export default function App() {
               <Route path='/revenue' element={<Revenue />} />
               <Route path='/revenue-create' element={<CreateRevenue />} />
               <Route path='/revenue/:id' element={<UpdateRevenue />} />
+              <Route path='/support-tickets' element={<SupportTicketsPage />} />
 
               {/*<Route element={<ProtectedLogRoute />}>
                 <Route path='/audit-logs' element={<AuditLogs />} />
