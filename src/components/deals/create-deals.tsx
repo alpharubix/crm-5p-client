@@ -479,14 +479,6 @@ export default function CreateDeal() {
               />
             </FieldRow>
 
-            <FieldRow label='Partner Code' error={errors.partnerCode?.message}>
-              <Input
-                {...register('partnerCode')}
-                placeholder='Enter Partner Code'
-                className='h-8'
-                disabled={formValues.lenderLoginType !== 'Partner'}
-              />
-            </FieldRow>
           </div>
         </CardContent>
 

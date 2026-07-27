@@ -317,10 +317,13 @@ export default function UpdateKanbanTicket({
       })
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        const detailMsg = typeof errData.detail === 'object' && errData.detail?.message
-          ? errData.detail.message
-          : errData.detail;
-        throw new Error(detailMsg || errData.message || 'Failed to update ticket')
+        const detailMsg =
+          typeof errData.detail === 'object' && errData.detail?.message
+            ? errData.detail.message
+            : errData.detail
+        throw new Error(
+          detailMsg || errData.message || 'Failed to update ticket',
+        )
       }
       return res.json()
     },
@@ -669,18 +672,27 @@ export default function UpdateKanbanTicket({
                 }
               />
             </FieldRow>
-            <FieldRow label='Partner Code' error={errors.partnerCode?.message}>
-              {isEdit ? (
-                <Input
-                  {...register('partnerCode')}
-                  placeholder='Enter Partner Code'
-                  className='h-8'
-                  // ENABLE only if 'Partner' is selected, otherwise DISABLE
-                  disabled={formValues.lenderLoginType !== 'Partner'}
-                />
-              ) : (
-                <span>{formValues.partnerCode || '—'}</span>
-              )}
+            <FieldRow
+              label='Partner Name'
+              error={errors.partnerName?.message}
+            >
+              <SelectField
+                isEdit={isEdit}
+                options={[
+                  'Rupifi Private Ltd',
+                  'FlexiLoans Technologies Private Ltd',
+                  'Recur Club Technologies Private Ltd',
+                  'Rupeeboss Financial Services Pvt Ltd',
+                  'Others',
+                ]}
+                value={formValues.partnerName as string}
+                onChange={(value) =>
+                  setValue('partnerName', value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+              />
             </FieldRow>
             <FieldRow label='Type of Loan' error={errors.loanType?.message}>
               <SelectField

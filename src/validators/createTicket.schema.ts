@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const createTicketSchema = z.object({
   lenderName: z.string().min(1, 'Lender name is required'),
+  partnerName: z.string().min(1, 'Partner name is required'),
   typeOfLoan: z.string().min(1, 'Type of loan is required'),
   ticketStatus: z.string().min(1, 'Ticket status is required'),
   ticketStage: z.string().min(1, 'Ticket stage is required'),

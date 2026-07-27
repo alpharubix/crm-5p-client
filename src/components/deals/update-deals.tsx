@@ -773,20 +773,7 @@ export default function UpdateDeals({
                 }
               />
             </FieldRow>
-            <FieldRow label='Partner Code' error={errors.partnerCode?.message}>
-              {isEdit ? (
-                <Input
-                  {...register('partnerCode')}
-                  placeholder='Partner Code'
-                  className='h-8'
-                  // Field is editable ONLY if lenderLoginType is Partner
-                  disabled={formValues.lenderLoginType !== 'Partner'}
-                />
-              ) : (
-                /* This span displays the value in Read-Only mode */
-                <span>{formValues.partnerCode || '—'}</span>
-              )}
-            </FieldRow>
+            
             <FieldRow label='Deal Status Closing'>
               <span className='text-sm font-medium text-muted-foreground'>
                 {formValues.dealStatusClosing

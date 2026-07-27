@@ -88,7 +88,7 @@ const TICKET_LOGIN = [
 export default function CreateTicket() {
   const { dealId } = useParams()
   const navigate = useNavigate()
-    const queryClient = useQueryClient()
+  const queryClient = useQueryClient()
   const [lenderSearch, setLenderSearch] = useState('')
   const [lenderOpen, setLenderOpen] = useState(false)
 
@@ -175,7 +175,7 @@ export default function CreateTicket() {
       if (values.customerRejectionStatusExplanation)
         payload.customer_rejection_status_explanation =
           values.customerRejectionStatusExplanation
-      if (values.partnerCode) payload.partner_code = values.partnerCode
+      if (values.partnerName) payload.partner_name = values.partnerName
 
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/tickets`, {
         method: 'POST',
@@ -389,12 +389,23 @@ export default function CreateTicket() {
               />
             </FieldRow>
 
-            <FieldRow label='Partner Code' error={errors.partnerCode?.message}>
-              <Input
-                {...register('partnerCode')}
-                placeholder='Enter Partner Code'
-                className='h-8'
-                disabled={formValues.lenderLoginType !== 'Partner'}
+            <FieldRow label='Partner Name *' error={errors.partnerName?.message}>
+              <SelectField
+                isEdit={true}
+                options={[
+                  'Rupifi Private Ltd',
+                  'FlexiLoans Technologies Private Ltd',
+                  'Recur Club Technologies Private Ltd',
+                  'Rupeeboss Financial Services Pvt Ltd',
+                  'Others',
+                ]}
+                value={formValues.partnerName as string}
+                onChange={(value) =>
+                  setValue('partnerName', value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
               />
             </FieldRow>
 
