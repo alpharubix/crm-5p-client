@@ -24,9 +24,11 @@ import {
 } from '@/components/ui/select'
 import {
   useQuery,
+  useMutation,
   useQueryClient,
   keepPreviousData,
 } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { Spinner } from '@/components/ui/spinner'
@@ -34,9 +36,12 @@ import { formatExactDate } from '@/utils/date-formatter'
 import UploadCsv from '@/components/accounts/csv-upload'
 
 import users from '@/utils/users.json'
-import { MultiSelect, type Option } from '@/components/ui/multi-select'
+import { useAuth } from '@/context/auth-context'
+import type { Option } from '@/components/ui/multi-select'
 import { useManageColumns } from '@/hooks/use-manage-columns'
 import { ManageColumnsDialog } from '@/components/shared/manage-columns'
+import { MultiSelect } from '@/components/ui/multi-select'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const ACCOUNT_STATUS_OPTIONS: Option[] = [
   { value: 'Yet to be dialed', label: 'Yet to be dialed' },
@@ -101,6 +106,34 @@ const INDUSTRY_OPTIONS: Option[] = [
   { value: 'DVG Dist Petroleum', label: 'DVG Dist Petroleum' },
 ]
 
+const SOURCE_TYPE_OPTIONS: Option[] = [
+  { value: 'Direct', label: 'Direct' },
+  { value: 'Referral', label: 'Referral' },
+  { value: 'Partner', label: 'Partner' },
+  { value: 'Website', label: 'Website' },
+  { value: 'Other', label: 'Other' },
+]
+
+const ACCOUNT_STAGE_OPTIONS: Option[] = [
+  { value: 'Initial Pitch', label: 'Initial Pitch' },
+  { value: 'Product Offering', label: 'Product Offering' },
+  { value: 'Doc List Shared to Cust', label: 'Doc List Shared to Cust' },
+  { value: 'Partial Docs Rec', label: 'Partial Docs Rec' },
+  { value: 'Yet To Review', label: 'Yet To Review' },
+  { value: 'Under Internal Review', label: 'Under Internal Review' },
+  { value: 'In Review with Lender', label: 'In Review with Lender' },
+  { value: 'Interested', label: 'Interested' },
+  { value: 'Commercial NI', label: 'Commercial NI' },
+  { value: 'Location not doable', label: 'Location not doable' },
+  { value: 'No Requirement', label: 'No Requirement' },
+]
+
+const BUSINESS_STATUS_OPTIONS: Option[] = [
+  { value: 'Active', label: 'Active' },
+  { value: 'Inactive', label: 'Inactive' },
+  { value: 'Not sure', label: 'Not sure' },
+]
+
 const DEFAULT_COLUMNS = [
   { id: 'account_name', label: 'Account Name', selected: true },
   { id: 'account_owner', label: 'Account Owner', selected: true },
@@ -132,6 +165,24 @@ export default function AccountsPage() {
     city: searchParams.get('city') || '',
     state: searchParams.get('state') || '',
     accountOwnerId: [] as Option[],
+    sourceType: [] as Option[],
+    accountStage: [] as Option[],
+    businessStatus: [] as Option[],
+    wabaInterested: 'all',
+    isPriorityAccount: 'all',
+    cbCondition: 'Is',
+    cbUsers: [] as Option[],
+    cbDateCondition: 'all',
+    cbFromDate: '',
+    cbToDate: '',
+    bsaFromDate: searchParams.get('bsaFromDate') || (searchParams.get('module') === 'bsa' ? searchParams.get('from_date') || '' : ''),
+    bsaToDate: searchParams.get('bsaToDate') || (searchParams.get('module') === 'bsa' ? searchParams.get('to_date') || '' : ''),
+    gstFromDate: searchParams.get('gstFromDate') || (searchParams.get('module') === 'gst' ? searchParams.get('from_date') || '' : ''),
+    gstToDate: searchParams.get('gstToDate') || (searchParams.get('module') === 'gst' ? searchParams.get('to_date') || '' : ''),
+    cibilFromDate: searchParams.get('cibilFromDate') || (searchParams.get('module') === 'cibil' ? searchParams.get('from_date') || '' : ''),
+    cibilToDate: searchParams.get('cibilToDate') || (searchParams.get('module') === 'cibil' ? searchParams.get('to_date') || '' : ''),
+    itrFromDate: searchParams.get('itrFromDate') || (searchParams.get('module') === 'itr' ? searchParams.get('from_date') || '' : ''),
+    itrToDate: searchParams.get('itrToDate') || (searchParams.get('module') === 'itr' ? searchParams.get('to_date') || '' : ''),
   })
 
   const { columns, savePreferences, resetToDefault } = useManageColumns(
@@ -151,7 +202,6 @@ export default function AccountsPage() {
   const {
     data: ownerResponse,
     isSuccess,
-    error,
   } = useQuery({
     queryKey: ['account-owners'],
     queryFn: async () => {
@@ -172,15 +222,19 @@ export default function AccountsPage() {
 
   const showOwnerFilter = isSuccess && !ownerResponse?.forbidden
 
-  const owners = ownerResponse?.data ?? []
+  const rawOwners = Array.isArray(ownerResponse)
+    ? ownerResponse
+    : Array.isArray(ownerResponse?.data)
+      ? ownerResponse.data
+      : []
 
   useEffect(() => {
     const loadedFilters: Partial<typeof filters> = {}
 
     const ownerIds = searchParams.getAll('accountOwnerId')
-    if (ownerIds.length > 0 && isSuccess && owners.length > 0) {
+    if (ownerIds.length > 0 && isSuccess && rawOwners.length > 0) {
       loadedFilters.accountOwnerId = ownerIds.map((id) => {
-        const o = owners.find((owner: any) => owner.id.toString() === id)
+        const o = rawOwners.find((owner: any) => owner.id.toString() === id)
         return { value: id, label: o ? o.full_name : id }
       })
     }
@@ -213,9 +267,8 @@ export default function AccountsPage() {
       setFilters((prev) => ({ ...prev, ...loadedFilters }))
       setAppliedFilters((prev) => ({ ...prev, ...loadedFilters }))
     }
-  }, [isSuccess, owners, searchParams])
+  }, [isSuccess, rawOwners, searchParams])
 
-  const isAllowToCreate = true
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['accounts', currentPage, appliedFilters],
     queryFn: async () => {
@@ -253,6 +306,60 @@ export default function AccountsPage() {
           params.append('account_owner_id', o.value),
         )
       }
+      if (appliedFilters.sourceType && appliedFilters.sourceType.length > 0) {
+        appliedFilters.sourceType.forEach((o: Option) =>
+          params.append('source_type', o.value),
+        )
+      }
+      if (appliedFilters.accountStage && appliedFilters.accountStage.length > 0) {
+        appliedFilters.accountStage.forEach((o: Option) =>
+          params.append('account_stage', o.value),
+        )
+      }
+      if (appliedFilters.businessStatus && appliedFilters.businessStatus.length > 0) {
+        appliedFilters.businessStatus.forEach((o: Option) =>
+          params.append('business_status', o.value),
+        )
+      }
+      if (appliedFilters.wabaInterested && appliedFilters.wabaInterested !== 'all') {
+        params.set('waba_interested', appliedFilters.wabaInterested)
+      }
+      if (appliedFilters.isPriorityAccount && appliedFilters.isPriorityAccount !== 'all') {
+        params.set('is_priority_account', appliedFilters.isPriorityAccount)
+      }
+      if (appliedFilters.cbCondition) {
+        params.set('cb_condition', appliedFilters.cbCondition)
+      }
+      if (appliedFilters.cbUsers && appliedFilters.cbUsers.length > 0) {
+        appliedFilters.cbUsers.forEach((o: Option) =>
+          params.append('cb_users', o.value),
+        )
+      }
+      if (appliedFilters.cbDateCondition && appliedFilters.cbDateCondition !== 'all') {
+        params.set('cb_date_condition', appliedFilters.cbDateCondition)
+      }
+      if (appliedFilters.cbDateCondition === 'Due Dates') {
+        if (appliedFilters.cbFromDate) params.set('cb_from_date', appliedFilters.cbFromDate)
+        if (appliedFilters.cbToDate) params.set('cb_to_date', appliedFilters.cbToDate)
+      }
+      // --- Underwriting Tool Backend Module Filters (BSA, GST, CIBIL, ITR) ---
+      if (appliedFilters.bsaFromDate || appliedFilters.bsaToDate) {
+        params.set('module', 'bsa')
+        if (appliedFilters.bsaFromDate) params.set('from_date', appliedFilters.bsaFromDate)
+        if (appliedFilters.bsaToDate) params.set('to_date', appliedFilters.bsaToDate)
+      } else if (appliedFilters.gstFromDate || appliedFilters.gstToDate) {
+        params.set('module', 'gst')
+        if (appliedFilters.gstFromDate) params.set('from_date', appliedFilters.gstFromDate)
+        if (appliedFilters.gstToDate) params.set('to_date', appliedFilters.gstToDate)
+      } else if (appliedFilters.cibilFromDate || appliedFilters.cibilToDate) {
+        params.set('module', 'cibil')
+        if (appliedFilters.cibilFromDate) params.set('from_date', appliedFilters.cibilFromDate)
+        if (appliedFilters.cibilToDate) params.set('to_date', appliedFilters.cibilToDate)
+      } else if (appliedFilters.itrFromDate || appliedFilters.itrToDate) {
+        params.set('module', 'itr')
+        if (appliedFilters.itrFromDate) params.set('from_date', appliedFilters.itrFromDate)
+        if (appliedFilters.itrToDate) params.set('to_date', appliedFilters.itrToDate)
+      }
 
       const res = await fetch(
         `${ENV.VITE_BACKEND_BASE_URL}/accounts?${params.toString()}`,
@@ -268,6 +375,66 @@ export default function AccountsPage() {
   const accounts = data?.data || []
   const pageInfo = data?.page_info || { page: 1, total_pages: 1 }
 
+  // Page-level checkbox selection state
+  const [selectedAccountIds, setSelectedAccountIds] = useState<number[]>([])
+
+  // Clear selection whenever page or applied filters change
+  useEffect(() => {
+    setSelectedAccountIds([])
+  }, [currentPage, appliedFilters])
+
+  const isAllOnPageSelected =
+    accounts.length > 0 &&
+    accounts.every((acc: any) => selectedAccountIds.includes(acc.id))
+
+  const isSomeOnPageSelected =
+    accounts.some((acc: any) => selectedAccountIds.includes(acc.id)) &&
+    !isAllOnPageSelected
+
+  const handleToggleSelectAll = () => {
+    if (isAllOnPageSelected) {
+      setSelectedAccountIds([])
+    } else {
+      setSelectedAccountIds(accounts.map((acc: any) => acc.id))
+    }
+  }
+
+  const handleToggleSelectRow = (accId: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    setSelectedAccountIds((prev) =>
+      prev.includes(accId)
+        ? prev.filter((id) => id !== accId)
+        : [...prev, accId],
+    )
+  }
+
+  const bulkCreateTasksMutation = useMutation({
+    mutationFn: async (accountIds: number[]) => {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/account-tasks/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ account_ids: accountIds }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.detail || 'Failed to bulk create tasks')
+      }
+      return res.json()
+    },
+    onSuccess: (data) => {
+      toast.success(
+        data.message || `Created ${data.tasks_created} tasks for ${data.accounts_count} account(s)!`,
+      )
+      setSelectedAccountIds([])
+      queryClient.invalidateQueries({ queryKey: ['account-tasks-list'] })
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Error creating tasks for selected accounts')
+    },
+  })
+
   const handleFilterChange = (key: string, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
@@ -276,7 +443,20 @@ export default function AccountsPage() {
     const params = new URLSearchParams()
     params.set('page', '1')
 
+    const moduleDateKeys = [
+      'bsaFromDate',
+      'bsaToDate',
+      'gstFromDate',
+      'gstToDate',
+      'cibilFromDate',
+      'cibilToDate',
+      'itrFromDate',
+      'itrToDate',
+    ]
+
     Object.entries(filters).forEach(([key, value]) => {
+      if (moduleDateKeys.includes(key)) return
+
       if (Array.isArray(value)) {
         value.forEach((item: Option) => {
           params.append(key, item.value)
@@ -285,6 +465,24 @@ export default function AccountsPage() {
         params.set(key, String(value))
       }
     })
+
+    if (filters.bsaFromDate || filters.bsaToDate) {
+      params.set('module', 'bsa')
+      if (filters.bsaFromDate) params.set('from_date', filters.bsaFromDate)
+      if (filters.bsaToDate) params.set('to_date', filters.bsaToDate)
+    } else if (filters.gstFromDate || filters.gstToDate) {
+      params.set('module', 'gst')
+      if (filters.gstFromDate) params.set('from_date', filters.gstFromDate)
+      if (filters.gstToDate) params.set('to_date', filters.gstToDate)
+    } else if (filters.cibilFromDate || filters.cibilToDate) {
+      params.set('module', 'cibil')
+      if (filters.cibilFromDate) params.set('from_date', filters.cibilFromDate)
+      if (filters.cibilToDate) params.set('to_date', filters.cibilToDate)
+    } else if (filters.itrFromDate || filters.itrToDate) {
+      params.set('module', 'itr')
+      if (filters.itrFromDate) params.set('from_date', filters.itrFromDate)
+      if (filters.itrToDate) params.set('to_date', filters.itrToDate)
+    }
 
     setSearchParams(params)
     setAppliedFilters(filters)
@@ -301,6 +499,24 @@ export default function AccountsPage() {
       city: '',
       state: '',
       accountOwnerId: [] as Option[],
+      sourceType: [] as Option[],
+      accountStage: [] as Option[],
+      businessStatus: [] as Option[],
+      wabaInterested: 'all',
+      isPriorityAccount: 'all',
+      cbCondition: 'Is',
+      cbUsers: [] as Option[],
+      cbDateCondition: 'all',
+      cbFromDate: '',
+      cbToDate: '',
+      bsaFromDate: '',
+      bsaToDate: '',
+      gstFromDate: '',
+      gstToDate: '',
+      cibilFromDate: '',
+      cibilToDate: '',
+      itrFromDate: '',
+      itrToDate: '',
     }
 
     setFilters(emptyFilters)
@@ -334,6 +550,12 @@ export default function AccountsPage() {
       window.open(`${window.location.origin}/accounts/${id}`, '_blank')
     }
   }
+  const { user } = useAuth()
+
+  const isAllowToCreate =
+    user?.role?.toLowerCase().includes('admin') ||
+    user?.role?.toLowerCase().includes('super_admin') ||
+    user?.role?.toLowerCase().includes('manager')
 
   return (
     <div className='p-4 space-y-4'>
@@ -372,7 +594,7 @@ export default function AccountsPage() {
             <div className='space-y-2'>
               <Label>Account Owner</Label>
               <MultiSelect
-                options={owners.map((owner: any) => ({
+                options={rawOwners.map((owner: any) => ({
                   label: owner.full_name,
                   value: owner.id.toString(),
                 }))}
@@ -451,6 +673,262 @@ export default function AccountsPage() {
             />
           </div>
 
+          <div className='space-y-2'>
+            <Label>Source Type</Label>
+            <MultiSelect
+              options={SOURCE_TYPE_OPTIONS}
+              value={filters.sourceType}
+              onChange={(val) => handleFilterChange('sourceType', val)}
+              placeholder='Select Source Type...'
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>Account Stage</Label>
+            <MultiSelect
+              options={ACCOUNT_STAGE_OPTIONS}
+              value={filters.accountStage}
+              onChange={(val) => handleFilterChange('accountStage', val)}
+              placeholder='Select Stage...'
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>Business Status</Label>
+            <MultiSelect
+              options={BUSINESS_STATUS_OPTIONS}
+              value={filters.businessStatus}
+              onChange={(val) => handleFilterChange('businessStatus', val)}
+              placeholder='Select Business Status...'
+            />
+          </div>
+
+          <div className='space-y-2'>
+            <Label>WABA Interested</Label>
+            <Select
+              value={filters.wabaInterested}
+              onValueChange={(val) => handleFilterChange('wabaInterested', val)}
+            >
+              <SelectTrigger className='h-9 text-xs'>
+                <SelectValue placeholder='Select WABA Interested' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All</SelectItem>
+                <SelectItem value='Yes'>Yes</SelectItem>
+                <SelectItem value='No'>No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className='space-y-2'>
+            <Label>Priority Account</Label>
+            <Select
+              value={filters.isPriorityAccount}
+              onValueChange={(val) => handleFilterChange('isPriorityAccount', val)}
+            >
+              <SelectTrigger className='h-9 text-xs'>
+                <SelectValue placeholder='Select Priority Account' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>All</SelectItem>
+                <SelectItem value='Yes'>Yes</SelectItem>
+                <SelectItem value='No'>No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <hr className='my-4 border-border' />
+
+          {/* Advanced Call Back Date & Time Filter Section */}
+          <div className='space-y-3 p-3 bg-muted/30 rounded-md border'>
+            <Label className='font-semibold text-xs text-foreground block border-b pb-1'>
+              Call Back Date / Time Filter
+            </Label>
+
+            <div className='space-y-1.5'>
+              <Label className='text-[11px] text-muted-foreground'>Logical Condition</Label>
+              <Select
+                value={filters.cbCondition}
+                onValueChange={(val) => handleFilterChange('cbCondition', val)}
+              >
+                <SelectTrigger className='h-8 text-xs bg-background'>
+                  <SelectValue placeholder='Condition' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='Is'>Is (Matches)</SelectItem>
+                  <SelectItem value='Not'>Not (Negates)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className='space-y-1.5'>
+              <Label className='text-[11px] text-muted-foreground'>Users (Assignee / Owner)</Label>
+              <MultiSelect
+                options={rawOwners.map((owner: any) => ({
+                  label: owner.full_name,
+                  value: owner.id.toString(),
+                }))}
+                value={filters.cbUsers}
+                onChange={(val) => handleFilterChange('cbUsers', val)}
+                placeholder='Select Users...'
+                className='bg-background text-xs'
+              />
+            </div>
+
+            <div className='space-y-1.5'>
+              <Label className='text-[11px] text-muted-foreground'>Field Condition</Label>
+              <Select
+                value={filters.cbDateCondition}
+                onValueChange={(val) => handleFilterChange('cbDateCondition', val)}
+              >
+                <SelectTrigger className='h-8 text-xs bg-background'>
+                  <SelectValue placeholder='Select Condition' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>All Date Conditions</SelectItem>
+                  <SelectItem value='Blank'>Blank</SelectItem>
+                  <SelectItem value='Overdue'>Overdue</SelectItem>
+                  <SelectItem value='Due Today'>Due Today</SelectItem>
+                  <SelectItem value='Due Tomorrow'>Due Tomorrow</SelectItem>
+                  <SelectItem value='Due This Week'>Due This Week</SelectItem>
+                  <SelectItem value='Due Next Week'>Due Next Week</SelectItem>
+                  <SelectItem value='Due Dates'>Due Dates</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {filters.cbDateCondition === 'Due Dates' && (
+              <div className='space-y-2 pt-1'>
+                <div>
+                  <Label className='text-[11px] text-muted-foreground'>From Date</Label>
+                  <Input
+                    type='date'
+                    value={filters.cbFromDate}
+                    onChange={(e) => handleFilterChange('cbFromDate', e.target.value)}
+                    className='h-8 text-xs bg-background'
+                  />
+                </div>
+                <div>
+                  <Label className='text-[11px] text-muted-foreground'>To Date</Label>
+                  <Input
+                    type='date'
+                    value={filters.cbToDate}
+                    onChange={(e) => handleFilterChange('cbToDate', e.target.value)}
+                    className='h-8 text-xs bg-background'
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <hr className='my-4 border-border' />
+
+          {/* BSA Filter (Year, Month) */}
+          <div className='space-y-2'>
+            <Label className='font-semibold text-xs'>BSA Filter</Label>
+            <div className='grid grid-cols-2 gap-2'>
+              <div>
+                <Label className='text-[11px] text-muted-foreground'>From Date</Label>
+                <Input
+                  type='month'
+                  value={filters.bsaFromDate}
+                  onChange={(e) => handleFilterChange('bsaFromDate', e.target.value)}
+                  className='h-8 text-xs'
+                />
+              </div>
+              <div>
+                <Label className='text-[11px] text-muted-foreground'>To Date</Label>
+                <Input
+                  type='month'
+                  value={filters.bsaToDate}
+                  onChange={(e) => handleFilterChange('bsaToDate', e.target.value)}
+                  className='h-8 text-xs'
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* GST Filter (Year, Month) */}
+          <div className='space-y-2'>
+            <Label className='font-semibold text-xs'>GST Filter</Label>
+            <div className='grid grid-cols-2 gap-2'>
+              <div>
+                <Label className='text-[11px] text-muted-foreground'>From Date</Label>
+                <Input
+                  type='month'
+                  value={filters.gstFromDate}
+                  onChange={(e) => handleFilterChange('gstFromDate', e.target.value)}
+                  className='h-8 text-xs'
+                />
+              </div>
+              <div>
+                <Label className='text-[11px] text-muted-foreground'>To Date</Label>
+                <Input
+                  type='month'
+                  value={filters.gstToDate}
+                  onChange={(e) => handleFilterChange('gstToDate', e.target.value)}
+                  className='h-8 text-xs'
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* CIBIL Filter (Year, Month) */}
+          <div className='space-y-2'>
+            <Label className='font-semibold text-xs'>CIBIL Filter</Label>
+            <div className='grid grid-cols-2 gap-2'>
+              <div>
+                <Label className='text-[11px] text-muted-foreground'>From Date</Label>
+                <Input
+                  type='month'
+                  value={filters.cibilFromDate}
+                  onChange={(e) => handleFilterChange('cibilFromDate', e.target.value)}
+                  className='h-8 text-xs'
+                />
+              </div>
+              <div>
+                <Label className='text-[11px] text-muted-foreground'>To Date</Label>
+                <Input
+                  type='month'
+                  value={filters.cibilToDate}
+                  onChange={(e) => handleFilterChange('cibilToDate', e.target.value)}
+                  className='h-8 text-xs'
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ITR Filter (Year only) */}
+          <div className='space-y-2'>
+            <Label className='font-semibold text-xs'>ITR Filter</Label>
+            <div className='grid grid-cols-2 gap-2'>
+              <div>
+                <Label className='text-[11px] text-muted-foreground'>From Year</Label>
+                <Input
+                  type='number'
+                  min='2000'
+                  max='2099'
+                  placeholder='YYYY'
+                  value={filters.itrFromDate}
+                  onChange={(e) => handleFilterChange('itrFromDate', e.target.value)}
+                  className='h-8 text-xs'
+                />
+              </div>
+              <div>
+                <Label className='text-[11px] text-muted-foreground'>To Year</Label>
+                <Input
+                  type='number'
+                  min='2000'
+                  max='2099'
+                  placeholder='YYYY'
+                  value={filters.itrToDate}
+                  onChange={(e) => handleFilterChange('itrToDate', e.target.value)}
+                  className='h-8 text-xs'
+                />
+              </div>
+            </div>
+          </div>
+
           <div className='flex gap-2 pt-2'>
             <Button className='flex-1 cursor-pointer' onClick={handleSearch}>
               Search
@@ -463,13 +941,11 @@ export default function AccountsPage() {
               Clear
             </Button>
           </div>
-          <div>
-            <ManageColumnsDialog
-              columns={columns}
-              onSave={savePreferences}
-              onReset={resetToDefault}
-            />
-          </div>
+          <ManageColumnsDialog
+            columns={columns}
+            onSave={savePreferences}
+            onReset={resetToDefault}
+          />
         </div>
 
         <div className='flex flex-col gap-4 min-w-0 h-[calc(100vh-140px)]'>
@@ -479,10 +955,61 @@ export default function AccountsPage() {
             </div>
           ) : (
             <>
+              {selectedAccountIds.length > 0 && (
+                <div className='flex items-center justify-between bg-primary/10 border border-primary/20 text-primary px-3.5 py-2 rounded-md text-xs font-medium shrink-0 shadow-xs'>
+                  <div className='flex items-center gap-2'>
+                    <span>
+                      Selected {selectedAccountIds.length} of {accounts.length} accounts on this page
+                    </span>
+                    <span className='text-muted-foreground/60'>|</span>
+                    <span className='font-normal text-muted-foreground'>
+                      Will generate {selectedAccountIds.length} task(s) (1 task per account)
+                    </span>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Button
+                      size='sm'
+                      onClick={() => bulkCreateTasksMutation.mutate(selectedAccountIds)}
+                      disabled={bulkCreateTasksMutation.isPending}
+                      className='h-7 text-xs px-3 cursor-pointer shadow-xs'
+                    >
+                      {bulkCreateTasksMutation.isPending ? (
+                        <>
+                          <Spinner className='mr-1.5 h-3.5 w-3.5' />
+                          Creating Tasks...
+                        </>
+                      ) : (
+                        `Create Tasks (${selectedAccountIds.length})`
+                      )}
+                    </Button>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => setSelectedAccountIds([])}
+                      className='h-7 text-xs px-2 hover:bg-primary/20 cursor-pointer'
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                </div>
+              )}
               <div className='border rounded-md flex-1 overflow-auto relative'>
                 <table className='w-full caption-bottom text-sm'>
                   <TableHeader>
                     <TableRow className='sticky top-0 z-10 bg-background hover:bg-accent'>
+                      <TableHead className='w-[40px] px-3 text-center'>
+                        <Checkbox
+                          checked={
+                            isAllOnPageSelected
+                              ? true
+                              : isSomeOnPageSelected
+                              ? 'indeterminate'
+                              : false
+                          }
+                          onCheckedChange={handleToggleSelectAll}
+                          aria-label='Select all accounts on current page'
+                        />
+                      </TableHead>
                       {visibleColumns.map((col: any) => (
                         <TableHead key={col.id}>{col.label}</TableHead>
                       ))}
@@ -492,17 +1019,31 @@ export default function AccountsPage() {
                   <TableBody>
                     {accounts.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className='text-center h-24'>
+                        <TableCell colSpan={visibleColumns.length + 1} className='text-center h-24'>
                           No accounts found.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      accounts.map((acc: any) => (
-                        <TableRow
-                          key={acc.id}
-                          className='cursor-pointer hover:bg-accent'
-                          onClick={() => handleRowClick(acc.id)}
-                        >
+                      accounts.map((acc: any) => {
+                        const isSelected = selectedAccountIds.includes(acc.id)
+                        return (
+                          <TableRow
+                            key={acc.id}
+                            className={`cursor-pointer hover:bg-accent ${
+                              isSelected ? 'bg-muted/50' : ''
+                            }`}
+                            onClick={() => handleRowClick(acc.id)}
+                          >
+                            <TableCell
+                              className='w-[40px] px-3 text-center'
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => handleToggleSelectRow(acc.id)}
+                                aria-label={`Select account ${acc.account_name}`}
+                              />
+                            </TableCell>
                           {visibleColumns.map((col: any) => {
                             switch (col.id) {
                               case 'account_name':
@@ -679,8 +1220,9 @@ export default function AccountsPage() {
                             }
                           })}
                         </TableRow>
-                      ))
-                    )}
+                      )
+                    })
+                  )}
                   </TableBody>
                 </table>
               </div>

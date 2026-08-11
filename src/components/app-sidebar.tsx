@@ -41,6 +41,10 @@ const data = {
           url: '/accounts',
         },
         {
+          title: 'Account Tasks',
+          url: '/account-tasks',
+        },
+        {
           title: 'Contacts',
           url: '/contacts',
         },
