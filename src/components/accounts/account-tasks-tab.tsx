@@ -19,16 +19,18 @@ import { ENV } from '@/conf'
 import type { AccountTask, TaskStatus, CallBackDateStatus } from '@/types/account-task'
 import CreateAccountTaskModal from '@/components/account-tasks/create-account-task-modal'
 import UpdateAccountTaskModal from '@/components/account-tasks/update-account-task-modal'
+import { useAuth } from '@/context/auth-context'
 
 interface AccountTasksTabProps {
-  accountId: number
+  accountId: string | number
   accountName?: string
 }
 
 export default function AccountTasksTab({ accountId, accountName }: AccountTasksTabProps) {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | number | null>(null)
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
 
   const { data, isLoading, refetch, isFetching } = useQuery({
