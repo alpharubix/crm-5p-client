@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, RefreshCw, Pencil, Trash2 } from 'lucide-react'
+import { Plus, RefreshCw, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -45,6 +45,26 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
   })
 
   const tasks: AccountTask[] = data?.data || []
+
+  const quickCompleteMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/account-tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ task_status: 'Completed' }),
+      })
+      if (!res.ok) throw new Error('Failed to mark task as completed')
+      return res.json()
+    },
+    onSuccess: () => {
+      toast.success('Task marked as Completed!')
+      queryClient.invalidateQueries({ queryKey: ['account-tasks', accountId] })
+    },
+    onError: () => {
+      toast.error('Failed to mark task as completed')
+    },
+  })
 
   const deleteMutation = useMutation({
     mutationFn: async (taskId: number) => {
@@ -147,58 +167,97 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
                 </TableCell>
               </TableRow>
             ) : (
-              tasks.map((task) => (
-                <TableRow
-                  key={task.id}
-                  className='hover:bg-muted/30 cursor-pointer transition-colors'
-                  onClick={() => {
-                    setSelectedTaskId(task.id)
-                    setIsUpdateModalOpen(true)
-                  }}
-                >
-                  <TableCell className='text-xs font-medium text-muted-foreground'>
-                    {task.module_name || 'Account'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant='outline' className='font-normal'>
-                      {task.task_type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className='text-sm max-w-[250px] truncate' title={task.task_description}>
-                    {task.task_description || <span className='text-muted-foreground italic'>No description</span>}
-                  </TableCell>
-                  <TableCell>
-                    {getCallBackBadge(task.call_back_date_status)}
-                  </TableCell>
-                  <TableCell className='text-xs text-muted-foreground whitespace-nowrap'>
-                    {task.task_assigned_date_time
-                      ? formatExactDate(task.task_assigned_date_time, 'dd MMM yyyy, hh:mm a')
-                      : '-'}
-                  </TableCell>
-                  <TableCell className='text-xs text-muted-foreground whitespace-nowrap'>
-                    {task.task_due_date_time
-                      ? formatExactDate(task.task_due_date_time, 'dd MMM yyyy, hh:mm a')
-                      : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(task.task_status)}
-                  </TableCell>
-                  <TableCell className='text-right' onClick={(e) => e.stopPropagation()}>
-                    <div className='flex items-center justify-end gap-1'>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => {
-                          setSelectedTaskId(task.id)
-                          setIsUpdateModalOpen(true)
-                        }}
-                      >
-                        <Pencil className='h-3.5 w-3.5 text-muted-foreground hover:text-foreground' />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              tasks.map((task) => {
+                const isOverdue =
+                  task.task_status === 'Overdue' ||
+                  (task.task_due_date_time &&
+                    task.task_assigned_date_time &&
+                    new Date(task.task_due_date_time) < new Date(task.task_assigned_date_time) &&
+                    !['Completed', 'Verified'].includes(task.task_status)) ||
+                  (task.task_due_date_time &&
+                    new Date(task.task_due_date_time) < new Date() &&
+                    !['Completed', 'Verified'].includes(task.task_status))
+
+                const currentUserId = user?.user_id || (user as any)?.id
+                const isAccOwner = Boolean(
+                  task.account_owner_id && String(task.account_owner_id) === String(currentUserId)
+                )
+
+                return (
+                  <TableRow
+                    key={task.id}
+                    className={
+                      isOverdue
+                        ? 'bg-red-500/10 dark:bg-red-950/40 text-red-900 dark:text-red-200 hover:bg-red-500/20 border-b border-red-200 dark:border-red-900 cursor-pointer'
+                        : 'hover:bg-muted/30 cursor-pointer transition-colors'
+                    }
+                    onClick={() => {
+                      setSelectedTaskId(task.id)
+                      setIsUpdateModalOpen(true)
+                    }}
+                  >
+                    <TableCell className='text-xs font-medium text-muted-foreground'>
+                      {task.module_name || 'Account'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant='outline' className='font-normal'>
+                        {task.task_type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className='text-sm max-w-[250px] truncate' title={task.task_description}>
+                      {task.task_description || <span className='text-muted-foreground italic'>No description</span>}
+                    </TableCell>
+                    <TableCell>
+                      {getCallBackBadge(task.call_back_date_status)}
+                    </TableCell>
+                    <TableCell className='text-xs text-muted-foreground whitespace-nowrap'>
+                      {task.task_assigned_date_time
+                        ? formatExactDate(task.task_assigned_date_time, 'dd MMM yyyy, hh:mm a')
+                        : '-'}
+                    </TableCell>
+                    <TableCell className='text-xs text-muted-foreground whitespace-nowrap'>
+                      {task.task_due_date_time
+                        ? formatExactDate(task.task_due_date_time, 'dd MMM yyyy, hh:mm a')
+                        : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <div className='flex items-center gap-2'>
+                        {getStatusBadge(isOverdue ? 'Overdue' : task.task_status)}
+                        {task.task_status !== 'Completed' && isAccOwner && (
+                          <Button
+                            size='sm'
+                            variant='outline'
+                            className='h-6 px-2 text-[11px] border-green-600 text-green-700 hover:bg-green-50 dark:hover:bg-green-950 dark:text-green-400 gap-1 font-medium'
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              quickCompleteMutation.mutate(task.id)
+                            }}
+                            disabled={quickCompleteMutation.isPending}
+                            title='Mark as Completed'
+                          >
+                            <CheckCircle2 className='h-3 w-3' />
+                            Complete
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className='text-right' onClick={(e) => e.stopPropagation()}>
+                      <div className='flex items-center justify-end gap-1'>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          onClick={() => {
+                            setSelectedTaskId(task.id)
+                            setIsUpdateModalOpen(true)
+                          }}
+                        >
+                          <Pencil className='h-3.5 w-3.5 text-muted-foreground hover:text-foreground' />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
