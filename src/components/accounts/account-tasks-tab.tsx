@@ -135,17 +135,17 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
   const getCallBackBadge = (cbStatus?: CallBackDateStatus) => {
     switch (cbStatus) {
       case 'Overdue':
-        return <Badge variant='destructive' className='text-[10px] py-0'>{cbStatus}</Badge>
+        return <Badge variant='destructive' className='text-xs px-2 py-0.5'>{cbStatus}</Badge>
       case 'Due Today':
-        return <Badge className='bg-amber-500 text-[10px] py-0'>{cbStatus}</Badge>
+        return <Badge className='bg-amber-500 text-xs px-2 py-0.5'>{cbStatus}</Badge>
       case 'Due Tomorrow':
-        return <Badge className='bg-blue-500 text-[10px] py-0'>{cbStatus}</Badge>
+        return <Badge className='bg-blue-500 text-xs px-2 py-0.5'>{cbStatus}</Badge>
       case 'Due This Week':
-        return <Badge variant='secondary' className='text-[10px] py-0'>{cbStatus}</Badge>
+        return <Badge variant='secondary' className='text-xs px-2 py-0.5'>{cbStatus}</Badge>
       case 'Due Next Week':
-        return <Badge variant='outline' className='text-[10px] py-0'>{cbStatus}</Badge>
+        return <Badge variant='outline' className='text-xs px-2 py-0.5'>{cbStatus}</Badge>
       default:
-        return <span className='text-xs text-muted-foreground'>Blank</span>
+        return <span className='text-sm text-muted-foreground'>Blank</span>
     }
   }
 
@@ -170,12 +170,12 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
           <TableHeader className='bg-muted/50'>
             <TableRow>
               <TableHead className='font-semibold'>Module Name</TableHead>
-              <TableHead className='font-semibold'>Created By</TableHead>
               <TableHead className='font-semibold'>Task Type</TableHead>
               <TableHead className='font-semibold min-w-[200px]'>Task Description</TableHead>
               <TableHead className='font-semibold'>Call Back Status</TableHead>
-              <TableHead className='font-semibold'>Assigned Date/Time</TableHead>
-              <TableHead className='font-semibold'>Due Date/Time</TableHead>
+              <TableHead className='font-semibold text-foreground min-w-[150px]'>Created At</TableHead>
+              <TableHead className='font-semibold text-foreground min-w-[150px]'>Assigned Date/Time</TableHead>
+              <TableHead className='font-semibold text-foreground min-w-[150px]'>Due Date/Time</TableHead>
               <TableHead className='font-semibold'>Task Status</TableHead>
               <TableHead className='font-semibold text-right'>Actions</TableHead>
             </TableRow>
@@ -230,9 +230,6 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
                     <TableCell className='text-xs font-medium text-muted-foreground'>
                       {task.module_name || 'Account'}
                     </TableCell>
-                    <TableCell className='text-xs text-muted-foreground whitespace-nowrap'>
-                      {task.created_by_name || '-'}
-                    </TableCell>
                     <TableCell>
                       <Badge variant='outline' className='font-normal'>
                         {task.task_type}
@@ -244,10 +241,13 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
                     <TableCell>
                       {getCallBackBadge(task.call_back_date_status)}
                     </TableCell>
-                    <TableCell className='text-xs text-muted-foreground whitespace-nowrap'>
+                    <TableCell className='text-sm font-semibold text-foreground whitespace-nowrap'>
+                      {formatISTDateTime(task.created_at)}
+                    </TableCell>
+                    <TableCell className='text-sm font-semibold text-foreground whitespace-nowrap'>
                       {formatISTDateTime(task.task_assigned_date_time)}
                     </TableCell>
-                    <TableCell className='text-xs text-muted-foreground whitespace-nowrap'>
+                    <TableCell className='text-sm font-semibold text-foreground whitespace-nowrap'>
                       {formatISTDateTime(task.task_due_date_time)}
                     </TableCell>
                     <TableCell>
