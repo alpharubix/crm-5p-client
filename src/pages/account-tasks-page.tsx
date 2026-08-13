@@ -123,6 +123,8 @@ export default function AccountTasksPage() {
     accountOwnerId: [] as Option[],
     assignedFromDate: '',
     assignedToDate: '',
+    createdFromDate: '',
+    createdToDate: '',
   })
 
   // Applied Filter state (triggered when clicking "Search" button)
@@ -178,6 +180,8 @@ export default function AccountTasksPage() {
 
       if (appliedFilters.assignedFromDate) params.set('assigned_from_date', appliedFilters.assignedFromDate)
       if (appliedFilters.assignedToDate) params.set('assigned_to_date', appliedFilters.assignedToDate)
+      if (appliedFilters.createdFromDate) params.set('created_from_date', appliedFilters.createdFromDate)
+      if (appliedFilters.createdToDate) params.set('created_to_date', appliedFilters.createdToDate)
 
       if (appliedFilters.accountOwnerId && appliedFilters.accountOwnerId.length > 0) {
         appliedFilters.accountOwnerId.forEach((o) => params.append('account_owner_id', o.value))
@@ -453,7 +457,7 @@ export default function AccountTasksPage() {
 
             {/* Assigned Date Range Filter */}
             <div className='space-y-2'>
-              <Label className='text-xs font-semibold'>Assigned Date Filter</Label>
+              <Label className='text-xs font-semibold'>Assigned Task Filter</Label>
               <div className='grid grid-cols-2 gap-2'>
                 <div>
                   <Label className='text-[11px] text-muted-foreground'>From Date</Label>
@@ -470,6 +474,31 @@ export default function AccountTasksPage() {
                     type='date'
                     value={filters.assignedToDate}
                     onChange={(e) => handleFilterChange('assignedToDate', e.target.value)}
+                    className='h-8 text-xs bg-background'
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Created Date Range Filter */}
+            <div className='space-y-2'>
+              <Label className='text-xs font-semibold'>Created Task Filter</Label>
+              <div className='grid grid-cols-2 gap-2'>
+                <div>
+                  <Label className='text-[11px] text-muted-foreground'>From Date</Label>
+                  <Input
+                    type='date'
+                    value={filters.createdFromDate}
+                    onChange={(e) => handleFilterChange('createdFromDate', e.target.value)}
+                    className='h-8 text-xs bg-background'
+                  />
+                </div>
+                <div>
+                  <Label className='text-[11px] text-muted-foreground'>To Date</Label>
+                  <Input
+                    type='date'
+                    value={filters.createdToDate}
+                    onChange={(e) => handleFilterChange('createdToDate', e.target.value)}
                     className='h-8 text-xs bg-background'
                   />
                 </div>
@@ -517,6 +546,7 @@ export default function AccountTasksPage() {
                       <th className='h-10 px-3 text-left align-middle font-medium text-muted-foreground text-xs whitespace-nowrap'>Module Name</th>
                       <th className='h-10 px-3 text-left align-middle font-medium text-muted-foreground text-xs whitespace-nowrap'>Account Name</th>
                       <th className='h-10 px-3 text-left align-middle font-medium text-muted-foreground text-xs whitespace-nowrap'>Account Owner</th>
+                      <th className='h-10 px-3 text-left align-middle font-medium text-muted-foreground text-xs whitespace-nowrap'>Created By</th>
                       <th className='h-10 px-3 text-left align-middle font-medium text-muted-foreground text-xs whitespace-nowrap'>Task Type</th>
                       <th className='h-10 px-3 text-left align-middle font-medium text-muted-foreground text-xs whitespace-nowrap'>Account Status</th>
                       <th className='h-10 px-3 text-left align-middle font-medium text-muted-foreground text-xs whitespace-nowrap'>Account Stage</th>
@@ -531,7 +561,7 @@ export default function AccountTasksPage() {
                   <tbody>
                     {tasks.length === 0 ? (
                       <tr>
-                        <td colSpan={13} className='text-center py-12 text-muted-foreground text-sm'>
+                        <td colSpan={14} className='text-center py-12 text-muted-foreground text-sm'>
                           No account tasks found matching your filter parameters.
                         </td>
                       </tr>
@@ -584,6 +614,9 @@ export default function AccountTasksPage() {
                             </td>
                             <td className='p-3 text-sm whitespace-nowrap'>
                               {task.account_owner || 'Unassigned'}
+                            </td>
+                            <td className='p-3 text-sm text-muted-foreground whitespace-nowrap'>
+                              {task.created_by_name || '-'}
                             </td>
                             <td className='p-3 whitespace-nowrap'>
                               <Badge variant='outline' className='font-normal text-xs'>

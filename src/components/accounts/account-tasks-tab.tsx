@@ -170,6 +170,7 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
           <TableHeader className='bg-muted/50'>
             <TableRow>
               <TableHead className='font-semibold'>Module Name</TableHead>
+              <TableHead className='font-semibold'>Created By</TableHead>
               <TableHead className='font-semibold'>Task Type</TableHead>
               <TableHead className='font-semibold min-w-[200px]'>Task Description</TableHead>
               <TableHead className='font-semibold'>Call Back Status</TableHead>
@@ -183,7 +184,7 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
             {isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: 9 }).map((_, j) => (
                     <TableCell key={j}>
                       <Skeleton className='h-4 w-full' />
                     </TableCell>
@@ -192,7 +193,7 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
               ))
             ) : tasks.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className='text-center py-8 text-muted-foreground text-sm'>
+                <TableCell colSpan={9} className='text-center py-8 text-muted-foreground text-sm'>
                   No tasks recorded for this account yet.
                 </TableCell>
               </TableRow>
@@ -228,6 +229,9 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
                   >
                     <TableCell className='text-xs font-medium text-muted-foreground'>
                       {task.module_name || 'Account'}
+                    </TableCell>
+                    <TableCell className='text-xs text-muted-foreground whitespace-nowrap'>
+                      {task.created_by_name || '-'}
                     </TableCell>
                     <TableCell>
                       <Badge variant='outline' className='font-normal'>
