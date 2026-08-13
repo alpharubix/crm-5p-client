@@ -209,9 +209,12 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
                     new Date(task.task_due_date_time) < new Date() &&
                     !['Completed', 'Verified'].includes(task.task_status))
 
-                const currentUserId = user?.user_id || (user as any)?.id
+                const currentUserId = user?.user_id || (user as any)?.id || (user as any)?.zuid
                 const isAccOwner = Boolean(
-                  task.account_owner_id && String(task.account_owner_id) === String(currentUserId)
+                  (task.account_owner_id && String(task.account_owner_id) === String(currentUserId)) ||
+                  (task.assigned_to_id && String(task.assigned_to_id) === String(currentUserId)) ||
+                  (task.created_by_id && String(task.created_by_id) === String(currentUserId)) ||
+                  ['super_admin', 'admin'].includes(role)
                 )
 
                 return (

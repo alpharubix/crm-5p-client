@@ -248,6 +248,8 @@ export default function AccountTasksPage() {
       accountOwnerId: [] as Option[],
       assignedFromDate: '',
       assignedToDate: '',
+      createdFromDate: '',
+      createdToDate: '',
     }
     setFilters(empty)
     setAppliedFilters(empty)
@@ -580,7 +582,10 @@ export default function AccountTasksPage() {
                             !['Completed', 'Verified'].includes(task.task_status))
 
                         const isAccOwner = Boolean(
-                          task.account_owner_id && String(task.account_owner_id) === String(currentUserId)
+                          (task.account_owner_id && String(task.account_owner_id) === String(currentUserId)) ||
+                          (task.assigned_to_id && String(task.assigned_to_id) === String(currentUserId)) ||
+                          (task.created_by_id && String(task.created_by_id) === String(currentUserId)) ||
+                          ['super_admin', 'admin'].includes(role)
                         )
 
                         return (
