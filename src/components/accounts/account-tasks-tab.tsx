@@ -57,6 +57,7 @@ const formatISTDateTime = (dateStr?: string | null) => {
 export default function AccountTasksTab({ accountId, accountName }: AccountTasksTabProps) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const role = String(user?.role || '').toLowerCase()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedTaskId, setSelectedTaskId] = useState<string | number | null>(null)
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
@@ -77,7 +78,7 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
   const tasks: AccountTask[] = data?.data || []
 
   const quickCompleteMutation = useMutation({
-    mutationFn: async (taskId: number) => {
+    mutationFn: async (taskId: string | number) => {
       const res = await fetch(`${ENV.VITE_BACKEND_BASE_URL}/account-tasks/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -214,7 +215,7 @@ export default function AccountTasksTab({ accountId, accountName }: AccountTasks
                   (task.account_owner_id && String(task.account_owner_id) === String(currentUserId)) ||
                   (task.assigned_to_id && String(task.assigned_to_id) === String(currentUserId)) ||
                   (task.created_by_id && String(task.created_by_id) === String(currentUserId)) ||
-                  ['super_admin', 'admin'].includes(role)
+                  ['super_admin', 'admin', 'manager'].includes(role)
                 )
 
                 return (

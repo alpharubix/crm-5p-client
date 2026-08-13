@@ -30,12 +30,12 @@ export interface Note {
 }
 
 export interface AccountTask {
-  id: string | number
+  id: string
   module_name: string
-  account_id: string | number
+  account_id: string
   account_name?: string
   account_owner?: string
-  account_owner_id?: string | number
+  account_owner_id?: string
   account_status?: string
   account_stage?: string
   call_back_date_status?: CallBackDateStatus
@@ -44,11 +44,11 @@ export interface AccountTask {
   task_assigned_date_time?: string
   task_due_date_time?: string
   task_status: TaskStatus
-  assigned_to_id?: string | number
+  assigned_to_id?: string
   assigned_to_name?: string
-  created_by_id?: string | number
+  created_by_id?: string
   created_by_name?: string
-  modified_by_id?: string | number
+  modified_by_id?: string
   created_at: string
   updated_at: string
   notes?: Note[]
