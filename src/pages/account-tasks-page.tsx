@@ -285,6 +285,8 @@ export default function AccountTasksPage() {
         return <Badge variant='secondary' className='text-xs px-2 py-0.5'>{cbStatus}</Badge>
       case 'Due Next Week':
         return <Badge variant='outline' className='text-xs px-2 py-0.5'>{cbStatus}</Badge>
+      case 'Due Dates':
+        return <Badge variant='outline' className='text-xs px-2 py-0.5'>{cbStatus}</Badge>
       default:
         return <span className='text-sm text-muted-foreground'>Blank</span>
     }
