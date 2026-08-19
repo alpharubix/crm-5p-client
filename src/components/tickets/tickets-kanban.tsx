@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FilterX, Search } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { DatePicker } from '../ui/date-picker'
 import {
   Select,
   SelectContent,
@@ -19,32 +20,26 @@ const LOAN_TYPE_OPTIONS: Option[] = [
   { value: 'SCF', label: 'SCF' },
   { value: 'SCF Renewal', label: 'SCF Renewal' },
   { value: 'SCF Enhancement', label: 'SCF Enhancement' },
-  { value: 'SCF (Renewal and Enhancement)', label: 'SCF (Renewal & Enhancement)' },
+  {
+    value: 'SCF (Renewal & Enhancement)',
+    label: 'SCF (Renewal & Enhancement)',
+  },
   { value: 'Open SCF', label: 'Open SCF' },
   { value: 'Open SCF Renewal', label: 'Open SCF Renewal' },
   { value: 'Open SCF Enhancement', label: 'Open SCF Enhancement' },
-  { value: 'Open SCF (Renewal and Enhancement)', label: 'Open SCF (Renewal & Enhancement)' },
+  { value: 'Open SCF (Renewal and Enhancement)', label: 'Open SCF (Renewal and Enhancement)' },
   { value: 'BT-SCF', label: 'BT-SCF' },
   { value: 'BT-Open SCF', label: 'BT-Open SCF' },
   { value: 'Unsecured OD', label: 'Unsecured OD' },
   { value: 'Unsecured Term Loan', label: 'Unsecured Term Loan' },
   { value: 'Secured Loan', label: 'Secured Loan' },
-  { value: 'Secured BT', label: 'Secured BT' },
   { value: 'Vehicle Loan', label: 'Vehicle Loan' },
-]
-
-const TICKET_STATUS_OPTIONS: Option[] = [
-  { value: 'Yet to Lender Login', label: 'Yet to Lender Login' },
-  { value: 'Lender Review', label: 'Lender Review' },
-  { value: 'In Credit', label: 'In Credit' },
-  { value: 'Approved', label: 'Approved' },
-  { value: 'Disbursed', label: 'Disbursed' },
+  { value: 'Secured BT', label: 'Secured BT' }
 ]
 
 interface LocalFilters {
   search: string
   type_of_loan: Option[]
-  ticket_status: Option[]
   assignee_id: string
   created_from: string
   created_to: string
@@ -60,7 +55,6 @@ interface LocalFilters {
 const defaultFilters: LocalFilters = {
   search: '',
   type_of_loan: [],
-  ticket_status: [],
   assignee_id: 'all',
   created_from: '',
   created_to: '',
@@ -134,8 +128,6 @@ export default function TicketsKanban() {
     if (localFilters.search) f.account_name = localFilters.search
     if (localFilters.type_of_loan.length > 0)
       f.type_of_loan = localFilters.type_of_loan.map((o) => o.value)
-    if (localFilters.ticket_status.length > 0)
-      f.ticket_status = localFilters.ticket_status.map((o) => o.value)
     if (localFilters.created_from) f.created_from = localFilters.created_from
     if (localFilters.created_to) f.created_to = localFilters.created_to
     if (localFilters.deal_owner_id.length > 0)
@@ -158,12 +150,9 @@ export default function TicketsKanban() {
     setHasApplied(true)
   }
 
-  // 👉 FIXED: Explicitly reset input fields and applied filters back to the true default state values
   function clearFilters() {
     setLocalFilters({
       ...defaultFilters,
-      // created_from: defaultDates.created_from,
-      // created_to: defaultDates.created_to,
     })
 
     setAppliedFilters({
@@ -184,47 +173,39 @@ export default function TicketsKanban() {
           <h1 className='text-xl font-bold tracking-tight'>Tickets Kanban</h1>
         </div>
 
-        <div className='bg-white border rounded-xl shadow-sm p-4 mb-6 shrink-0 space-y-4'>
-          <div className='flex flex-wrap items-end gap-4'>
-            <div className='space-y-1.5'>
-              <Label className='text-[11px] uppercase tracking-wider text-muted-foreground'>
-                Search
+        <div className='bg-card border border-border/70 rounded-2xl shadow-2xs p-4 sm:p-5 mb-6 shrink-0 space-y-4'>
+          {/* Top Row: Search & MultiSelect Dropdowns */}
+          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5 w-full'>
+            <div className='space-y-1.5 md:col-span-1'>
+              <Label className='text-[10px] font-bold tracking-wider text-muted-foreground uppercase'>
+                Search Account
               </Label>
-              <Input
-                placeholder='Account name...'
-                className='h-9 text-sm w-[220px]'
-                value={localFilters.search}
-                onChange={(e) => setFilter('search', e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-              />
+              <div className='relative'>
+                <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/70 pointer-events-none' />
+                <Input
+                  placeholder='Account name...'
+                  className='pl-8 h-9 text-xs rounded-lg bg-background border-border/60'
+                  value={localFilters.search}
+                  onChange={(e) => setFilter('search', e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+                />
+              </div>
             </div>
 
-            <div className='space-y-1.5 w-56'>
-              <Label className='text-[11px] uppercase tracking-wider text-muted-foreground'>
+            <div className='space-y-1.5 md:col-span-2'>
+              <Label className='text-[10px] font-bold tracking-wider text-muted-foreground uppercase'>
                 Loan Type
               </Label>
               <MultiSelect
                 options={LOAN_TYPE_OPTIONS}
                 value={localFilters.type_of_loan}
                 onChange={(val) => setFilter('type_of_loan', val)}
-                placeholder='Select Types...'
+                placeholder='Select Loan Types...'
               />
             </div>
 
-            <div className='space-y-1.5 w-56'>
-              <Label className='text-[11px] uppercase tracking-wider text-muted-foreground'>
-                Status
-              </Label>
-              <MultiSelect
-                options={TICKET_STATUS_OPTIONS}
-                value={localFilters.ticket_status}
-                onChange={(val) => setFilter('ticket_status', val)}
-                placeholder='Select Statuses...'
-              />
-            </div>
-
-            <div className='space-y-1.5 w-56'>
-              <Label className='text-[11px] uppercase tracking-wider text-muted-foreground'>
+            <div className='space-y-1.5 md:col-span-2'>
+              <Label className='text-[10px] font-bold tracking-wider text-muted-foreground uppercase'>
                 Deal Owner
               </Label>
               <MultiSelect
@@ -239,132 +220,100 @@ export default function TicketsKanban() {
             </div>
           </div>
 
-          <div className='flex flex-wrap items-end justify-between gap-4 pt-2 border-t border-dashed'>
-            <div className='flex flex-wrap gap-6'>
-              <div className='flex items-center gap-2'>
-                <div className='space-y-1.5'>
-                  <Label className='text-[11px] font-medium text-zinc-500'>
-                    Created From
-                  </Label>
-                  <Input
-                    type='date'
-                    className='h-9 text-sm w-[150px]'
-                    value={localFilters.created_from}
-                    onChange={(e) => setFilter('created_from', e.target.value)}
-                  />
-                </div>
-                <div className='space-y-1.5'>
-                  <Label className='text-[11px] font-medium text-zinc-500'>
-                    Created To
-                  </Label>
-                  <Input
-                    type='date'
-                    className='h-9 text-sm w-[150px]'
-                    value={localFilters.created_to}
-                    onChange={(e) => setFilter('created_to', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className='flex items-center gap-2 border-l pl-6'>
-                <div className='space-y-1.5'>
-                  <Label className='text-[11px] font-medium text-zinc-500'>
-                    Lender Login From
-                  </Label>
-                  <Input
-                    type='date'
-                    className='h-9 text-sm w-[150px]'
-                    value={localFilters.lender_login_from}
-                    onChange={(e) =>
-                      setFilter('lender_login_from', e.target.value)
-                    }
-                  />
-                </div>
-                <div className='space-y-1.5'>
-                  <Label className='text-[11px] font-medium text-zinc-500'>
-                    Lender Login To
-                  </Label>
-                  <Input
-                    type='date'
-                    className='h-9 text-sm w-[150px]'
-                    value={localFilters.lender_login_to}
-                    onChange={(e) =>
-                      setFilter('lender_login_to', e.target.value)
-                    }
-                  />
-                </div>
+          {/* Grouped Date Ranges with Subtle Background Containers */}
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-2 border-t border-border/50'>
+            {/* Group 1: Created Date */}
+            <div className='bg-muted/20 border border-border/40 p-2.5 rounded-xl space-y-1.5'>
+              <Label className='text-[10px] font-bold text-muted-foreground uppercase tracking-wider block'>
+                Created Date
+              </Label>
+              <div className='grid grid-cols-2 gap-2'>
+                <DatePicker
+                  value={localFilters.created_from}
+                  onChange={(val) => setFilter('created_from', val)}
+                  placeholder='From Date'
+                />
+                <DatePicker
+                  value={localFilters.created_to}
+                  onChange={(val) => setFilter('created_to', val)}
+                  placeholder='To Date'
+                />
               </div>
             </div>
 
-            <div className='flex items-center gap-1 border-l pl-6'>
-              <div className='space-y-1.5'>
-                <Label className='text-[11px] font-medium text-zinc-500'>
-                  Disbursement Date
-                </Label>
-                <div className='flex gap-1'>
-                  <Input
-                    type='date'
-                    className='h-8 text-xs w-[130px] border-indigo-100 focus:border-indigo-300'
-                    value={localFilters.disbursement_from}
-                    onChange={(e) =>
-                      setFilter('disbursement_from', e.target.value)
-                    }
-                  />
-                  <Input
-                    type='date'
-                    className='h-8 text-xs w-[130px] border-indigo-100 focus:border-indigo-300'
-                    value={localFilters.disbursement_to}
-                    onChange={(e) =>
-                      setFilter('disbursement_to', e.target.value)
-                    }
-                  />
-                </div>
+            {/* Group 2: Lender Login Date */}
+            <div className='bg-muted/20 border border-border/40 p-2.5 rounded-xl space-y-1.5'>
+              <Label className='text-[10px] font-bold text-muted-foreground uppercase tracking-wider block'>
+                Lender Login Date
+              </Label>
+              <div className='grid grid-cols-2 gap-2'>
+                <DatePicker
+                  value={localFilters.lender_login_from}
+                  onChange={(val) => setFilter('lender_login_from', val)}
+                  placeholder='From Date'
+                />
+                <DatePicker
+                  value={localFilters.lender_login_to}
+                  onChange={(val) => setFilter('lender_login_to', val)}
+                  placeholder='To Date'
+                />
               </div>
             </div>
 
-            <div className='flex items-center gap-1 border-l pl-4'>
-              <div className='space-y-1.5'>
-                <Label className='text-[11px] font-medium text-zinc-500'>
-                  Target Disbursement
-                </Label>
-                <div className='flex gap-1'>
-                  <Input
-                    type='date'
-                    className='h-8 text-xs w-[130px] border-indigo-100 focus:border-indigo-300'
-                    value={localFilters.targeted_disbursement_from}
-                    onChange={(e) =>
-                      setFilter('targeted_disbursement_from', e.target.value)
-                    }
-                  />
-                  <Input
-                    type='date'
-                    className='h-8 text-xs w-[130px] border-indigo-100 focus:border-indigo-300'
-                    value={localFilters.targeted_disbursement_to}
-                    onChange={(e) =>
-                      setFilter('targeted_disbursement_to', e.target.value)
-                    }
-                  />
-                </div>
+            {/* Group 3: Disbursement Date */}
+            <div className='bg-muted/20 border border-border/40 p-2.5 rounded-xl space-y-1.5'>
+              <Label className='text-[10px] font-bold text-muted-foreground uppercase tracking-wider block'>
+                Disbursement Date
+              </Label>
+              <div className='grid grid-cols-2 gap-2'>
+                <DatePicker
+                  value={localFilters.disbursement_from}
+                  onChange={(val) => setFilter('disbursement_from', val)}
+                  placeholder='From Date'
+                />
+                <DatePicker
+                  value={localFilters.disbursement_to}
+                  onChange={(val) => setFilter('disbursement_to', val)}
+                  placeholder='To Date'
+                />
               </div>
             </div>
 
-            <div className='flex items-center gap-2 pb-0.5'>
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={clearFilters}
-                className='h-9 text-sm text-zinc-500 hover:text-red-600 transition-colors'
-              >
-                <FilterX size={16} className='mr-2' /> Reset
-              </Button>
-              <Button
-                size='sm'
-                onClick={applyFilters}
-                className='h-9 text-sm px-5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
-              >
-                <Search size={16} className='mr-2' /> Apply Filters
-              </Button>
+            {/* Group 4: Target Disbursement */}
+            <div className='bg-muted/20 border border-border/40 p-2.5 rounded-xl space-y-1.5'>
+              <Label className='text-[10px] font-bold text-muted-foreground uppercase tracking-wider block'>
+                Target Disbursement
+              </Label>
+              <div className='grid grid-cols-2 gap-2'>
+                <DatePicker
+                  value={localFilters.targeted_disbursement_from}
+                  onChange={(val) => setFilter('targeted_disbursement_from', val)}
+                  placeholder='From Date'
+                />
+                <DatePicker
+                  value={localFilters.targeted_disbursement_to}
+                  onChange={(val) => setFilter('targeted_disbursement_to', val)}
+                  placeholder='To Date'
+                />
+              </div>
             </div>
+          </div>
+
+          {/* Bottom Action Buttons Bar */}
+          <div className='flex items-center justify-end gap-2.5 pt-2 border-t border-border/40'>
+            <Button
+              variant='outline'
+              onClick={clearFilters}
+              className='h-9 text-xs rounded-lg px-3.5 cursor-pointer gap-1.5 text-muted-foreground hover:text-foreground'
+            >
+              <FilterX size={14} /> Reset
+            </Button>
+            <Button
+              onClick={applyFilters}
+              className='h-9 text-xs px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer shadow-sm gap-1.5'
+            >
+              <Search size={14} /> Apply Filters
+            </Button>
           </div>
         </div>
 
