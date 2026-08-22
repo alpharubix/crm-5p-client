@@ -33,6 +33,10 @@ const data = {
           title: 'Account Tasks',
           url: '/account-tasks',
         },
+        // {
+        //   title: 'Account Status Tracker',
+        //   url: '/acc-status-journey',
+        // },
       ],
     },
     {
@@ -103,6 +107,19 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
+
+  const rawRole = String(user?.role || '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '_')
+  const isSuperAdmin =
+    ['super_admin', 'superadmin'].includes(rawRole) ||
+    rawRole.includes('super_admin') ||
+    rawRole.includes('superadmin')
+  const isAdminOrSuperAdmin =
+    isSuperAdmin ||
+    ['admin'].includes(rawRole) ||
+    rawRole.includes('admin')
 
   const navUser = {
     name: user?.user_name || 'User',
