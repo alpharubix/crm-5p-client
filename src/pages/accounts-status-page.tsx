@@ -174,7 +174,7 @@ export default function AccountsStatusPage() {
         queryKey: ['accountStatusJourneys', currentPage, pageSize],
         queryFn: async () => {
             const res = await fetch(
-                `${ENV.VITE_BACKEND_BASE_URL}/accounts/status-journey?company_id=1&page=${currentPage}&limit=${pageSize}`,
+                `${ENV.VITE_BACKEND_BASE_URL}/accounts/status-journey?company_id=2&page=${currentPage}&limit=${pageSize}`,
                 {
                     credentials: 'include',
                     headers: {
