@@ -1451,8 +1451,8 @@ export default function UpdateAccounts() {
 
               {/* ===== OVERVIEW TAB ===== */}
               <TabsContent value='overview' className='space-y-6 m-0 pt-2'>
-                {/* ================= Account Status ================= */}
-                <SectionHeader title='Account Status' />
+                {/* ================= Account Details ================= */}
+                <SectionHeader title='Account Details' />
                 <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
                   <div className='md:border-r'>
                     <FieldRow label='Assignment Date'>
@@ -1537,6 +1537,7 @@ export default function UpdateAccounts() {
                             value={field.value}
                             isEdit={isEdit}
                             onChange={field.onChange}
+                            
                           />
                         )}
                       />
@@ -1593,6 +1594,7 @@ export default function UpdateAccounts() {
                             showTime={true}
                             disablePast={true}
                             onChange={field.onChange}
+                            maxDate={watch('accountStatus') === 'On Hold' ? undefined : new Date(Date.now() + 48 * 60 * 60 * 1000)}
                           />
                         )}
                       />
@@ -1618,6 +1620,7 @@ export default function UpdateAccounts() {
                               'Attention',
                               'Assessment',
                               'Lender Review',
+                              'On Hold',
                               'Not Interested',
                               'Location Unserviceable',
                             ]}
