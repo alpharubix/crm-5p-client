@@ -34,6 +34,7 @@ import {
 import { formatExactDate } from '@/utils/date-formatter'
 import { formatAmount } from '@/utils/number-formatter'
 import { format } from 'date-fns'
+import { NestedComments } from '../nested-notes'
 
 function mapDealToForm(apiData: any): UpdateDealFormValues {
   return {
@@ -393,7 +394,7 @@ export default function UpdateKanbanTicket({
     : sortedNotes
 
   return (
-    <div className='space-y-6 bg-background min-h-screen mb-10'>
+    <div className='m-4 space-y-6 bg-background min-h-screen mb-10'>
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
@@ -1068,7 +1069,7 @@ export default function UpdateKanbanTicket({
         {/* ================= Notes ================= */}
         <SectionHeader title='Notes' />
 
-        <CardContent className='p-4 space-y-3'>
+        {/* <CardContent className='p-4 space-y-3'>
           <div className='flex items-center justify-between'>
             <p className='text-sm text-muted-foreground'>
               Total Notes:{' '}
@@ -1152,7 +1153,9 @@ export default function UpdateKanbanTicket({
           )}
 
           <NoteDialog onAddNote={handleAddNote} />
-        </CardContent>
+        </CardContent> */}
+
+        <NestedComments/>
       </Card>
     </div>
   )

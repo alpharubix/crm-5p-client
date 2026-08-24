@@ -30,6 +30,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { NestedComments } from '../nested-notes'
 
 function mapContactToForm(apiData: any): UpdateContactFormValues {
   return {
@@ -238,7 +239,7 @@ export default function UpdateContacts({
     : sortedNotes
 
   return (
-    <div className='space-y-6 bg-background min-h-screen'>
+    <div className='m-4 space-y-6 bg-background min-h-screen'>
       {/* HEADER */}
       <div className='flex justify-between items-center border p-4 rounded-xl bg-card'>
         <div>
@@ -459,7 +460,7 @@ export default function UpdateContacts({
         {/* ================= Notes ================= */}
         <SectionHeader title='Notes' />
 
-        <CardContent className='p-4 space-y-3'>
+        {/* <CardContent className='p-4 space-y-3'>
           <div className='flex items-center justify-between'>
             <p className='text-sm text-muted-foreground'>
               Total Notes:{' '}
@@ -544,7 +545,9 @@ export default function UpdateContacts({
           )}
 
           <NoteDialog onAddNote={handleAddNote} />
-        </CardContent>
+        </CardContent> */}
+
+        <NestedComments/>
       </Card>
     </div>
   )

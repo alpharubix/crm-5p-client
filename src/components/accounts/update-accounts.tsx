@@ -71,6 +71,7 @@ import {
   SelectValue,
 } from '../ui/select'
 import { useAuth } from '@/context/auth-context'
+import { NestedComments } from '../nested-notes'
 
 const LANGUAGE_OPTIONS = [
   'English',
@@ -2518,7 +2519,7 @@ export default function UpdateAccounts() {
 
                 {/* ================= Notes ================= */}
                 <SectionHeader title='Notes' />
-                <CardContent className='p-4 space-y-3'>
+                {/* <CardContent className='p-4 space-y-3'>
                   <div className='flex items-center justify-between'>
                     <p className='text-sm text-muted-foreground'>
                       Total Notes:{' '}
@@ -2586,7 +2587,8 @@ export default function UpdateAccounts() {
                     ))
                   )}
                   <NoteDialog onAddNote={handleAddNote} />
-                </CardContent>
+                </CardContent> */}
+                <NestedComments/>
               </TabsContent>
             </div>
           </Tabs>
