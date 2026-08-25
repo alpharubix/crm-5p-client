@@ -13,6 +13,7 @@ import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
 import DateField from '@/components/shared/date-field'
 import NoteDialog from '@/components/shared/note-dialog'
+import { NestedComments } from '../nested-notes'
 import { Spinner } from '@/components/ui/spinner'
 
 import {
@@ -304,6 +305,7 @@ export default function UpdateDeals({
     data: dealResponse,
     isLoading,
     error,
+    refetch: refetchDeal,
   } = useQuery({
     queryKey: ['deal', id],
     queryFn: async () => {
@@ -1026,95 +1028,12 @@ export default function UpdateDeals({
           )}
         </CardContent>
 
-        {/* ================= Notes ================= */}
-        <SectionHeader title='Notes' />
-
-        <CardContent className='p-4 space-y-3'>
-          <div className='flex items-center justify-between'>
-            <p className='text-sm text-muted-foreground'>
-              Total Notes:{' '}
-              <span className='font-semibold'>{sortedNotes.length}</span>
-            </p>
-
-            <div className='flex gap-2 items-center'>
-              {showViewMore && (
-                <Dialog open={openAllNotes} onOpenChange={setOpenAllNotes}>
-                  <DialogTrigger asChild>
-                    <Button
-                      size='sm'
-                      className='cursor-pointer'
-                      variant='outline'
-                    >
-                      View More
-                    </Button>
-                  </DialogTrigger>
-
-                  <DialogContent className='min-w-4xl'>
-                    <DialogHeader>
-                      <DialogTitle>
-                        All Notes ({sortedNotes.length})
-                      </DialogTitle>
-                    </DialogHeader>
-
-                    <div className='max-h-[70vh] overflow-y-auto space-y-3 pr-2'>
-                      {sortedNotes.map((note: any, i: number) => (
-                        <div
-                          key={note.parent_id || i}
-                          className='bg-muted/30 p-3 rounded-lg border'
-                        >
-                          <p className='text-sm'>{note.Note_Content}</p>
-
-                          <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
-                            <span>
-                              Created By: {note.Created_By?.name || '—'}
-                            </span>
-                            <span>
-                              Created Date:{' '}
-                              {formatExactDate(
-                                note.Created_Time,
-                                'dd MMM yyyy, hh:mm a',
-                              ) || '—'}
-                            </span>
-                            <div className='font-bold'>
-                              Module : {note.module}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
-          </div>
-
-          {notes.length === 0 ? (
-            <p className='text-sm text-muted-foreground'>No notes available</p>
-          ) : (
-            visibleNotes.map((note: any, i: number) => (
-              <div
-                key={note.parent_id || i}
-                className='bg-muted/30 p-3 rounded-lg border'
-              >
-                <p className='text-sm'>{note.Note_Content}</p>
-
-                <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
-                  <span>Created By: {note.Created_By?.name || '—'}</span>
-                  <span>
-                    Created Date:{' '}
-                    {formatExactDate(
-                      note.Created_Time,
-                      'dd MMM yyyy, hh:mm a',
-                    ) || '—'}
-                  </span>
-                  <div className='font-bold'>Module : {note.module}</div>
-                </div>
-              </div>
-            ))
-          )}
-
-          <NoteDialog onAddNote={handleAddNote} />
-        </CardContent>
+        <NestedComments
+          entityId={id!}
+          moduleName='Deals_5pc'
+          notes={notes}
+          onNoteAdded={refetchDeal}
+        />
 
         {/* ================= Linked Tickets ================= */}
         <SectionHeader title='Linked Tickets' />
