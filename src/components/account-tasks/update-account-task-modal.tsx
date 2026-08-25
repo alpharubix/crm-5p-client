@@ -399,7 +399,7 @@ export default function UpdateAccountTaskModal({
                       key={`task-type-${taskId}-${taskType}`}
                       value={taskType}
                       onValueChange={(val: TaskType) => setTaskType(val)}
-                      disabled={!canEditOtherFields}
+                      disabled={true}
                     >
                       <SelectTrigger className='h-9 text-xs'>
                         <SelectValue placeholder='Select Task Type' />
@@ -442,7 +442,7 @@ export default function UpdateAccountTaskModal({
                       type='datetime-local'
                       value={taskAssignedDateTime}
                       onChange={(e) => setTaskAssignedDateTime(e.target.value)}
-                      disabled={!canEditOtherFields}
+                      disabled={true}
                       className='h-9 text-xs'
                     />
                   </div>
@@ -454,7 +454,7 @@ export default function UpdateAccountTaskModal({
                     type='datetime-local'
                     value={taskDueDateTime}
                     onChange={(e) => setTaskDueDateTime(e.target.value)}
-                    disabled={!canEditOtherFields}
+                    disabled={true}
                     className='h-9 text-xs'
                   />
                 </div>
@@ -464,7 +464,7 @@ export default function UpdateAccountTaskModal({
                   <Textarea
                     value={taskDescription}
                     onChange={(e) => setTaskDescription(e.target.value)}
-                    disabled={!canEditOtherFields}
+                    disabled={true}
                     rows={3}
                     className='text-xs resize-none'
                   />
