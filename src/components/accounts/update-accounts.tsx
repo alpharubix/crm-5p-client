@@ -840,7 +840,7 @@ export default function UpdateAccounts() {
             <span className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
               Account Name:
             </span>
-            {isEdit && isAllow ? (
+            {false && isAllow ? (
               <Input {...register('accountName')} className='h-7 w-48 text-sm font-semibold' />
             ) : (
               <span className='text-base font-bold text-foreground'>
@@ -859,7 +859,7 @@ export default function UpdateAccounts() {
             <span className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
               Account Owner:
             </span>
-            {isEdit && isAllow ? (
+            {false && isAllow ? (
               <Controller
                 control={control}
                 name='accountOwnerId'
@@ -1451,8 +1451,8 @@ export default function UpdateAccounts() {
 
               {/* ===== OVERVIEW TAB ===== */}
               <TabsContent value='overview' className='space-y-6 m-0 pt-2'>
-                {/* ================= Account Status ================= */}
-                <SectionHeader title='Account Status' />
+                {/* ================= Account Details ================= */}
+                <SectionHeader title='Account Details' />
                 <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
                   <div className='md:border-r'>
                     <FieldRow label='Assignment Date'>
@@ -1473,7 +1473,7 @@ export default function UpdateAccounts() {
                         render={({ field }) => (
                           <SelectField
                             value={field.value}
-                            isEdit={isEdit}
+                            isEdit={!accountData?.source && isEdit}
                             options={[
                               'Himalaya',
                               'CavinKare',
@@ -1504,7 +1504,7 @@ export default function UpdateAccounts() {
                         render={({ field }) => (
                           <SelectField
                             value={field.value}
-                            isEdit={isEdit}
+                            isEdit={!accountData.source_type && isEdit}
                             options={[
                               'Direct',
                               'Referral',
@@ -1537,6 +1537,7 @@ export default function UpdateAccounts() {
                             value={field.value}
                             isEdit={isEdit}
                             onChange={field.onChange}
+                            
                           />
                         )}
                       />
@@ -1593,6 +1594,7 @@ export default function UpdateAccounts() {
                             showTime={true}
                             disablePast={true}
                             onChange={field.onChange}
+                            maxDate={watch('accountStatus') === 'On Hold' ? undefined : new Date(Date.now() + 48 * 60 * 60 * 1000)}
                           />
                         )}
                       />
@@ -1618,6 +1620,7 @@ export default function UpdateAccounts() {
                               'Attention',
                               'Assessment',
                               'Lender Review',
+                              'On Hold',
                               'Not Interested',
                               'Location Unserviceable',
                             ]}
@@ -1679,7 +1682,7 @@ export default function UpdateAccounts() {
                       label='Distributor Code'
                       error={errors.distributorCode?.message}
                     >
-                      {isEdit ? (
+                      {!accountData.distributor_code && isEdit ? (
                         <Input {...register('distributorCode')} className='h-8' />
                       ) : (
                         <span>{data.distributorCode || '—'}</span>
@@ -1726,7 +1729,7 @@ export default function UpdateAccounts() {
                 <CardContent className='p-0 grid grid-cols-1 md:grid-cols-2'>
                   <div className='md:border-r'>
                     <FieldRow label='First Name *' error={errors.firstName?.message}>
-                      {isEdit ? (
+                      {!accountData?.first_name && isEdit ? (
                         <Input {...register('firstName')} className='h-8' />
                       ) : (
                         <span>{display(data.firstName)}</span>
@@ -1750,7 +1753,7 @@ export default function UpdateAccounts() {
 
                   <div>
                     <FieldRow label='Last Name *' error={errors.lastName?.message}>
-                      {isEdit ? (
+                      {!accountData?.last_name && isEdit ? (
                         <Input {...register('lastName')} className='h-8' />
                       ) : (
                         <span>{display(data.lastName)}</span>
@@ -2012,7 +2015,7 @@ export default function UpdateAccounts() {
                       )}
                     </FieldRow>
                     <FieldRow label='State *' error={errors.businessState?.message}>
-                      {isEdit ? (
+                      {!accountData?.business_premise_address?.state && isEdit ? (
                         <div className='relative'>
                           <Input
                             value={businessStateSearch}
@@ -2057,7 +2060,7 @@ export default function UpdateAccounts() {
                       )}
                     </FieldRow>
                     <FieldRow label='Pincode *' error={errors.businessPincode?.message}>
-                      {isEdit ? (
+                      {!accountData?.business_premise_address?.pincode && isEdit ? (
                         <div className='relative'>
                           <Input
                             value={businessPincodeSearch}
@@ -2110,7 +2113,7 @@ export default function UpdateAccounts() {
                   </div>
                   <div>
                     <FieldRow label='City *' error={errors.businessCity?.message}>
-                      {isEdit ? (
+                      {!accountData?.business_premise_address?.city && isEdit ? (
                         <div className='relative'>
                           <Input
                             value={businessCitySearch}
@@ -2213,9 +2216,9 @@ export default function UpdateAccounts() {
                       render={({ field }) => (
                         <StateSelector
                           label='State'
-                          value={field.value}
+                          value={field.value || ''}
                           onChange={field.onChange}
-                          isEdit={isEdit}
+                          isEdit={!accountData.applicant_residence_address?.state && isEdit}
                           error={errors.applicantState?.message}
                         />
                       )}
@@ -2228,9 +2231,9 @@ export default function UpdateAccounts() {
                       render={({ field }) => (
                         <CitySelector
                           label='City'
-                          value={field.value}
+                          value={field.value || ''}
                           onChange={field.onChange}
-                          isEdit={isEdit}
+                          isEdit={!accountData.applicant_residence_address?.city && isEdit}
                           error={errors.applicantCity?.message}
                         />
                       )}
@@ -2257,9 +2260,9 @@ export default function UpdateAccounts() {
                       render={({ field }) => (
                         <PincodeSelector
                           label='Pincode'
-                          value={field.value}
+                          value={field.value || ''}
                           onChange={field.onChange}
-                          isEdit={isEdit}
+                          isEdit={!accountData.applicant_residence_address?.pincode && isEdit}
                           error={errors.applicantPincode?.message}
                         />
                       )}
@@ -2325,9 +2328,9 @@ export default function UpdateAccounts() {
                       render={({ field }) => (
                         <StateSelector
                           label='State'
-                          value={field.value}
+                          value={field.value || ''}
                           onChange={field.onChange}
-                          isEdit={isEdit}
+                          isEdit={!accountData.co_applicant_residence_address?.state && isEdit}
                           error={errors.coApplicantState?.message}
                         />
                       )}
@@ -2340,9 +2343,9 @@ export default function UpdateAccounts() {
                       render={({ field }) => (
                         <CitySelector
                           label='City'
-                          value={field.value}
+                          value={field.value || ''}
                           onChange={field.onChange}
-                          isEdit={isEdit}
+                          isEdit={!accountData.co_applicant_residence_address?.city && isEdit}
                           error={errors.coApplicantCity?.message}
                         />
                       )}
@@ -2372,9 +2375,9 @@ export default function UpdateAccounts() {
                       render={({ field }) => (
                         <PincodeSelector
                           label='Pincode'
-                          value={field.value}
+                          value={field.value || ''}
                           onChange={field.onChange}
-                          isEdit={isEdit}
+                          isEdit={!accountData.co_applicant_residence_address?.pincode && isEdit}
                           error={errors.coApplicantPincode?.message}
                         />
                       )}

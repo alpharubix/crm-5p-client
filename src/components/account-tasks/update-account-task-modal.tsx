@@ -25,6 +25,8 @@ import { ENV } from '@/conf'
 import type { AccountTask, TaskType, TaskStatus } from '@/types/account-task'
 import { MessageSquare, Plus, Send, CheckCircle2, Building2 } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
+import users from '@/utils/users.json';
+
 
 function formatDate(dateStr?: string | null): string {
   if (!dateStr) return 'N/A'
@@ -239,19 +241,21 @@ export default function UpdateAccountTaskModal({
 
   const currentUserId = user?.user_id || (user as any)?.id || (user as any)?.zuid
   const isAccountOwner = Boolean(
-    (taskData?.account_owner_id && String(taskData.account_owner_id) === String(currentUserId)) ||
-    (taskData?.assigned_to_id && String(taskData.assigned_to_id) === String(currentUserId))
+    taskData?.account_owner_id && String(taskData.account_owner_id) === String(currentUserId)
+  )
+  const isAssignee = Boolean(
+    taskData?.assigned_to_id && String(taskData.assigned_to_id) === String(currentUserId)
   )
   const isAdminOrManager = ['super_admin', 'admin', 'manager'].includes(role)
 
-  const canEditStatus = isAccountOwner || isAdminOrManager
-  const canEditOtherFields = isAdminOrManager && !isAccountOwner
+  const canEditStatus = isAssignee || isAccountOwner || isAdminOrManager
+  const canEditOtherFields = (isAdminOrManager || isAccountOwner) && !isAssignee
 
-  const allowedStatuses: TaskStatus[] = isAccountOwner
+  const allowedStatuses: TaskStatus[] = isAssignee
     ? ['Pending', 'In Progress', 'Completed', 'Verified']
     : ['Unassigned', 'Assigned', 'Pending', 'In Progress', 'Completed', 'Verified', 'Overdue']
 
-  const statusOptions = isAccountOwner && !allowedStatuses.includes(taskStatus)
+  const statusOptions = isAssignee && !allowedStatuses.includes(taskStatus)
     ? [{ value: taskStatus, disabled: true }, ...allowedStatuses.map((s) => ({ value: s, disabled: false }))]
     : allowedStatuses.map((s) => ({ value: s, disabled: false }))
 
@@ -311,6 +315,13 @@ export default function UpdateAccountTaskModal({
                     <span className='text-muted-foreground text-[11px] font-medium block'>Account Name</span>
                     <span className='font-semibold text-foreground truncate block' title={taskData?.account_name}>
                       {taskData?.account_name || 'N/A'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className='text-muted-foreground text-[11px] font-medium block'>Created By</span>
+                    <span className='font-semibold text-foreground truncate block' title={taskData?.created_by_id}>
+                      {users[taskData?.created_by_id] || 'N/A'}
                     </span>
                   </div>
 
@@ -388,7 +399,7 @@ export default function UpdateAccountTaskModal({
                       key={`task-type-${taskId}-${taskType}`}
                       value={taskType}
                       onValueChange={(val: TaskType) => setTaskType(val)}
-                      disabled={!canEditOtherFields}
+                      disabled={true}
                     >
                       <SelectTrigger className='h-9 text-xs'>
                         <SelectValue placeholder='Select Task Type' />
@@ -431,7 +442,7 @@ export default function UpdateAccountTaskModal({
                       type='datetime-local'
                       value={taskAssignedDateTime}
                       onChange={(e) => setTaskAssignedDateTime(e.target.value)}
-                      disabled={!canEditOtherFields}
+                      disabled={true}
                       className='h-9 text-xs'
                     />
                   </div>
@@ -443,7 +454,7 @@ export default function UpdateAccountTaskModal({
                     type='datetime-local'
                     value={taskDueDateTime}
                     onChange={(e) => setTaskDueDateTime(e.target.value)}
-                    disabled={!canEditOtherFields}
+                    disabled={true}
                     className='h-9 text-xs'
                   />
                 </div>
@@ -453,7 +464,7 @@ export default function UpdateAccountTaskModal({
                   <Textarea
                     value={taskDescription}
                     onChange={(e) => setTaskDescription(e.target.value)}
-                    disabled={!canEditOtherFields}
+                    disabled={true}
                     rows={3}
                     className='text-xs resize-none'
                   />

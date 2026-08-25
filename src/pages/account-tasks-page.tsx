@@ -51,6 +51,8 @@ import {
   SheetTitle,
   SheetFooter,
 } from '@/components/ui/sheet';
+import users from '@/utils/users.json';
+
 
 const formatISTDateTime = (dateStr?: string | null) => {
   if (!dateStr) return '-';
@@ -599,6 +601,7 @@ export default function AccountTasksPage() {
                     </th>
                     <th className='px-4 py-3'>Task Details</th>
                     <th className='px-4 py-3'>Account Name</th>
+                    <th className='px-4 py-3'>Task Created By</th>
                     <th className='px-4 py-3'>Assignee</th>
                     <th className='px-4 py-3'>Due Date / Time</th>
                     <th className='px-4 py-3'>Status</th>
@@ -671,6 +674,14 @@ export default function AccountTasksPage() {
                               {task.account_name ||
                                 `Account #${task.account_id}`}
                             </span>
+                          </td>
+
+                          <td className='px-4 py-3.5'>
+                            <div className='flex items-center gap-2'>
+                              <span className='text-sm text-foreground font-semibold'>
+                                {users[task.created_by_id] || 'N/A'}
+                              </span>
+                            </div>
                           </td>
 
                           {/* Assignee */}
