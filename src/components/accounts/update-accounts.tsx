@@ -2060,7 +2060,7 @@ export default function UpdateAccounts() {
                       )}
                     </FieldRow>
                     <FieldRow label='Pincode *' error={errors.businessPincode?.message}>
-                      {isEdit ? (
+                      {!data.businessPincode && isEdit ? (
                         <div className='relative'>
                           <Input
                             value={businessPincodeSearch}
