@@ -1504,7 +1504,7 @@ export default function UpdateAccounts() {
                         render={({ field }) => (
                           <SelectField
                             value={field.value}
-                            isEdit={false}
+                            isEdit={!field.value && isEdit}
                             options={[
                               'Direct',
                               'Referral',
