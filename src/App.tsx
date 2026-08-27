@@ -112,13 +112,9 @@ export default function App() {
               <Route path='/revenue/:id' element={<UpdateRevenue />} />
               <Route path='/support-tickets' element={<SupportTicketsPage />} />
 
-              {/*<Route element={<ProtectedLogRoute />}>
+              <Route element={<ProtectedLogRoute />}>
                 <Route path='/audit-logs' element={<AuditLogs />} />
               </Route>
-
-              <Route path='/projects' element={<Project />} />
-              <Route path='/projects/:id' element={<Task />} />
-              <Route path='/exports' element={<Export />} />*/}
               <Route path='*' element={<NotFoundPage />} />
             </Route>
           </Routes>

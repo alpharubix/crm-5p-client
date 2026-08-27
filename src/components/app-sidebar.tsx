@@ -15,6 +15,7 @@ import {
   Ticket,
   IndianRupee,
   LifeBuoy,
+  FolderDown,
 } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 
@@ -91,6 +92,17 @@ const data = {
         },
       ],
     },
+    // {
+    //   title: 'Tools & Logs',
+    //   url: '#',
+    //   icon: FolderDown,
+    //   items: [
+    //     {
+    //       title: 'Audit Log',
+    //       url: '/audit-logs',
+    //     },
+    //   ],
+    // },
     {
       title: 'Support',
       url: '#',
@@ -152,7 +164,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain
+          items={data.navMain.filter((item) => {
+            if (item.title === 'Tools & Logs' && !isSuperAdmin) {
+              return false
+            }
+            return true
+          })}
+        />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={navUser} />

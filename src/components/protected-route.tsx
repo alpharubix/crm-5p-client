@@ -19,7 +19,16 @@ export function ProtectedLogRoute({ children }: any) {
 
   if (isLoading) return null
 
-  if (user?.role !== 'super_admin') {
+  const userRole = String(user?.role || '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '_')
+  const isSuperAdmin =
+    ['super_admin', 'superadmin'].includes(userRole) ||
+    userRole.includes('super_admin') ||
+    userRole.includes('superadmin')
+
+  if (!isSuperAdmin) {
     return <Navigate to='/accounts' replace />
   }
 
