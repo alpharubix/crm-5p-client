@@ -820,7 +820,13 @@ export default function UpdateDeals() {
 
                           <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
                             <span>
-                              Created By: {note.Created_By?.name || '—'}
+                              Created By:{' '}
+                              {note.Created_By?.name ||
+                                note.Owner?.first_name ||
+                                note.Owner?.name ||
+                                (note.Created_By?.id && users[note.Created_By.id]) ||
+                                (note.Owner?.id && users[note.Owner.id]) ||
+                                '—'}
                             </span>
                             <span>
                               Created Date:{' '}
@@ -853,7 +859,15 @@ export default function UpdateDeals() {
                 <p className='text-sm'>{note.Note_Content}</p>
 
                 <div className='flex flex-wrap gap-3 text-[11px] text-muted-foreground uppercase mt-2'>
-                  <span>Created By: {note.Created_By?.name || '—'}</span>
+                  <span>
+                    Created By:{' '}
+                    {note.Created_By?.name ||
+                      note.Owner?.first_name ||
+                      note.Owner?.name ||
+                      (note.Created_By?.id && users[note.Created_By.id]) ||
+                      (note.Owner?.id && users[note.Owner.id]) ||
+                      '—'}
+                  </span>
                   <span>
                     Created Date:{' '}
                     {formatExactDate(

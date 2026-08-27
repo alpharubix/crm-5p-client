@@ -368,11 +368,21 @@ export default function UpdateAccountTaskModal({
                   <div className='flex items-center justify-between text-[11px] text-muted-foreground'>
                     <span className='font-semibold flex items-center gap-1.5 text-foreground'>
                       <MessageSquare className='w-3.5 h-3.5 text-primary' /> Last Account Note
-                      {lastAccountNote?.Owner?.first_name || lastAccountNote?.Created_By?.name || lastAccountNote?.Created_By?.first_name ? (
-                        <span className='font-normal text-muted-foreground'>
-                          by {lastAccountNote?.Owner?.first_name || lastAccountNote?.Created_By?.name || lastAccountNote?.Created_By?.first_name}
-                        </span>
-                      ) : null}
+                      {(() => {
+                        const authorId = lastAccountNote?.Owner?.id || lastAccountNote?.Created_By?.id
+                        const name =
+                          lastAccountNote?.Owner?.first_name ||
+                          lastAccountNote?.Owner?.name ||
+                          lastAccountNote?.Owner?.full_name ||
+                          lastAccountNote?.Created_By?.name ||
+                          lastAccountNote?.Created_By?.first_name ||
+                          (authorId && users[authorId])
+                        return name ? (
+                          <span className='font-normal text-muted-foreground'>
+                            by {name}
+                          </span>
+                        ) : null
+                      })()}
                     </span>
                     <span className='font-mono text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20'>
                       {formatDate(lastAccountNote?.Created_Time || lastAccountNote?.Modified_Time) !== 'N/A'
@@ -520,7 +530,14 @@ export default function UpdateAccountTaskModal({
                     <div key={note._id || idx} className='p-3 border rounded-lg bg-card text-sm space-y-1'>
                       <div className='flex justify-between items-center text-xs text-muted-foreground'>
                         <span className='font-medium text-foreground'>
-                          {note.Owner?.first_name || note.Created_By?.name || 'User'}
+                          {note.Owner?.first_name ||
+                            note.Owner?.name ||
+                            note.Owner?.full_name ||
+                            note.Created_By?.name ||
+                            note.Created_By?.first_name ||
+                            (note.Owner?.id && users[note.Owner.id]) ||
+                            (note.Created_By?.id && users[note.Created_By.id]) ||
+                            'User'}
                         </span>
                         <span>
                           {note.Created_Time || ''}

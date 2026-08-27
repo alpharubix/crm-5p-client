@@ -1104,9 +1104,7 @@ export default function UpdateDeals({
           )}
         </CardContent>
 
-        <CardContent className='p-4 space-y-3'>
-          <DocumentationSection dealId={id!} />
-        </CardContent>
+        <DocumentationSection dealId={id!} />
       </Card>
     </div>
   )

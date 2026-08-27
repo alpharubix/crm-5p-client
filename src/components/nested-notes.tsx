@@ -90,13 +90,21 @@ export function buildCommentTree(rawNotes: any[]): Comment[] {
     const commentId = String(n._id || n.id || '');
     if (!commentId) return;
 
+    const authorId =
+      n.Created_By?.id ||
+      n.Owner?.id ||
+      (typeof n.Owner === 'string' ? n.Owner : null) ||
+      n.created_by_id ||
+      n.user_id ||
+      'unknown';
+
     const authorName =
       n.Created_By?.name ||
       n.Owner?.first_name ||
       n.Owner?.name ||
+      n.Owner?.full_name ||
+      (authorId && (usersData as Record<string, string>)[String(authorId)]) ||
       'Unknown User';
-
-    const authorId = n.Created_By?.id || n.Owner?.id || 'unknown';
 
     commentMap.set(commentId, {
       id: commentId,
@@ -215,17 +223,24 @@ export function NestedComments({
         const rawNote = resultData.data;
 
         if (rawNote) {
+          const authorId =
+            rawNote.Created_By?.id ||
+            rawNote.Owner?.id ||
+            'current-user';
+
           const authorName =
             rawNote.Created_By?.name ||
             rawNote.Owner?.first_name ||
             rawNote.Owner?.name ||
+            rawNote.Owner?.full_name ||
+            (authorId && (usersData as Record<string, string>)[String(authorId)]) ||
             'You';
 
           const newComment: Comment = {
             id: String(rawNote._id || rawNote.id || crypto.randomUUID()),
             parentId,
             author: {
-              id: rawNote.Created_By?.id || 'current-user',
+              id: authorId,
               name: authorName,
             },
             body: rawNote.Note_Content || body,
