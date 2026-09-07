@@ -32,6 +32,7 @@ import {
 } from '@/validators/updateAccount.schema'
 import { ENV } from '@/conf'
 import { X } from 'lucide-react'
+import { useAuth } from '@/context/auth-context'
 
 // Language options for multi-select
 const LANGUAGE_OPTIONS = [
@@ -124,20 +125,26 @@ function MultiSelectField({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // Map form values to API payload for CREATE
 
 export default function CreateAccount() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [businessStateSearch, setBusinessStateSearch] = useState('')
-  const [businessStateOpen, setBusinessStateOpen] = useState(false)
-  const [businessCitySearch, setBusinessCitySearch] = useState('')
-  const [businessCityOpen, setBusinessCityOpen] = useState(false)
-  const [businessPincodeSearch, setBusinessPincodeSearch] = useState('')
-  const [businessPincodeOpen, setBusinessPincodeOpen] = useState(false)
+  const rawRole = String(user?.role || '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '_');
+  const isAllowedActive = ['super_admin','admin'].includes(rawRole);
+  const [businessStateSearch, setBusinessStateSearch] = useState('');
+  const [businessStateOpen, setBusinessStateOpen] = useState(false);
+  const [businessCitySearch, setBusinessCitySearch] = useState('');
+  const [businessCityOpen, setBusinessCityOpen] = useState(false);
+  const [businessPincodeSearch, setBusinessPincodeSearch] = useState('');
+  const [businessPincodeOpen, setBusinessPincodeOpen] = useState(false);
 
   const form = useForm<UpdateAccountFormValues>({
     resolver: zodResolver(updateAccountSchema),
@@ -145,6 +152,7 @@ export default function CreateAccount() {
     defaultValues: {
       preferredLanguages: [],
       wabaInterested: false,
+      isActive: 'No',
       accountStatus: 'Yet to be dialed',
       businessCountry: 'India',
       applicantCountry: 'India',
@@ -195,6 +203,7 @@ export default function CreateAccount() {
       source_description: formData.sourceDescription,
       distributor_code: formData.distributorCode,
       waba_interested: formData.wabaInterested,
+      is_active: formData.isActive,
       call_back_date_time: formData.callBackDate,
       account_owner_id: formData.accountOwnerId,
       account_status: formData.accountStatus,
@@ -572,6 +581,17 @@ export default function CreateAccount() {
                   onChange={(v) => setValue('priorityAccount', v)}
                 />
               </FieldRow>
+
+              {isAllowedActive && (
+                <FieldRow label='Is Active?' error={errors.isActive?.message}>
+                  <SelectField
+                    value={data.isActive}
+                    isEdit={true}
+                    options={['Yes', 'No']}
+                    onChange={(v) => setValue('isActive', v)}
+                  />
+                </FieldRow>
+              )}
             </div>
           </CardContent>
 

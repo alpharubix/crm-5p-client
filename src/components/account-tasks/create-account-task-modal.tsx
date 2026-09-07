@@ -18,9 +18,25 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { ENV } from '@/conf'
-import type { TaskType, TaskStatus } from '@/types/account-task'
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { ENV, USERS_MAP } from '@/conf';
+import type { TaskType, TaskStatus } from '@/types/account-task';
+import { Building2, MessageSquare } from 'lucide-react';
+
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return 'N/A';
+  const dt = new Date(dateStr);
+  if (isNaN(dt.getTime())) return dateStr;
+  return dt.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+}
 
 interface CreateAccountTaskModalProps {
   isOpen: boolean
@@ -71,7 +87,53 @@ export default function CreateAccountTaskModal({
       return data.data || []
     },
     enabled: !fixedAccountId && accountSearch.length > 1 && isSearchingAccount,
-  })
+  });
+
+  // Query account details when an account is selected
+  const { data: selectedAccountDetails } = useQuery({
+    queryKey: ['account-details-for-task', accountId],
+    queryFn: async () => {
+      if (!accountId) return null;
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/accounts?account_id=${accountId}`,
+        { credentials: 'include' },
+      );
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!accountId && isOpen,
+  });
+
+  console.log({ selectedAccountDetails: selectedAccountDetails?.data[0] });
+
+  // Query notes for selected account
+  const { data: accountCreateNotes } = useQuery({
+    queryKey: ['account-create-notes', accountId],
+    queryFn: async () => {
+      if (!accountId) return [];
+      const res = await fetch(
+        `${ENV.VITE_BACKEND_BASE_URL}/notes/${accountId}`,
+        { credentials: 'include' },
+      );
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.data || [];
+    },
+    enabled: !!accountId && isOpen,
+  });
+
+  const lastAccountNote =
+    accountCreateNotes && accountCreateNotes.length > 0
+      ? [...accountCreateNotes].sort(
+          (a: any, b: any) =>
+            new Date(
+              b.Created_Time || b.Created_time || b.created_at || 0,
+            ).getTime() -
+            new Date(
+              a.Created_Time || a.Created_time || a.created_at || 0,
+            ).getTime(),
+        )[0]
+      : null;
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -133,10 +195,123 @@ export default function CreateAccountTaskModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='sm:max-w-[550px]'>
+      <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle>Create Account Task</DialogTitle>
         </DialogHeader>
+
+        {/* Selected Account Readonly Details Panel */}
+        {accountId && selectedAccountDetails && (
+          <div className='bg-gradient-to-br from-card via-muted/30 to-muted/50 p-3.5 rounded-xl border shadow-xs space-y-3 mt-2'>
+            <div className='flex items-center justify-between border-b border-border/60 pb-2'>
+              <div className='flex items-center gap-2'>
+                <Building2 className='w-4 h-4 text-primary' />
+                <span className='font-semibold text-xs uppercase tracking-wider text-muted-foreground'>
+                  Account Information
+                </span>
+              </div>
+              <div className='flex items-center gap-1.5 flex-wrap'>
+                <Badge
+                  variant='outline'
+                  className='text-[10px] font-mono bg-background/80'
+                >
+                  Record #{selectedAccountDetails.id || accountId}
+                </Badge>
+                <Badge variant='secondary' className='text-[10px] font-mono'>
+                  Module: Account
+                </Badge>
+              </div>
+            </div>
+
+            <div className='grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs'>
+              <div>
+                <span className='text-muted-foreground text-[11px] font-medium block'>
+                  Account Name
+                </span>
+                <span
+                  className='font-semibold text-foreground truncate block'
+                  title={selectedAccountDetails.account_name}
+                >
+                  {selectedAccountDetails.account_name ||
+                    selectedAccountName ||
+                    'N/A'}
+                </span>
+              </div>
+
+              <div>
+                <span className='text-muted-foreground text-[11px] font-medium block'>
+                  Account Owner
+                </span>
+                <span className='font-semibold text-foreground truncate block'>
+                  {selectedAccountDetails?.data[0].owner?.full_name ||
+                    // USERS_MAP[selectedAccountDetails.account_owner_id] ||
+                    'Unassigned'}
+                </span>
+              </div>
+
+              <div>
+                <span className='text-muted-foreground text-[11px] font-medium block'>
+                  Account Status
+                </span>
+                <Badge
+                  variant='outline'
+                  className='mt-0.5 text-[10px] font-medium bg-blue-50/60 text-blue-700 border-blue-200'
+                >
+                  {selectedAccountDetails?.data[0].account_status || 'N/A'}
+                </Badge>
+              </div>
+
+              <div>
+                <span className='text-muted-foreground text-[11px] font-medium block'>
+                  Account Stage
+                </span>
+                <Badge
+                  variant='outline'
+                  className='mt-0.5 text-[10px] font-medium bg-purple-50/60 text-purple-700 border-purple-200'
+                >
+                  {selectedAccountDetails?.data[0].account_stage || 'N/A'}
+                </Badge>
+              </div>
+
+              <div>
+                <span className='text-muted-foreground text-[11px] font-medium block'>
+                  Call Back Date
+                </span>
+                <span className='font-medium text-foreground/90 truncate block'>
+                  {formatDate(selectedAccountDetails?.data[0].call_back_date_time)}
+                </span>
+              </div>
+            </div>
+
+            {/* Last Account Note Section */}
+            <div className='mt-2.5 pt-2.5 border-t border-border/60 bg-background/90 p-2.5 rounded-lg border space-y-1.5'>
+              <div className='flex items-center justify-between text-[11px] text-muted-foreground'>
+                <span className='font-semibold flex items-center gap-1.5 text-foreground'>
+                  <MessageSquare className='w-3.5 h-3.5 text-primary' /> Last
+                  Account Note
+                  {lastAccountNote?.Owner?.first_name ||
+                  lastAccountNote?.Created_By?.name ? (
+                    <span className='font-normal text-muted-foreground'>
+                      by{' '}
+                      {lastAccountNote?.Owner?.first_name ||
+                        lastAccountNote?.Created_By?.name}
+                    </span>
+                  ) : null}
+                </span>
+                <span className='font-mono text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20'>
+                  {lastAccountNote?.Created_Time ||
+                    lastAccountNote?.Modified_Time ||
+                    'Date N/A'}
+                </span>
+              </div>
+              <p className='text-xs text-foreground/90 line-clamp-3 italic bg-muted/20 p-2 rounded border border-muted/40'>
+                {lastAccountNote?.Note_Content
+                  ? `"${lastAccountNote.Note_Content}"`
+                  : 'No notes recorded for this account yet.'}
+              </p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className='space-y-4 py-2'>
           {/* Module Name & Account Selection in 2 Columns */}
@@ -180,15 +355,22 @@ export default function CreateAccountTaskModal({
                           key={acc.id}
                           className='p-2 text-xs hover:bg-accent cursor-pointer border-b last:border-0'
                           onClick={() => {
-                            setAccountId(acc.id)
-                            setSelectedAccountName(acc.account_name || `Account #${acc.id}`)
-                            setAccountSearch(acc.account_name || `Account #${acc.id}`)
-                            setIsSearchingAccount(false)
+                              setAccountId(acc.id);
+                              setSelectedAccountName(
+                                acc.account_name || `Account #${acc.id}`,
+                              );
+                              setAccountSearch(
+                                acc.account_name || `Account #${acc.id}`,
+                              );
+                              setIsSearchingAccount(false);
                           }}
                         >
-                          <div className='font-medium text-foreground'>{acc.account_name || 'Unnamed Account'}</div>
+                            <div className='font-medium text-foreground'>
+                              {acc.account_name || 'Unnamed Account'}
+                            </div>
                           <div className='text-[11px] text-muted-foreground'>
-                            Status: {acc.account_status || 'N/A'} | Stage: {acc.account_stage || 'N/A'}
+                              Status: {acc.account_status || 'N/A'} | Stage:{' '}
+                              {acc.account_stage || 'N/A'}
                           </div>
                         </div>
                       ))}
@@ -203,7 +385,10 @@ export default function CreateAccountTaskModal({
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
               <Label className='text-xs font-medium'>Task Type *</Label>
-              <Select value={taskType} onValueChange={(val: TaskType) => setTaskType(val)}>
+              <Select
+                value={taskType}
+                onValueChange={(val: TaskType) => setTaskType(val)}
+              >
                 <SelectTrigger className='h-9 text-xs'>
                   <SelectValue placeholder='Select Task Type' />
                 </SelectTrigger>
