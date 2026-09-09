@@ -26,7 +26,6 @@ export const updateAccountSchema = z.object({
   distributorCode: z.string().optional(),
 
   wabaInterested: z.boolean().optional(),
-  isActive: z.string().optional(),
 
   accountStatus: z.string().min(1, 'Account status is required'),
   accountStage: z.string().min(1, 'Account stage is required'),

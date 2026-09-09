@@ -30,7 +30,6 @@ import FieldRow from '@/components/shared/field-row';
 import SelectField from '@/components/shared/select-field';
 import DateField from '@/components/shared/date-field';
 import NoteDialog from '@/components/shared/note-dialog';
-import { NestedComments } from '../nested-notes';
 import { Spinner } from '@/components/ui/spinner';
 
 import {
@@ -39,7 +38,7 @@ import {
 } from '@/validators/updateAccount.schema';
 import { ENV } from '@/conf';
 import { formatExactDate } from '@/utils/date-formatter';
-import AccountTasksTab from '@/components/accounts/account-tasks-tab';
+import users from '@/utils/users.json';
 import {
   Plus,
   X,
@@ -72,6 +71,8 @@ import {
   SelectValue,
 } from '../ui/select';
 import { useAuth } from '@/context/auth-context';
+import AccountTasksTab from './account-tasks-tab';
+import { NestedComments } from '../nested-notes';
 
 const LANGUAGE_OPTIONS = [
   'English',
@@ -193,7 +194,6 @@ function mapAccountToForm(apiData: any): UpdateAccountFormValues {
     sourceDescription: apiData.source_description ?? '',
     distributorCode: apiData.distributor_code ?? '',
     wabaInterested: apiData.waba_interested ?? false,
-    isActive: apiData.is_active ?? 'no',
     callBackDate: apiData.call_back_date_time
       ? new Date(apiData.call_back_date_time)
       : undefined,
@@ -328,7 +328,6 @@ function mapFormToApi(
     payload.distributor_code = formData.distributorCode;
   if (dirtyFields.wabaInterested)
     payload.waba_interested = formData.wabaInterested;
-  if (dirtyFields.isActive) payload.is_active = formData.isActive;
   if (dirtyFields.callBackDate)
     payload.call_back_date_time = formData.callBackDate;
   if (dirtyFields.accountStatus)
@@ -656,7 +655,7 @@ export default function UpdateAccounts() {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '_');
-  const isAllowedActive = ['super_admin','admin'].includes(rawRole);
+  const isSuperAdmin = ['super_admin'].includes(rawRole);
 
   const isAllow =
     user?.role === 'super_admin' ||
@@ -664,7 +663,7 @@ export default function UpdateAccounts() {
     user?.role === 'manager';
 
   const form = useForm<UpdateAccountFormValues>({
-    resolver: zodResolver(updateAccountSchema),
+    resolver: zodResolver(updateAccountSchema) as any,
   });
 
   const {
@@ -1240,7 +1239,6 @@ export default function UpdateAccounts() {
                         <TableHead>From Date</TableHead>
                         <TableHead>To Date</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1785,22 +1783,6 @@ export default function UpdateAccounts() {
                         )}
                       />
                     </FieldRow>
-                    {isAllowedActive && (
-                      <FieldRow label='Is Active?'>
-                        <Controller
-                          control={control}
-                          name='isActive'
-                          render={({ field }) => (
-                            <SelectField
-                              value={field.value}
-                              isEdit={isEdit}
-                              options={['Yes', 'No']}
-                              onChange={field.onChange}
-                            />
-                          )}
-                        />
-                      </FieldRow>
-                    )}
                   </div>
                 </CardContent>
 
@@ -2513,7 +2495,10 @@ export default function UpdateAccounts() {
                           label='Pincode'
                           value={field.value || ''}
                           onChange={field.onChange}
-                          isEdit={isEdit}
+                          isEdit={
+                            !accountData.co_applicant_residence_address
+                              ?.pincode && isEdit
+                          }
                           error={errors.coApplicantPincode?.message}
                         />
                       )}

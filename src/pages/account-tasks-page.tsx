@@ -10,14 +10,17 @@ import {
   Pencil,
   Trash2,
   CheckCircle2,
+  Filter,
   Plus,
   Search,
   Hash,
+  RefreshCw,
   SlidersHorizontal,
   RotateCw,
   CheckSquare,
   Clock,
   AlertCircle,
+  MoreVertical,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -36,14 +39,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import Pagination from '@/components/shared/pagination';
 import { MultiSelect, type Option } from '@/components/ui/multi-select';
+import { formatExactDate } from '@/utils/date-formatter';
 import { useAuth } from '@/context/auth-context';
 import { ENV } from '@/conf';
 import type {
   AccountTask,
+  TaskStatus,
+  CallBackDateStatus,
 } from '@/types/account-task';
 import CreateAccountTaskModal from '@/components/account-tasks/create-account-task-modal';
 import UpdateAccountTaskModal from '@/components/account-tasks/update-account-task-modal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import users from '@/utils/users.json';
 import {
   Sheet,
   SheetContent,
@@ -51,8 +58,12 @@ import {
   SheetTitle,
   SheetFooter,
 } from '@/components/ui/sheet';
-import users from '@/utils/users.json';
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const formatISTDateTime = (dateStr?: string | null) => {
   if (!dateStr) return '-';
@@ -108,7 +119,7 @@ export default function AccountTasksPage() {
   const canViewOwnerFilter = ['super_admin', 'admin', 'manager'].includes(role);
 
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-  const [pageSize] = useState<number>(15);
+  const [pageSize, setPageSize] = useState<number>(15);
 
   const quickCompleteMutation = useMutation({
     mutationFn: async (taskId: string | number) => {
@@ -604,6 +615,7 @@ export default function AccountTasksPage() {
                     <th className='px-4 py-3'>Task Created By</th>
                     <th className='px-4 py-3'>Assignee</th>
                     <th className='px-4 py-3'>Due Date / Time</th>
+                    <th className='px-4 py-3'>Completed At</th>
                     <th className='px-4 py-3'>Status</th>
                     <th className='px-4 py-3 text-right pr-6'>Actions</th>
                   </tr>
@@ -631,7 +643,11 @@ export default function AccountTasksPage() {
                       return (
                         <tr
                           key={task.id}
-                          className={`transition-colors border-b border-border/40 ${
+                          onClick={() => {
+                            setSelectedTaskId(task.id);
+                            setIsUpdateModalOpen(true);
+                          }}
+                          className={`transition-colors border-b cursor-pointer border-border/40 ${
                             isSelected
                               ? 'bg-blue-50/60 dark:bg-blue-950/20'
                               : 'hover:bg-slate-50/80 dark:hover:bg-muted/30'
@@ -676,6 +692,7 @@ export default function AccountTasksPage() {
                             </span>
                           </td>
 
+                          {/* Task Created By */}
                           <td className='px-4 py-3.5'>
                             <div className='flex items-center gap-2'>
                               <span className='text-sm text-foreground font-semibold'>
@@ -707,6 +724,10 @@ export default function AccountTasksPage() {
                           {/* Due Date */}
                           <td className='px-4 py-3.5 text-xs text-muted-foreground'>
                             {formatISTDateTime(task.call_back_date_time)}
+                          </td>
+
+                          <td className='px-4 py-3.5 text-xs'>
+                            {formatISTDateTime(task.completed_at)}
                           </td>
 
                           {/* Status */}
@@ -817,7 +838,7 @@ export default function AccountTasksPage() {
       <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
         <SheetContent
           side='right'
-          className='w-[380px] sm:w-[440px] p-0 flex flex-col gap-0 border-l shadow-2xl bg-background'
+          className='w-full sm:w-[500px] sm:max-w-none p-0 flex flex-col gap-0 border-l shadow-2xl bg-background'
         >
           <SheetHeader className='px-6 py-4 border-b border-border/60 flex flex-row items-center justify-between shrink-0 space-y-0'>
             <SheetTitle className='text-base font-bold text-foreground'>
@@ -834,6 +855,7 @@ export default function AccountTasksPage() {
           </SheetHeader>
 
           <div className='flex-1 overflow-y-auto px-6 py-5 space-y-4'>
+            {/* Account ID */}
             <div className='space-y-1.5'>
               <Label className='text-xs font-semibold text-foreground'>
                 Account ID
@@ -841,10 +863,13 @@ export default function AccountTasksPage() {
               <Input
                 placeholder='Enter Account ID (e.g. 1001)...'
                 value={filters.accountId}
-                onChange={(e) => handleFilterChange('accountId', e.target.value)}
+                onChange={(e) =>
+                  handleFilterChange('accountId', e.target.value)
+                }
                 className='h-9 text-xs font-mono rounded-lg'
               />
             </div>
+            {/* Search */}
             <div className='space-y-1.5'>
               <Label className='text-xs font-semibold text-foreground'>
                 Search Keyword
@@ -857,6 +882,7 @@ export default function AccountTasksPage() {
               />
             </div>
 
+            {/* Task Status */}
             <div className='space-y-1.5'>
               <Label className='text-xs font-semibold text-foreground'>
                 Task Status
@@ -879,6 +905,7 @@ export default function AccountTasksPage() {
               </Select>
             </div>
 
+            {/* Task Type */}
             <div className='space-y-1.5'>
               <Label className='text-xs font-semibold text-foreground'>
                 Task Type
@@ -896,10 +923,12 @@ export default function AccountTasksPage() {
                   <SelectItem value='Update Record'>Update Record</SelectItem>
                   <SelectItem value='Email'>Email</SelectItem>
                   <SelectItem value='Move Status'>Move Status</SelectItem>
+                  <SelectItem value='Visit'>Visit</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Account Owner */}
             {canViewOwnerFilter && (
               <div className='space-y-1.5'>
                 <Label className='text-xs font-semibold text-foreground'>
@@ -914,6 +943,7 @@ export default function AccountTasksPage() {
               </div>
             )}
 
+            {/* Date Filters */}
             <div className='space-y-2 pt-2 border-t border-border/60'>
               <Label className='text-xs font-semibold text-foreground block'>
                 Task Assigned Date Range
@@ -934,6 +964,7 @@ export default function AccountTasksPage() {
               </div>
             </div>
 
+            {/* Account Assignment Date Section */}
             <div className='space-y-2 pt-2 border-t border-border/60'>
               <Label className='text-xs font-semibold text-foreground block'>
                 Account Assignment Date Range
@@ -948,12 +979,15 @@ export default function AccountTasksPage() {
                 />
                 <DatePicker
                   value={filters.assignmentToDate}
-                  onChange={(val) => handleFilterChange('assignmentToDate', val)}
+                  onChange={(val) =>
+                    handleFilterChange('assignmentToDate', val)
+                  }
                   placeholder='To Date'
                 />
               </div>
             </div>
 
+            {/* Last Updated Note Date Section */}
             <div className='space-y-2 pt-2 border-t border-border/60'>
               <Label className='text-xs font-semibold text-foreground block'>
                 Last Updated Note Date Range
