@@ -1682,6 +1682,7 @@ export default function UpdateAccounts() {
                               'On Hold',
                               'Not Interested',
                               'Location Unserviceable',
+                              'business closed',
                             ]}
                             onChange={field.onChange}
                           />
