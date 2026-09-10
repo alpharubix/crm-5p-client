@@ -71,9 +71,9 @@ export default function UpdateAccountTaskModal({
   const canEditFields = ['super_admin', 'admin', 'manager'].includes(role);
 
   const [taskType, setTaskType] = useState<TaskType>('Call');
-  const [taskStatus, setTaskStatus] = useState<TaskStatus>('Unassigned');
+  const [taskStatus, setTaskStatus] = useState<TaskStatus>('');
   const [targetAccountStatus, setTargetAccountStatus] =
-    useState<TargetAccountStatus>('Awareness');
+    useState<TargetAccountStatus>('');
   const [targetCallBackDateTime, setTargetCallBackDateTime] = useState<Date>();
   const [taskDescription, setTaskDescription] = useState('');
   const [taskAssignedDateTime, setTaskAssignedDateTime] = useState('');
@@ -189,7 +189,12 @@ export default function UpdateAccountTaskModal({
         target_call_back_date_time: targetCallBackDateTime
           ? new Date(targetCallBackDateTime).toISOString()
           : null,
-        task_assigned_date_time: taskAssignedDateTime
+        task_assigned_date_time:
+          taskStatus === 'Assigned' && !taskAssignedDateTime
+            ? new Date().toISOString()
+            : taskStatus === 'Unassigned'
+              ? null
+              : taskAssignedDateTime
           ? new Date(taskAssignedDateTime).toISOString()
           : null,
         task_due_date_time: taskDueDateTime
@@ -306,12 +311,19 @@ export default function UpdateAccountTaskModal({
     taskData?.assigned_to_id &&
     String(taskData.assigned_to_id) === String(currentUserId),
   );
-  const isAdminOrManager = ['super_admin', 'admin'].includes(role);
+  const isAdminOrManager = ['super_admin', 'admin', 'manager'].includes(role);
 
   const canEditStatus = isAssignee || isAccountOwner || isAdminOrManager;
   const isCompleted = taskData?.task_status === 'Completed';
-  const canEditOtherFields =
-    (isAdminOrManager) && !isAssignee;
+
+  const editableIds = [
+    '3899927000000201013',
+    '3899927000000282463',
+    '3899927000000434365',
+    '3899927000000484472',
+  ];
+
+  const userCanEdit = editableIds.includes(String(user?.user_id));
 
   const allowedStatuses: TaskStatus[] = isAssignee
     ? ['Pending', 'In Progress', 'Completed', 'Verified']
@@ -351,7 +363,8 @@ export default function UpdateAccountTaskModal({
         'On Hold',
         'Not Interested',
         'Location Unserviceable',
-        'business closed'
+        'business closed',
+        'N/A',
       ]
     : [
         'Yet to be dialed',
@@ -365,7 +378,8 @@ export default function UpdateAccountTaskModal({
         'On Hold',
         'Not Interested',
         'Location Unserviceable',
-        'business closed'
+        'business closed',
+        'N/A'
       ];
 
   const targetAccountStatusOptions =
@@ -569,7 +583,7 @@ export default function UpdateAccountTaskModal({
                       key={`task-type-${taskId}-${taskType}`}
                       value={taskType}
                       onValueChange={(val: TaskType) => setTaskType(val)}
-                      disabled={!canEditOtherFields}
+                      disabled={!userCanEdit}
                     >
                       <SelectTrigger className='h-9 text-xs'>
                         <SelectValue placeholder='Select Task Type' />
@@ -589,11 +603,25 @@ export default function UpdateAccountTaskModal({
 
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='space-y-1.5'>
-                    <Label className='text-xs font-medium'>Task Status *</Label>
+                    <Label className='text-xs font-medium'>Task Status</Label>
                     <Select
                       key={`task-status-${taskId}-${taskStatus}`}
                       value={taskStatus}
-                      onValueChange={(val: TaskStatus) => setTaskStatus(val)}
+                      onValueChange={(val: TaskStatus) => {
+                        setTaskStatus(val);
+                        if (val === 'Assigned') {
+                          if (
+                            !taskAssignedDateTime ||
+                            taskData?.task_status !== 'Assigned'
+                          ) {
+                            setTaskAssignedDateTime(
+                              toLocalISOString(new Date()),
+                            );
+                          }
+                        } else if (val === 'Unassigned') {
+                          setTaskAssignedDateTime('');
+                        }
+                      }}
                       disabled={isCompleted}
                     >
                       <SelectTrigger className='h-9 text-xs'>
@@ -621,7 +649,7 @@ export default function UpdateAccountTaskModal({
                       type='datetime-local'
                       value={taskAssignedDateTime}
                       onChange={(e) => setTaskAssignedDateTime(e.target.value)}
-                      disabled={!canEditOtherFields}
+                      disabled={!userCanEdit}
                       className='h-9 text-xs'
                     />
                   </div>
@@ -629,7 +657,7 @@ export default function UpdateAccountTaskModal({
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='space-y-1.5'>
                     <Label className='text-xs font-medium'>
-                      Targeted Account Status *
+                      Targeted Account Status
                     </Label>
                     <Select
                       key={`task-status-${taskId}-${targetAccountStatus}`}
@@ -637,7 +665,7 @@ export default function UpdateAccountTaskModal({
                       onValueChange={(val: TargetAccountStatus) =>
                         setTargetAccountStatus(val)
                       }
-                      disabled={!canEditOtherFields}
+                      disabled={!userCanEdit}
                     >
                       <SelectTrigger className='h-9 text-xs'>
                         <SelectValue placeholder='Select Task Status' />
@@ -663,7 +691,7 @@ export default function UpdateAccountTaskModal({
                     <div className='space-y-1.5'>
                       <DateField
                         value={targetCallBackDateTime}
-                        isEdit={canEditOtherFields}
+                        isEdit={userCanEdit}
                         showTime={true}
                         disablePast={true}
                         maxDate={
@@ -682,7 +710,7 @@ export default function UpdateAccountTaskModal({
                     type='datetime-local'
                     value={taskDueDateTime}
                     onChange={(e) => setTaskDueDateTime(e.target.value)}
-                    disabled={!canEditOtherFields}
+                    disabled={!userCanEdit}
                     className='h-9 text-xs'
                   />
                 </div>
@@ -692,7 +720,7 @@ export default function UpdateAccountTaskModal({
                   <Textarea
                     value={taskDescription}
                     onChange={(e) => setTaskDescription(e.target.value)}
-                    disabled={!canEditOtherFields}
+                    disabled={!userCanEdit}
                     rows={3}
                     className='text-xs resize-none'
                   />

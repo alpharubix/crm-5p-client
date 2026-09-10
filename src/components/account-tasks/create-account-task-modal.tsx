@@ -235,14 +235,22 @@ export default function CreateAccountTaskModal({
     fixedAccountName || '',
   );
   const [taskType, setTaskType] = useState<TaskType>('Call');
-  const [taskStatus, setTaskStatus] = useState<TaskStatus>('Unassigned');
+  const [taskStatus, setTaskStatus] = useState<TaskStatus>('');
   const [targetAccountStatus, setTargetAccountStatus] =
-    useState<TargetAccountStatus>('Awareness');
+    useState<TargetAccountStatus>('');
   const [targetCallBackDateTime, setTargetCallBackDateTime] = useState<Date>();
   const [taskDescription, setTaskDescription] = useState('');
   const [taskAssignedDateTime, setTaskAssignedDateTime] = useState('');
   const [taskDueDateTime, setTaskDueDateTime] = useState('');
   const [isSearchingAccount, setIsSearchingAccount] = useState(false);
+
+  const toLocalISOString = (dateInput?: string | Date | null) => {
+    if (!dateInput) return '';
+    const dt = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    if (isNaN(dt.getTime())) return '';
+    const offset = dt.getTimezoneOffset() * 60000;
+    return new Date(dt.getTime() - offset).toISOString().slice(0, 16);
+  };
 
   const { user } = useAuth();
 
@@ -354,7 +362,12 @@ export default function CreateAccountTaskModal({
         target_call_back_date_time: targetCallBackDateTime
           ? targetCallBackDateTime.toISOString()
           : null,
-        task_assigned_date_time: taskAssignedDateTime
+        task_assigned_date_time:
+          taskStatus != 'Unassigned' && !taskAssignedDateTime
+            ? new Date().toISOString()
+            : taskStatus === 'Unassigned'
+              ? null
+              : taskAssignedDateTime
           ? new Date(taskAssignedDateTime).toISOString()
           : null,
         task_due_date_time: taskDueDateTime
@@ -802,6 +815,7 @@ export default function CreateAccountTaskModal({
                 <Select
                   value={taskType}
                   onValueChange={(val: TaskType) => setTaskType(val)}
+                  required={true}
                 >
                   <SelectTrigger className='h-9 text-xs'>
                     <SelectValue placeholder='Select Task Type' />
@@ -817,10 +831,19 @@ export default function CreateAccountTaskModal({
               </div>
 
               <div className='space-y-1.5'>
-                <Label className='text-xs font-medium'>Task Status *</Label>
+                <Label className='text-xs font-medium'>Task Status</Label>
                 <Select
                   value={taskStatus}
-                  onValueChange={(val: TaskStatus) => setTaskStatus(val)}
+                  onValueChange={(val: TaskStatus) => {
+                    setTaskStatus(val);
+                    if (val !== 'Unassigned') {
+                      if (!taskAssignedDateTime) {
+                        setTaskAssignedDateTime(toLocalISOString(new Date()));
+                      }
+                    } else if (val === 'Unassigned') {
+                      setTaskAssignedDateTime('');
+                    }
+                  }}
                 >
                   <SelectTrigger className='h-9 text-xs'>
                     <SelectValue placeholder='Select Task Status' />
@@ -839,7 +862,7 @@ export default function CreateAccountTaskModal({
 
               <div className='space-y-1.5'>
                 <Label className='text-xs font-medium'>
-                  Targeted Account Status *
+                  Targeted Account Status
                 </Label>
                 <Select
                   value={targetAccountStatus}
@@ -866,13 +889,16 @@ export default function CreateAccountTaskModal({
                     <SelectItem value='Assessment'>Assessment</SelectItem>
                     <SelectItem value='Lender Review'>Lender Review</SelectItem>
                     <SelectItem value='On Hold'>On Hold</SelectItem>
-                    <SelectItem value='business closed'>Business Closed</SelectItem>
+                    <SelectItem value='business closed'>
+                      Business Closed
+                    </SelectItem>
                     <SelectItem value='Not Interested'>
                       Not Interested
                     </SelectItem>
                     <SelectItem value='Location Unserviceable'>
                       Location Unserviceable
                     </SelectItem>
+                    <SelectItem value='N/A'>N/A</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
