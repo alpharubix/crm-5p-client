@@ -100,7 +100,7 @@ const ExportCenter = () => {
     'Lender Review',
     'Not Interested',
     'Location Unserviceable',
-    'business closed'
+    'Business Closed'
   ]
 
   const accountStages = [

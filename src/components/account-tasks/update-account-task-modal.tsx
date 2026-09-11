@@ -39,6 +39,7 @@ import { useAuth } from '@/context/auth-context';
 import users from '@/utils/users.json';
 import DateField from '../shared/date-field';
 import usersData from '@/utils/users.json';
+import { extractErrorMessage } from '@/utils/error-extractor';
 
 function formatDate(dateStr?: string | null): string {
   if (!dateStr) return 'N/A';
@@ -212,7 +213,12 @@ export default function UpdateAccountTaskModal({
         },
       );
 
-      if (!res.ok) throw new Error('Failed to update task');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(
+          extractErrorMessage(errorData, 'Failed to update task'),
+        );
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -223,8 +229,8 @@ export default function UpdateAccountTaskModal({
       });
       onClose();
     },
-    onError: () => {
-      toast.error('Failed to update task');
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to update task');
     },
   });
 
@@ -248,7 +254,12 @@ export default function UpdateAccountTaskModal({
         },
       );
 
-      if (!res.ok) throw new Error('Failed to mark task as completed');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(
+          extractErrorMessage(errorData, 'Failed to mark task as completed'),
+        );
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -259,8 +270,8 @@ export default function UpdateAccountTaskModal({
       });
       onClose();
     },
-    onError: () => {
-      toast.error('Failed to mark task as completed');
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to mark task as completed');
     },
   });
 
@@ -363,7 +374,7 @@ export default function UpdateAccountTaskModal({
         'On Hold',
         'Not Interested',
         'Location Unserviceable',
-        'business closed',
+        'Business Closed',
         'N/A',
       ]
     : [
@@ -378,8 +389,8 @@ export default function UpdateAccountTaskModal({
         'On Hold',
         'Not Interested',
         'Location Unserviceable',
-        'business closed',
-        'N/A'
+        'Business Closed',
+        'N/A',
       ];
 
   const targetAccountStatusOptions =

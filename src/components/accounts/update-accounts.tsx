@@ -38,6 +38,7 @@ import {
 } from '@/validators/updateAccount.schema';
 import { ENV } from '@/conf';
 import { formatExactDate } from '@/utils/date-formatter';
+import { extractErrorMessage } from '@/utils/error-extractor';
 import users from '@/utils/users.json';
 import {
   Plus,
@@ -362,7 +363,7 @@ function mapFormToApi(
   ) {
     payload.business_details = {
       registration_type: formData.businessRegistrationType || null,
-      vintage_years: parseInt(formData.businessVintage) || 0,
+      vintage_years: parseInt(String(formData.businessVintage || '0')) || 0,
       suppliers: formData.suppliers || null,
       description: formData.description || null,
       type_of_business: formData.typeOfBusiness || null,
@@ -393,7 +394,9 @@ function mapFormToApi(
       pincode: formData.businessPincode || null,
       years_residing:
         parseInt(
-          formData.businessYearsResiding || formData.noOfBusinessYears,
+          String(
+            formData.businessYearsResiding || formData.noOfBusinessYears || '0',
+          ),
         ) || 0,
       gps_location:
         formData.businessGpsLocation || formData.gpsLocation || null,
@@ -421,7 +424,9 @@ function mapFormToApi(
       country: formData.applicantCountry || 'India',
       pincode: formData.applicantPincode || formData.applicantCode || null,
       years_residing:
-        parseInt(formData.applicantYearsResiding || formData.noOfYears) || 0,
+        parseInt(
+          String(formData.applicantYearsResiding || formData.noOfYears || '0'),
+        ) || 0,
       gps_location: formData.applicantGpsLocation || null,
       ownership_type: formData.applicantOwnership || null,
     };
@@ -456,7 +461,11 @@ function mapFormToApi(
       pincode: formData.coApplicantPincode || formData.coApplicantCode || null,
       years_residing:
         parseInt(
-          formData.coApplicantYearsResiding || formData.coApplicantYears,
+          String(
+            formData.coApplicantYearsResiding ||
+              formData.coApplicantYears ||
+              '0',
+          ),
         ) || 0,
       gps_location: formData.coApplicantGpsLocation || null,
       ownership_type: formData.coApplicantOwnership || null,
@@ -655,7 +664,7 @@ export default function UpdateAccounts() {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '_');
-  const isSuperAdmin = ['super_admin'].includes(rawRole);
+  const isAllowedActive = ['super_admin', 'admin'].includes(rawRole);
 
   const isAllow =
     user?.role === 'super_admin' ||
@@ -674,6 +683,7 @@ export default function UpdateAccounts() {
     trigger,
     reset,
     control,
+    setError,
     formState: { errors, isDirty, dirtyFields },
   } = form;
 
@@ -743,7 +753,11 @@ export default function UpdateAccounts() {
         credentials: 'include',
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error('Failed to update account');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        const errorMsg = extractErrorMessage(errorData, 'Failed to update account');
+        throw new Error(errorMsg);
+      }
       return res.json();
     },
     onSuccess: (data, variables) => {
@@ -751,8 +765,24 @@ export default function UpdateAccounts() {
       setIsEdit(false);
       queryClient.invalidateQueries({ queryKey: ['account', id] });
     },
-    onError: () => {
-      toast.error('Failed to update account');
+    onError: (err: any) => {
+      const errorMsg = err?.message || 'Failed to update account';
+      toast.error(errorMsg);
+
+      // If backend reports date-related error (e.g. past call back date), highlight the field directly
+      if (
+        errorMsg.toLowerCase().includes('date') ||
+        errorMsg.toLowerCase().includes('past') ||
+        errorMsg.toLowerCase().includes('call_back')
+      ) {
+        setError('callBackDate', {
+          type: 'server',
+          message: errorMsg,
+        });
+        if (activeTab !== 'overview') {
+          setActiveTab('overview');
+        }
+      }
     },
   });
 
@@ -794,6 +824,76 @@ export default function UpdateAccounts() {
 
   const onSave = (values: UpdateAccountFormValues) => {
     updateMutation.mutate(values);
+  };
+
+  const onInvalid = (fieldErrors: any) => {
+    console.error('Validation errors:', fieldErrors);
+
+    const fieldLabelMap: Record<string, string> = {
+      callBackDate: 'Call Back Date/Time',
+      source: 'Source',
+      sourceType: 'Source Type',
+      sourceDate: 'Source Date',
+      sourceDescription: 'Source Description',
+      distributorCode: 'Distributor Code',
+      accountStatus: 'Account Status',
+      accountStage: 'Account Stage',
+      businessStatus: 'Business Status',
+      accountOwnerId: 'Account Owner',
+      profileType: 'Profile Type',
+      firstName: 'First Name',
+      lastName: 'Last Name',
+      accountName: 'Account Name',
+      phone: 'Phone Number',
+      email: 'Email',
+      businessCity: 'Business City',
+      businessState: 'Business State',
+      businessPincode: 'Business Pincode',
+      employerName: 'Employer Name',
+      businessVintage: 'Business Vintage',
+      employmentVintage: 'Employment Vintage',
+    };
+
+    const errorEntries = Object.entries(fieldErrors);
+    if (errorEntries.length > 0) {
+      const descriptions = errorEntries.map(([key, err]: [string, any]) => {
+        const label = fieldLabelMap[key] || key;
+        const msg = err?.message || 'is required';
+        return `${label}: ${msg}`;
+      });
+
+      toast.error(
+        `Please fix ${errorEntries.length} required field${errorEntries.length > 1 ? 's' : ''}`,
+        {
+          description:
+            descriptions.slice(0, 4).join(' • ') +
+            (descriptions.length > 4
+              ? ` (+${descriptions.length - 4} more)`
+              : ''),
+          duration: 8000,
+        },
+      );
+    }
+
+    if (activeTab !== 'overview') {
+      setActiveTab('overview');
+    }
+
+    const firstErrorKey = Object.keys(fieldErrors)[0];
+    if (firstErrorKey) {
+      setTimeout(() => {
+        const el =
+          document.querySelector(`[name="${firstErrorKey}"]`) ||
+          document.getElementById(firstErrorKey) ||
+          document.querySelector('.text-destructive');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if ('focus' in el && typeof (el as any).focus === 'function') {
+            (el as any).focus();
+          }
+        }
+      }, 100);
+    }
   };
 
   const { data: usersData } = useQuery({
@@ -893,6 +993,7 @@ export default function UpdateAccounts() {
               Account Owner:
             </span>
             {userCanEdit && isEdit ? (
+              <div className='flex flex-col'>
               <Controller
                 control={control}
                 name='accountOwnerId'
@@ -914,6 +1015,12 @@ export default function UpdateAccounts() {
                   </Select>
                 )}
               />
+                {errors.accountOwnerId?.message && (
+                  <span className='text-xs text-destructive mt-0.5'>
+                    {errors.accountOwnerId.message}
+                  </span>
+                )}
+              </div>
             ) : (
               <span className='text-sm font-bold text-primary'>
                 {ownerName}
@@ -938,7 +1045,7 @@ export default function UpdateAccounts() {
               size='sm'
               className='h-8 cursor-pointer'
               disabled={!isDirty || updateMutation.isPending}
-              onClick={handleSubmit(onSave)}
+              onClick={handleSubmit(onSave, onInvalid)}
             >
               {updateMutation.isPending ? (
                 <Spinner className='mr-2 h-3.5 w-3.5' />
@@ -961,7 +1068,7 @@ export default function UpdateAccounts() {
       </div>
 
       <Card className='overflow-hidden space-y-1'>
-        {/* ================= Relational Tabs (Overview, Contacts, Deals, Documentation, Tickets, Revenue, Analysis) ================= */}
+        {/* ================= Relational Tabs (Contacts, Deals, Documentation, Tickets, Revenue, Analysis) ================= */}
         <div className='mt-6 px-4 pb-6'>
           <Tabs
             defaultValue='overview'
@@ -1047,8 +1154,8 @@ export default function UpdateAccounts() {
                   value='tasks'
                   className='data-[state=active]:bg-background data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-border rounded-lg px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all'
                 >
-                  <CheckSquare className='hpc-4 w-4 text-orange-500' />
-                  <span>Tasks</span>
+                  <CheckSquare className='h-4 w-4 text-blue-600' />
+                  <span>Account Tasks</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -1691,7 +1798,7 @@ export default function UpdateAccounts() {
                               'On Hold',
                               'Not Interested',
                               'Location Unserviceable',
-                              'business closed',
+                              'Business Closed',
                             ]}
                             onChange={field.onChange}
                           />
