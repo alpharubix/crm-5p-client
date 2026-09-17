@@ -14,6 +14,7 @@ import SelectField from '@/components/shared/select-field'
 import DateField from '@/components/shared/date-field'
 import NoteDialog from '@/components/shared/note-dialog'
 import { NestedComments } from '../nested-notes'
+import DealTasksTab from './deal-tasks-tab'
 import { Spinner } from '@/components/ui/spinner'
 
 import {
@@ -1026,6 +1027,15 @@ export default function UpdateDeals({
               ))}
             </div>
           )}
+        </CardContent>
+
+        {/* ================= Deal Tasks ================= */}
+        <SectionHeader title='Deal Tasks' />
+        <CardContent className='p-4 border-b'>
+          <DealTasksTab
+            dealId={id!}
+            dealName={(dealData as any)?.deal_name || dealData?.account_name}
+          />
         </CardContent>
 
         <NestedComments
