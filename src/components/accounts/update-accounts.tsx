@@ -2767,10 +2767,17 @@ export default function UpdateAccounts() {
                 {/* ================= Call Recording ================= */}
                 <SectionHeader title='Call Recording' />
                 <CardContent className='p-0'>
-                  <TeleCRMActivityHistory
-                    leadPhone={data?.phone || accountData?.phone}
-                    activities={accountData?.telecrm_activities}
-                  />
+                  {accountData?.telecrm_activities.length > 0 && (
+                    <TeleCRMActivityHistory
+                      leadPhone={data?.phone || accountData?.phone}
+                      activities={accountData?.telecrm_activities}
+                    />
+                  )}
+                  {accountData?.telecrm_activities.length <= 0 && (
+                    <p className='text-center text-muted-foreground'>
+                      No call recordings Data Found
+                    </p>
+                  )}
                 </CardContent>
 
                 <NestedComments
