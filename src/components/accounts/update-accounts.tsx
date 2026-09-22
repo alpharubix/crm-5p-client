@@ -74,6 +74,7 @@ import {
 import { useAuth } from '@/context/auth-context';
 import AccountTasksTab from './account-tasks-tab';
 import { NestedComments } from '../nested-notes';
+import TeleCRMActivityHistory from '@/components/accounts/tele-crm-activity';
 
 const LANGUAGE_OPTIONS = [
   'English',
@@ -2761,6 +2762,15 @@ export default function UpdateAccounts() {
                       )}
                     </FieldRow>
                   </div>
+                </CardContent>
+
+                {/* ================= Call Recording ================= */}
+                <SectionHeader title='Call Recording' />
+                <CardContent className='p-0'>
+                  <TeleCRMActivityHistory
+                    leadPhone={data?.phone || accountData?.phone}
+                    activities={accountData?.telecrm_activities}
+                  />
                 </CardContent>
 
                 <NestedComments
