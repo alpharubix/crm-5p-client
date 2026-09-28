@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import SectionHeader from '@/components/shared/section-header'
 import FieldRow from '@/components/shared/field-row'
 import SelectField from '@/components/shared/select-field'
@@ -53,6 +54,8 @@ function mapDealToForm(apiData: any): UpdateDealFormValues {
     ticketLogin: apiData.ticket_login || '',
     dealStage: apiData.deal_stage || '',
     dealStatus: apiData.deal_status || '',
+    dealApproval: apiData.deal_approval || '',
+    dealDescription: apiData.deal_description || '',
     dealExpectedClosing: apiData.deal_expected_closing || '',
     dealStatusClosing: apiData.deal_status_closing || '',
     lenderLoginType: apiData.lender_login_type || '',
@@ -167,6 +170,11 @@ function mapFormToApi(
     ticket_login: { value: formData.ticketLogin, key: 'ticketLogin' },
     deal_stage: { value: formData.dealStage, key: 'dealStage' },
     deal_status: { value: formData.dealStatus, key: 'dealStatus' },
+    deal_approval: { value: formData.dealApproval, key: 'dealApproval' },
+    deal_description: {
+      value: formData.dealDescription,
+      key: 'dealDescription',
+    },
     disbursed_amount: {
       value: formData.disbursedAmount,
       key: 'disbursedAmount',
@@ -266,6 +274,17 @@ export default function UpdateDeals({
   ]
 
   const isEmailAuthorized = allowedEmails.includes(user?.email!)
+  const allowedApprovalEmails = [
+    'prathap@r1xchange.com',
+    'namrata.srivastava@r1xchange.com',
+    'sutapa.roy@r1xchange.com',
+    'prathap@5pointcredit.com',
+    'namrata.srivastava@5pointcredit.com',
+    'sutapa.roy@5pointcredit.com',
+  ]
+  const isApprovalAuthorized = allowedApprovalEmails.includes(
+    (user?.email || '').toLowerCase().trim(),
+  )
   const {
     register,
     handleSubmit,
@@ -589,6 +608,7 @@ export default function UpdateDeals({
                   'Secured Loan',
                   'Secured BT',
                   'Vehicle Loan',
+                  'CGTMSE',
                 ]}
                 value={formValues.loanType as string}
                 onChange={(value) =>
@@ -636,6 +656,34 @@ export default function UpdateDeals({
                     )
                   : '—'}
               </span>
+            </FieldRow>
+            <FieldRow
+              label='Expected Closing Date *'
+              error={errors.dealExpectedClosing?.message}
+            >
+              <DateField
+                isEdit={isEdit}
+                showTime={false}
+                value={
+                  formValues.dealExpectedClosing
+                    ? new Date(formValues.dealExpectedClosing)
+                    : undefined
+                }
+                onChange={(date) => {
+                  if (!date) {
+                    setValue('dealExpectedClosing', '')
+                    return
+                  }
+
+                  const year = date.getFullYear()
+                  const month = String(date.getMonth() + 1).padStart(2, '0')
+                  const day = String(date.getDate()).padStart(2, '0')
+
+                  setValue('dealExpectedClosing', `${year}-${month}-${day}`, {
+                    shouldDirty: true,
+                  })
+                }}
+              />
             </FieldRow>
           </div>
           <div>
@@ -702,81 +750,19 @@ export default function UpdateDeals({
                 }
               />
             </FieldRow>
-            <FieldRow label='Lender Name' error={errors.lenderName?.message}>
-              <div className='relative'>
-                {isEdit ? (
-                  <Input
-                    value={lenderSearch}
-                    onChange={(e) => {
-                      setLenderSearch(e.target.value)
-                      setLenderOpen(true)
-                    }}
-                    onFocus={() => setLenderOpen(true)}
-                    onBlur={() => setTimeout(() => setLenderOpen(false), 200)}
-                    placeholder='Search Lender...'
-                  />
-                ) : (
-                  <span>{formValues.lenderName || '—'}</span>
-                )}
-                {lenderOpen && filteredLenders.length > 0 && (
-                  <div className='absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto'>
-                    {filteredLenders.map((name: string) => (
-                      <div
-                        key={name}
-                        className='p-2 hover:bg-muted cursor-pointer text-sm'
-                        onMouseDown={() => {
-                          setValue('lenderName', name, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          })
-                          setLenderSearch(name)
-                          setLenderOpen(false)
-                        }}
-                      >
-                        {name}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </FieldRow>
-            <FieldRow label='Partner Name' error={errors.partnerName?.message}>
+            <FieldRow label='Deal Approval'>
               <SelectField
-                isEdit={isEdit}
-                options={[
-                  'Rupifi Private Ltd',
-                  'FlexiLoans Technologies Private Ltd',
-                  'Recur Club Technologies Private Ltd',
-                  'Rupeeboss Financial Services Pvt Ltd',
-                  'Others',
-                ]}
-                value={(formValues.partnerName as string) || '—'}
+                isEdit={isEdit && isApprovalAuthorized}
+                options={['Pending Approval', 'Approved', 'Disapproved']}
+                value={(formValues.dealApproval as string) || ''}
                 onChange={(value) =>
-                  setValue('partnerName', value, {
+                  setValue('dealApproval', value, {
                     shouldValidate: true,
                     shouldDirty: true,
                   })
                 }
               />
             </FieldRow>
-            <FieldRow
-              label='Lender Login Type'
-              error={errors.lenderLoginType?.message}
-            >
-              <SelectField
-                isEdit={isEdit}
-                options={['Direct', 'Partner']}
-                value={(formValues.lenderLoginType as string) || '—'}
-                onChange={(value) =>
-                  setValue('lenderLoginType', value, {
-                    // Update lenderLoginType
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
-                }
-              />
-            </FieldRow>
-            
             <FieldRow label='Deal Status Closing'>
               <span className='text-sm font-medium text-muted-foreground'>
                 {formValues.dealStatusClosing
@@ -785,32 +771,20 @@ export default function UpdateDeals({
               </span>
             </FieldRow>
             <FieldRow
-              label='Expected Closing Date *'
-              error={errors.dealExpectedClosing?.message}
+              label='Deal Description'
+              error={errors.dealDescription?.message}
             >
-              <DateField
-                isEdit={isEdit}
-                showTime={false}
-                value={
-                  formValues.dealExpectedClosing
-                    ? new Date(formValues.dealExpectedClosing)
-                    : undefined
-                }
-                onChange={(date) => {
-                  if (!date) {
-                    setValue('dealExpectedClosing', '')
-                    return
-                  }
-
-                  const year = date.getFullYear()
-                  const month = String(date.getMonth() + 1).padStart(2, '0')
-                  const day = String(date.getDate()).padStart(2, '0')
-
-                  setValue('dealExpectedClosing', `${year}-${month}-${day}`, {
-                    shouldDirty: true,
-                  })
-                }}
-              />
+              {isEdit ? (
+                <Textarea
+                  {...register('dealDescription')}
+                  placeholder='Enter deal description...'
+                  className='min-h-[72px] resize-y text-sm'
+                />
+              ) : (
+                <span className='text-sm whitespace-pre-wrap text-foreground'>
+                  {formValues.dealDescription || '—'}
+                </span>
+              )}
             </FieldRow>
           </div>
         </CardContent>
