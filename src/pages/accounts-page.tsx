@@ -152,6 +152,13 @@ const TYPE_OF_BUSINESS_OPTIONS: Option[] = [
   { value: 'LLP', label: 'LLP' },
 ];
 
+const BUSINESS_STATUS_OPTIONS: Option[] = [
+  { value: 'Active', label: 'Active' },
+  { value: 'Inactive', label: 'Inactive' },
+  { value: 'Not Sure', label: 'Not Sure' },
+  { value: 'NA', label: 'NA' },
+];
+
 const DEFAULT_COLUMNS = [
   { id: 'account_name', label: 'Account Name', selected: true },
   { id: 'account_owner', label: 'Account Owner', selected: true },
@@ -1922,6 +1929,19 @@ export default function AccountsPage() {
                 value={filters.phone}
                 onChange={(e) => handleFilterChange('phone', e.target.value)}
                 className='h-9 text-xs rounded-lg'
+              />
+            </div>
+
+            {/* Business Status */}
+            <div className='space-y-1.5'>
+              <Label className='text-xs font-semibold text-foreground'>
+                Business Status
+              </Label>
+              <MultiSelect
+                options={BUSINESS_STATUS_OPTIONS}
+                value={filters.businessStatus}
+                onChange={(val) => handleFilterChange('businessStatus', val)}
+                placeholder='Select Business Status...'
               />
             </div>
 

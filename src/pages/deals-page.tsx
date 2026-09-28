@@ -62,14 +62,13 @@ const DEFAULT_COLUMNS = [
   { id: 'deal_name', label: 'Deal Name', selected: true },
   { id: 'account_name', label: 'Account Name', selected: true },
   { id: 'deal_owner', label: 'Deal Owner', selected: true },
-  { id: 'lender_name', label: 'Lender Name', selected: true },
+  { id: 'deal_approval', label: 'Deal Approval', selected: true },
   { id: 'case_status', label: 'Case Status', selected: true },
   { id: 'ticket_login', label: 'Ticket Login', selected: true },
   { id: 'type_of_loan', label: 'Type of Loan', selected: true },
   { id: 'type_of_case_login', label: 'Type of Case Login', selected: true },
   { id: 'deal_type', label: 'Deal Type', selected: true },
   { id: 'amount_required', label: 'Amount Required', selected: true },
-  { id: 'partner_name', label: 'Partner Name', selected: true },
   {
     id: 'deal_expected_closing',
     label: 'Expected Closing Date',
@@ -95,6 +94,7 @@ const LOAN_TYPES = [
   'Secured Loan',
   'Secured BT',
   'Vehicle Loan',
+  'CGTMSE',
 ]
 
 const CASE_STATUSES = [
@@ -657,12 +657,28 @@ export default function DealsPage() {
                                   </TableCell>
                                 )
 
-                              case 'lender_name':
+                              case 'deal_approval': {
+                                const approval = deal.deal_approval
+                                let badgeClass =
+                                  'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400'
+                                if (approval === 'Approved') {
+                                  badgeClass =
+                                    'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                } else if (approval === 'Disapproved') {
+                                  badgeClass =
+                                    'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400'
+                                }
                                 return (
-                                  <TableCell key={col.id} className='text-xs text-muted-foreground py-3.5'>
-                                    {deal.lender_name || '—'}
+                                  <TableCell key={col.id} className='py-3.5'>
+                                    <Badge
+                                      variant='outline'
+                                      className={`rounded-full px-3 py-0.5 text-[11px] font-medium border shadow-2xs ${badgeClass}`}
+                                    >
+                                      {approval}
+                                    </Badge>
                                   </TableCell>
                                 )
+                              }
 
                               case 'case_status':
                                 return (
@@ -690,7 +706,7 @@ export default function DealsPage() {
                               case 'type_of_loan':
                                 return (
                                   <TableCell key={col.id} className='text-xs text-slate-700 dark:text-slate-300 font-medium py-3.5'>
-                                    {deal.type_of_loan || '—'}
+                                    {deal.type_of_loan || deal.loan_type || '—'}
                                   </TableCell>
                                 )
 
@@ -845,16 +861,6 @@ export default function DealsPage() {
                 value={filters.accountName}
                 onChange={(e) => handleFilterChange('accountName', e.target.value)}
                 className='h-9 text-xs rounded-lg'
-              />
-            </div>
-
-            <div className='space-y-1.5'>
-              <Label className='text-xs font-semibold text-foreground'>Lender Name</Label>
-              <MultiSelect
-                options={LENDER_OPTIONS}
-                value={filters.lenderName}
-                onChange={(val) => handleFilterChange('lenderName', val)}
-                placeholder='Select Lenders...'
               />
             </div>
 
